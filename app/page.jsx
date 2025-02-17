@@ -46,10 +46,10 @@ export default function Home() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1 }}
         >
-          <h1 className="text-6xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 to-pink-600 drop-shadow-lg">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 to-pink-600 drop-shadow-lg">
             Discover & Book Luxury Dining
           </h1>
-          <p className="text-gray-300 mt-4 text-lg">
+          <p className="text-gray-300 mt-4 text-base sm:text-lg">
             Reserve your exclusive dining experience at the finest restaurants.
           </p>
         </motion.div>
@@ -94,7 +94,7 @@ export default function Home() {
                   {restaurant.name}
                 </h2>
                 <p className="text-gray-300">{restaurant.location}</p>
-                <Button className="mt-4 w-full bg-gradient-to-r from-green-400 to-green-600 hover:from-green-500 hover:to-green-700 transition-all">
+                <Button className="mt-4 w-full bg-gradient-to-r from-yellow-400 to-orange-600 hover:from-orange-500 hover:to-orange-700 transition-all">
                   Book Now
                 </Button>
               </CardContent>
