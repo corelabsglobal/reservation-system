@@ -12,33 +12,25 @@ export default function Home() {
     {
       id: 1,
       name: "The Grand Dine",
-      location: "Downtown, LA",
+      location: "Tema, Accra",
       image: "/images/background.jpeg",
     },
     {
       id: 2,
       name: "Skyline Lounge",
-      location: "New York City",
+      location: "Ahodwo, Kumasi",
       image: "/images/grand-dine.jpeg",
     },
     {
       id: 3,
       name: "Golden Fork",
-      location: "San Francisco",
+      location: "Cantonments",
       image: "/images/golden-lounge.jpeg",
     },
   ];
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-br from-gray-900 to-black text-white px-6 py-10 overflow-hidden"
-      //style={{
-        //backgroundImage: "url('/images/golden-lounge.jpeg')",
-        //backgroundSize: "cover",
-        //backgroundPosition: "center",
-        //backgroundAttachment: "fixed",
-        //opacity: 0.9,
-      //}}
-    >
+    <div className="relative min-h-screen bg-gradient-to-br from-gray-900 to-black text-white px-6 py-10 overflow-hidden">
       <div
         className="absolute inset-0 bg-cover bg-center bg-fixed opacity-50"
         style={{ backgroundImage: "url('/images/background.jpeg')" }}
