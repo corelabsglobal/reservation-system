@@ -51,7 +51,7 @@ export default function SignIn() {
         <div className="absolute top-14 text-5xl font-serif italic text-white opacity-90">
           <h1 className="text-center">SerenePath</h1>
         </div>
-        <Card className="w-full max-w-md p-6">
+        <Card className="w-full max-w-md p-6 mx-4 sm:mx-0">
           <CardHeader>
             <CardTitle className="text-2xl">Sign In</CardTitle>
           </CardHeader>
