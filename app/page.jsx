@@ -13,13 +13,13 @@ export default function Home() {
       id: 1,
       name: "The Grand Dine",
       location: "Downtown, LA",
-      image: "/images/grand-dine.jpeg",
+      image: "/images/background.jpeg",
     },
     {
       id: 2,
       name: "Skyline Lounge",
       location: "New York City",
-      image: "/images/lounge.jpeg",
+      image: "/images/grand-dine.jpeg",
     },
     {
       id: 3,
@@ -30,7 +30,19 @@ export default function Home() {
   ];
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-br from-gray-900 to-black text-white px-6 py-10 overflow-hidden">
+    <div className="relative min-h-screen bg-gradient-to-br from-gray-900 to-black text-white px-6 py-10 overflow-hidden"
+      //style={{
+        //backgroundImage: "url('/images/golden-lounge.jpeg')",
+        //backgroundSize: "cover",
+        //backgroundPosition: "center",
+        //backgroundAttachment: "fixed",
+        //opacity: 0.9,
+      //}}
+    >
+      <div
+        className="absolute inset-0 bg-cover bg-center bg-fixed opacity-50"
+        style={{ backgroundImage: "url('/images/background.jpeg')" }}
+      />
       {/* Floating Light Effect */}
       <motion.div
         className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle,rgba(255,255,255,0.2)_0%,rgba(0,0,0,0)_70%)] opacity-40 pointer-events-none"
