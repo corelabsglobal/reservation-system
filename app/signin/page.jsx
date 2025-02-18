@@ -44,10 +44,13 @@ export default function SignIn() {
       {/* Background image wrapper */}
       <div
         className="absolute inset-0 bg-cover bg-center bg-fixed opacity-50"
-        style={{ backgroundImage: "url('/images/lounge.jpeg')" }}
+        style={{ backgroundImage: "url('/images/grand-dine.jpeg')" }}
       />
       {/* Content container */}
       <div className="relative z-10 flex items-center justify-center min-h-screen">
+        <div className="absolute top-14 text-5xl font-serif italic text-white opacity-90">
+          <h1 className="text-center">SerenePath</h1>
+        </div>
         <Card className="w-full max-w-md p-6">
           <CardHeader>
             <CardTitle className="text-2xl">Sign In</CardTitle>
