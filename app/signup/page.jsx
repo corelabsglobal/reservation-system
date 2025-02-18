@@ -26,7 +26,7 @@ export default function SignUp() {
 
   const onSubmit = async (data) => {
     setLoading(true);
-    const { email, password } = data;
+    const { name, email, password } = data;
 
     const { error } = await supabase.auth.signUp({ email, password });
 
@@ -50,22 +50,25 @@ export default function SignUp() {
         <div className="absolute top-14 text-5xl font-serif italic text-white opacity-90">
           <h1 className="text-center">SerenePath</h1>
         </div>
-        <Card className="w-full max-w-md p-6">
+        <Card className="w-full max-w-md p-6 mx-4 sm:mx-0">
             <CardHeader>
             <CardTitle className="text-2xl">Sign Up</CardTitle>
             </CardHeader>
             <CardContent>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                 <div>
-                <Input {...register("email")} type="email" placeholder="Email" className="w-full" />
-                {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
+                    <Input {...register("name")} type="text" placeholder="Name" className="w-full" />
                 </div>
                 <div>
-                <Input {...register("password")} type="password" placeholder="Password" className="w-full" />
-                {errors.password && <p className="text-red-500 text-sm">{errors.password.message}</p>}
+                    <Input {...register("email")} type="email" placeholder="Email" className="w-full" />
+                    {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
+                </div>
+                <div>
+                    <Input {...register("password")} type="password" placeholder="Password" className="w-full" />
+                    {errors.password && <p className="text-red-500 text-sm">{errors.password.message}</p>}
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? <Loader2 className="animate-spin" /> : "Sign Up"}
+                    {loading ? <Loader2 className="animate-spin" /> : "Sign Up"}
                 </Button>
             </form>
             <p className="mt-4 text-center text-gray-400">
