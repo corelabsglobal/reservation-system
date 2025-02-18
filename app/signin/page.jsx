@@ -19,7 +19,7 @@ const signInSchema = z.object({
 export default function SignIn() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  
+
   const { register, handleSubmit, formState: { errors } } = useForm({
     resolver: zodResolver(signInSchema),
   });
@@ -35,35 +35,43 @@ export default function SignIn() {
     if (error) {
       alert(error.message);
     } else {
-      router.push("/dashboard");
+      router.push("/");
     }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white">
-      <Card className="w-full max-w-md p-6">
-        <CardHeader>
-          <CardTitle className="text-2xl">Sign In</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div>
-              <Input {...register("email")} type="email" placeholder="Email" className="w-full" />
-              {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
-            </div>
-            <div>
-              <Input {...register("password")} type="password" placeholder="Password" className="w-full" />
-              {errors.password && <p className="text-red-500 text-sm">{errors.password.message}</p>}
-            </div>
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? <Loader2 className="animate-spin" /> : "Sign In"}
-            </Button>
-          </form>
-          <p className="mt-4 text-center text-gray-400">
-            Don't have an account? <a href="/signup" className="text-blue-400">Sign up</a>
-          </p>
-        </CardContent>
-      </Card>
+    <div className="relative min-h-screen bg-gray-900 text-white">
+      {/* Background image wrapper */}
+      <div
+        className="absolute inset-0 bg-cover bg-center bg-fixed opacity-50"
+        style={{ backgroundImage: "url('/images/lounge.jpeg')" }}
+      />
+      {/* Content container */}
+      <div className="relative z-10 flex items-center justify-center min-h-screen">
+        <Card className="w-full max-w-md p-6">
+          <CardHeader>
+            <CardTitle className="text-2xl">Sign In</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+              <div>
+                <Input {...register("email")} type="email" placeholder="Email" className="w-full" />
+                {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
+              </div>
+              <div>
+                <Input {...register("password")} type="password" placeholder="Password" className="w-full" />
+                {errors.password && <p className="text-red-500 text-sm">{errors.password.message}</p>}
+              </div>
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? <Loader2 className="animate-spin" /> : "Sign In"}
+              </Button>
+            </form>
+            <p className="mt-4 text-center text-gray-400">
+              Don't have an account? <a href="/signup" className="text-blue-400">Sign up</a>
+            </p>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
