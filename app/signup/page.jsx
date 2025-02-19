@@ -12,32 +12,56 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 
 const signUpSchema = z.object({
+  name: z.string().min(1, { message: "Name is required" }),
   email: z.string().email({ message: "Invalid email address" }),
   password: z.string().min(6, { message: "Password must be at least 6 characters" }),
+  role: z.enum(["Customer", "Business Owner"], { message: "Please select an account type" }),
+  businessName: z.string().min(1, { message: "Business Name is required" }).optional(),
+  location: z.string().min(1, { message: "Location is required" }).optional(),
+}).refine((data) => {
+  if (data.role === "Business Owner") {
+    return !!data.businessName && !!data.location;
+  }
+  return true;
+}, {
+  message: "Business Name and Location are required for Business Owners",
+  path: ["businessName", "location"],
 });
 
 export default function SignUp() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   
-  const { register, handleSubmit, formState: { errors } } = useForm({
+  const { register, handleSubmit, formState: { errors }, watch } = useForm({
     resolver: zodResolver(signUpSchema),
   });
 
+  const selectedRole = watch("role");
+
   const onSubmit = async (data) => {
     setLoading(true);
-    const { name, email, password } = data;
+    const { name, email, password, role } = data;
 
     const { error } = await supabase.auth.signUp({ email, password });
 
-    setLoading(false);
-
     if (error) {
-      alert(error.message);
-    } else {
-      alert("Check your email for a confirmation link!");
-      router.push("/signin");
-    }
+        setLoading(false);
+        alert(error.message);
+        return;
+      }
+  
+      const { error: insertError } = await supabase
+        .from("users")
+        .insert([{ id: user.user.id, name, email, role }]);
+  
+      setLoading(false);
+  
+      if (insertError) {
+        alert(insertError.message);
+      } else {
+        alert("Check your email for a confirmation link!");
+        router.push("/signin");
+      }
   };
 
   return (
@@ -58,6 +82,7 @@ export default function SignUp() {
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                 <div>
                     <Input {...register("name")} type="text" placeholder="Name" className="w-full" />
+                    {errors.name && <p className="text-red-500 text-sm">{errors.name.message}</p>}
                 </div>
                 <div>
                     <Input {...register("email")} type="email" placeholder="Email" className="w-full" />
@@ -67,6 +92,27 @@ export default function SignUp() {
                     <Input {...register("password")} type="password" placeholder="Password" className="w-full" />
                     {errors.password && <p className="text-red-500 text-sm">{errors.password.message}</p>}
                 </div>
+                <div>
+                    <label className="block text-sm font-medium">Account Type</label>
+                    <select {...register("role")} className="w-full px-3 py-2 mt-1 border rounded bg-white text-gray-500">
+                        <option value="">Select Account Type</option>
+                        <option value="Customer">Customer</option>
+                        <option value="Business Owner">Business Owner</option>
+                    </select>
+                    {errors.role && <p className="text-red-500 text-sm">{errors.role.message}</p>}
+                </div>
+                {selectedRole === "Business Owner" && (
+                    <>
+                    <div>
+                        <Input {...register("businessName")} type="text" placeholder="Business Name" className="w-full" />
+                        {errors.businessName && <p className="text-red-500 text-sm">{errors.businessName.message}</p>}
+                    </div>
+                    <div>
+                        <Input {...register("location")} type="text" placeholder="Location" className="w-full" />
+                        {errors.location && <p className="text-red-500 text-sm">{errors.location.message}</p>}
+                    </div>
+                    </>
+                )}
                 <Button type="submit" className="w-full" disabled={loading}>
                     {loading ? <Loader2 className="animate-spin" /> : "Sign Up"}
                 </Button>
