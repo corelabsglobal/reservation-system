@@ -74,27 +74,27 @@ export default function SignUp() {
         <div className="absolute top-14 text-5xl font-serif italic text-white opacity-90">
           <h1 className="text-center">SerenePath</h1>
         </div>
-        <Card className="w-full max-w-md p-6 mx-4 sm:mx-0">
+        <Card className="w-full max-w-md p-6 mx-4 sm:mx-0 mt-20 sm:mt-1">
             <CardHeader>
             <CardTitle className="text-2xl">Sign Up</CardTitle>
             </CardHeader>
             <CardContent>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                 <div>
-                    <Input {...register("name")} type="text" placeholder="Name" className="w-full" />
+                    <Input {...register("name")} type="text" placeholder="Name" className="w-full text-sm sm:text-base py-2 sm:py-3 px-3 sm:px-4" />
                     {errors.name && <p className="text-red-500 text-sm">{errors.name.message}</p>}
                 </div>
                 <div>
-                    <Input {...register("email")} type="email" placeholder="Email" className="w-full" />
+                    <Input {...register("email")} type="email" placeholder="Email" className="w-full text-sm sm:text-base py-2 sm:py-3 px-3 sm:px-4" />
                     {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
                 </div>
                 <div>
-                    <Input {...register("password")} type="password" placeholder="Password" className="w-full" />
+                    <Input {...register("password")} type="password" placeholder="Password" className="w-full text-sm sm:text-base py-2 sm:py-3 px-3 sm:px-4" />
                     {errors.password && <p className="text-red-500 text-sm">{errors.password.message}</p>}
                 </div>
                 <div>
                     <label className="block text-sm font-medium">Account Type</label>
-                    <select {...register("role")} className="w-full px-3 py-2 mt-1 border rounded bg-white text-gray-500">
+                    <select {...register("role")} className="w-full text-sm sm:text-base px-3 py-2 border rounded bg-white text-gray-500">
                         <option value="">Select Account Type</option>
                         <option value="Customer">Customer</option>
                         <option value="Business Owner">Business Owner</option>
@@ -104,11 +104,11 @@ export default function SignUp() {
                 {selectedRole === "Business Owner" && (
                     <>
                     <div>
-                        <Input {...register("businessName")} type="text" placeholder="Business Name" className="w-full" />
+                        <Input {...register("businessName")} type="text" placeholder="Business Name" className="w-full text-sm sm:text-base py-2 sm:py-3 px-3 sm:px-4" />
                         {errors.businessName && <p className="text-red-500 text-sm">{errors.businessName.message}</p>}
                     </div>
                     <div>
-                        <Input {...register("location")} type="text" placeholder="Location" className="w-full" />
+                        <Input {...register("location")} type="text" placeholder="Location" className="w-full text-sm sm:text-base py-2 sm:py-3 px-3 sm:px-4" />
                         {errors.location && <p className="text-red-500 text-sm">{errors.location.message}</p>}
                     </div>
                     </>
