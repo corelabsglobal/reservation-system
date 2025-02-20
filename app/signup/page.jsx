@@ -142,17 +142,20 @@ export default function SignUp() {
   };
 
   return (
-    <div className="relative min-h-screen bg-gray-900 text-white">
+    <div className="relative min-h-screen flex flex-col justify-center items-center bg-gray-900 text-white">
       <Toaster />
+      
       <div
         className="absolute inset-0 bg-cover bg-center bg-fixed opacity-50"
         style={{ backgroundImage: "url('/images/signup.jpeg')" }}
       />
-      <div className="relative z-10 flex items-center justify-center min-h-screen">
-        <div className="absolute top-14 text-5xl font-serif italic text-white opacity-90">
-          <h1 className="text-center">SerenePath</h1>
-        </div>
-        <Card className="w-full max-w-md p-6 mx-4 sm:mx-0 mt-20 sm:mt-1">
+      
+      <div className="relative z-10 mt-8 sm:mt-12 text-4xl sm:text-5xl font-serif italic text-white opacity-90">
+        <h1 className="text-center">SerenePath</h1>
+      </div>
+
+      <div className="relative z-10 flex justify-center w-full">
+        <Card className="w-full max-w-md p-6 mx-4 sm:mx-0 mt-10 sm:mt-4 transition-all duration-300 ease-in-out">
           <CardHeader>
             <CardTitle className="text-2xl">Sign Up</CardTitle>
           </CardHeader>
@@ -162,16 +165,19 @@ export default function SignUp() {
                 <Input {...register("name")} type="text" placeholder="Name" className="w-full text-sm sm:text-base py-2 sm:py-3 px-3 sm:px-4" />
                 {errors.name && <p className="text-red-500 text-xs">{errors.name.message}</p>}
               </div>
+
               <div>
                 <Input {...register("email")} type="email" placeholder="Email" className="w-full text-sm sm:text-base py-2 sm:py-3 px-3 sm:px-4" />
                 {errors.email && <p className="text-red-500 text-xs">{errors.email.message}</p>}
               </div>
+
               <div>
                 <Input {...register("password")} type="password" placeholder="Password" className="w-full text-sm sm:text-base py-2 sm:py-3 px-3 sm:px-4" />
                 {errors.password && <p className="text-red-500 text-xs">{errors.password.message}</p>}
               </div>
+
               <div>
-                <label className="block text-sm font-medium">Account Type</label>
+                <label className="block text-sm font-medium text-gray-800 pb-1">Account Type</label>
                 <select {...register("role")} className="w-full text-sm sm:text-base px-3 py-2 border rounded bg-white text-gray-500">
                   <option value="">Select Account Type</option>
                   <option value="Customer">Customer</option>
@@ -179,8 +185,9 @@ export default function SignUp() {
                 </select>
                 {errors.role && <p className="text-red-500 text-xs">{errors.role.message}</p>}
               </div>
+
               {selectedRole === "Business Owner" && (
-                <>
+                <div className="transition-all duration-300 ease-in-out">
                   <div>
                     <Input {...register("businessName")} type="text" placeholder="Business Name" className="w-full text-sm sm:text-base py-2 sm:py-3 px-3 sm:px-4" />
                     {errors.businessName && <p className="text-red-500 text-xs">{errors.businessName.message}</p>}
@@ -189,16 +196,14 @@ export default function SignUp() {
                     <Input {...register("location")} type="text" placeholder="Location" className="w-full text-sm sm:text-base py-2 sm:py-3 px-3 sm:px-4" />
                     {errors.location && <p className="text-red-500 text-xs">{errors.location.message}</p>}
                   </div>
+
                   <div>
                     <label className="block text-sm font-medium">Business Image</label>
                     <div className="flex flex-col items-center gap-3 p-4 border border-gray-600 rounded-lg bg-gray-700">
                       {!imagePreview && (
                         <>
                           <Input type="file" accept="image/*" onChange={handleFileChange} className="hidden" id="fileUpload" />
-                          <label
-                            htmlFor="fileUpload"
-                            className="px-4 py-2 text-sm bg-blue-500 text-white rounded cursor-pointer hover:bg-blue-600"
-                          >
+                          <label htmlFor="fileUpload" className="px-4 py-2 text-sm bg-blue-500 text-white rounded cursor-pointer hover:bg-blue-600">
                             Upload Image
                           </label>
                         </>
@@ -213,12 +218,14 @@ export default function SignUp() {
                       )}
                     </div>
                   </div>
-                </>
+                </div>
               )}
+
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? <Loader2 className="animate-spin" /> : "Sign Up"}
               </Button>
             </form>
+
             <p className="mt-4 text-center text-gray-400">
               Already have an account? <a href="/signin" className="text-blue-400">Sign in</a>
             </p>
