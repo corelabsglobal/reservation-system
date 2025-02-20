@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabaseClient";
+import Header from "./components/structure/header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Search, User } from "lucide-react";
 
@@ -41,7 +42,10 @@ export default function Home() {
         transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
       />
 
-      <div className="max-w-6xl mx-auto relative z-10">
+      
+      <Header />
+
+      <div className="max-w-6xl mx-auto relative z-10 pt-8 lg:pt-12">
         {/* Hero Section */}
         <motion.div
           className="text-center mb-12"
@@ -59,7 +63,7 @@ export default function Home() {
 
         {/* Search Bar */}
         <motion.div
-          className="flex items-center bg-gray-800 p-4 rounded-xl mb-8 shadow-lg backdrop-blur-md"
+          className="flex items-center bg-gray-800 p-3 rounded-xl mb-8 shadow-lg backdrop-blur-md"
           whileHover={{ scale: 1.05 }}
         >
           <Search className="text-gray-400" />
