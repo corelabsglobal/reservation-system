@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
+import toast, { Toaster } from "react-hot-toast";
 
 const signInSchema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
@@ -33,14 +34,16 @@ export default function SignIn() {
     setLoading(false);
 
     if (error) {
-      alert(error.message);
+      toast.error(error.message);
     } else {
+      toast.success("Signed in successfully!");
       router.push("/");
     }
   };
 
   return (
     <div className="relative min-h-screen bg-gray-900 text-white">
+      <Toaster position="top-right" reverseOrder={false} />
       {/* Background image wrapper */}
       <div
         className="absolute inset-0 bg-cover bg-center bg-fixed opacity-50"
