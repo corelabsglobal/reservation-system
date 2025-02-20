@@ -1,33 +1,32 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/lib/supabaseClient";
 import { Card, CardContent } from "@/components/ui/card";
 import { Search, User } from "lucide-react";
 
 export default function Home() {
   const [search, setSearch] = useState("");
-  const restaurants = [
-    {
-      id: 1,
-      name: "The Grand Dine",
-      location: "Tema, Accra",
-      image: "/images/background.jpeg",
-    },
-    {
-      id: 2,
-      name: "Skyline Lounge",
-      location: "Ahodwo, Kumasi",
-      image: "/images/grand-dine.jpeg",
-    },
-    {
-      id: 3,
-      name: "Golden Fork",
-      location: "Cantonments",
-      image: "/images/golden-lounge.jpeg",
-    },
-  ];
+  const [restaurants, setRestaurants] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchRestaurants = async () => {
+      try {
+        const { data, error } = await supabase.from("restaurants").select("*");
+        if (error) throw error;
+        setRestaurants(data);
+      } catch (err) {
+        console.error("Error fetching restaurants:", err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRestaurants();
+  }, []);
 
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-gray-900 to-black text-white px-6 py-10 overflow-hidden">
@@ -77,34 +76,44 @@ export default function Home() {
         </motion.div>
 
         {/* Restaurant Grid */}
-        <div className="grid md:grid-cols-3 gap-8">
-          {restaurants.map((restaurant) => (
-            <motion.div
-              key={restaurant.id}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="relative bg-gray-800 rounded-xl overflow-hidden shadow-2xl backdrop-blur-md hover:shadow-yellow-400/30 transition-all duration-500"
-            >
-              <motion.img
-                src={restaurant.image}
-                alt={restaurant.name}
-                className="w-full h-56 object-cover"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 1.5 }}
-              />
-              <CardContent className="p-5">
-                <h2 className="text-2xl font-bold text-yellow-400">
-                  {restaurant.name}
-                </h2>
-                <p className="text-gray-300">{restaurant.location}</p>
-                <Button className="mt-4 w-full bg-gradient-to-r from-yellow-400 to-orange-600 hover:from-orange-500 hover:to-orange-700 transition-all">
-                  Book Now
-                </Button>
-              </CardContent>
-            </motion.div>
-          ))}
-        </div>
+        {loading ? (
+          <p className="text-center text-gray-400">Loading restaurants...</p>
+        ) : (
+          <div className="grid md:grid-cols-3 gap-8">
+            {restaurants.length > 0 ? (
+              restaurants.map((restaurant) => (
+                <motion.div
+                  key={restaurant.id}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="relative bg-gray-800 rounded-xl overflow-hidden shadow-2xl backdrop-blur-md hover:shadow-yellow-400/30 transition-all duration-500"
+                >
+                  <motion.img
+                    src={restaurant.restaurant_image || "/images/golden-lounge.jpeg"}
+                    alt={restaurant.name}
+                    className="w-full h-56 object-cover"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 1.5 }}
+                  />
+                  <CardContent className="p-5">
+                    <h2 className="text-2xl font-bold text-yellow-400">
+                      {restaurant.name}
+                    </h2>
+                    <p className="text-gray-300">{restaurant.location}</p>
+                    <Button className="mt-4 w-full bg-gradient-to-r from-yellow-400 to-orange-600 hover:from-orange-500 hover:to-orange-700 transition-all">
+                      Book Now
+                    </Button>
+                  </CardContent>
+                </motion.div>
+              ))
+            ) : (
+              <p className="text-center text-gray-400 col-span-3">
+                No restaurants found.
+              </p>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
