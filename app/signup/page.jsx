@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
+import toast, { Toaster } from "react-hot-toast";
 
 const signUpSchema = z.object({
   name: z.string().min(1, { message: "Name is required" }),
@@ -50,20 +51,20 @@ export default function SignUp() {
 
     if (authError) {
       setLoading(false);
-      alert(authError.message);
+      toast.error(authError.message);
       return;
     }
 
     const userId = authData?.user?.id;
     if (!userId) {
       setLoading(false);
-      alert("User ID not found");
+      toast.error("User ID not found");
       return;
     }
 
     try {
       const { error: userInsertError } = await supabase.from("users").insert([
-        { id: userId, name, email, role, owner_id: role === "Business Owner" ? userId : null },
+        { name, email, role, owner_id: role === "Business Owner" ? userId : null },
       ]);
 
       if (userInsertError) {
@@ -80,10 +81,10 @@ export default function SignUp() {
         }
       }
 
-      alert("Check your email for a confirmation link!");
+      toast.success("Check your email for a confirmation link!");
       router.push("/signin");
     } catch (error) {
-      alert(error.message);
+        toast.error(error.message);
     } finally {
       setLoading(false);
     }
@@ -91,6 +92,7 @@ export default function SignUp() {
 
   return (
     <div className="relative min-h-screen bg-gray-900 text-white">
+      <Toaster />
       <div
         className="absolute inset-0 bg-cover bg-center bg-fixed opacity-50"
         style={{ backgroundImage: "url('/images/signup.jpeg')" }}
@@ -107,15 +109,15 @@ export default function SignUp() {
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div>
                 <Input {...register("name")} type="text" placeholder="Name" className="w-full text-sm sm:text-base py-2 sm:py-3 px-3 sm:px-4" />
-                {errors.name && <p className="text-red-500 text-sm">{errors.name.message}</p>}
+                {errors.name && <p className="text-red-500 text-xs">{errors.name.message}</p>}
               </div>
               <div>
                 <Input {...register("email")} type="email" placeholder="Email" className="w-full text-sm sm:text-base py-2 sm:py-3 px-3 sm:px-4" />
-                {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
+                {errors.email && <p className="text-red-500 text-xs">{errors.email.message}</p>}
               </div>
               <div>
                 <Input {...register("password")} type="password" placeholder="Password" className="w-full text-sm sm:text-base py-2 sm:py-3 px-3 sm:px-4" />
-                {errors.password && <p className="text-red-500 text-sm">{errors.password.message}</p>}
+                {errors.password && <p className="text-red-500 text-xs">{errors.password.message}</p>}
               </div>
               <div>
                 <label className="block text-sm font-medium">Account Type</label>
@@ -124,17 +126,17 @@ export default function SignUp() {
                   <option value="Customer">Customer</option>
                   <option value="Business Owner">Business Owner</option>
                 </select>
-                {errors.role && <p className="text-red-500 text-sm">{errors.role.message}</p>}
+                {errors.role && <p className="text-red-500 text-xs">{errors.role.message}</p>}
               </div>
               {selectedRole === "Business Owner" && (
                 <>
                   <div>
                     <Input {...register("businessName")} type="text" placeholder="Business Name" className="w-full text-sm sm:text-base py-2 sm:py-3 px-3 sm:px-4" />
-                    {errors.businessName && <p className="text-red-500 text-sm">{errors.businessName.message}</p>}
+                    {errors.businessName && <p className="text-red-500 text-xs">{errors.businessName.message}</p>}
                   </div>
                   <div>
                     <Input {...register("location")} type="text" placeholder="Location" className="w-full text-sm sm:text-base py-2 sm:py-3 px-3 sm:px-4" />
-                    {errors.location && <p className="text-red-500 text-sm">{errors.location.message}</p>}
+                    {errors.location && <p className="text-red-500 text-xs">{errors.location.message}</p>}
                   </div>
                 </>
               )}
