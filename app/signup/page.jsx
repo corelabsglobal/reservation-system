@@ -37,11 +37,51 @@ export default function SignUp() {
   });
 
   const selectedRole = watch("role");
+  const [image, setImage] = useState(null);
+
+  const handleFileChange = (e) => {
+    setImage(e.target.files[0]);
+  };
+
+  const handleUpload = async (file) => {
+    if (!file) return "";
+  
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+  
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+  
+      const data = await res.json();
+  
+      if (!res.ok) throw new Error(data.error || "Upload failed");
+  
+      return data.url;
+    } catch (error) {
+      console.error("Upload error:", error.message);
+      toast.error("Image upload failed");
+      return "";
+    }
+  };  
 
   const onSubmit = async (data) => {
     setLoading(true);
 
     const { name, email, password, role, businessName, location } = data;
+
+    let imageUrl = "";
+    if (image) {
+      try {
+        imageUrl = await handleUpload(image);
+      } catch (error) {
+        toast.error("Image upload failed");
+        setLoading(false);
+        return;
+      }
+    }
 
     // Sign up user with authentication
     const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -73,7 +113,7 @@ export default function SignUp() {
 
       if (role === "Business Owner") {
         const { error: restaurantInsertError } = await supabase.from("restaurants").insert([
-          { name: businessName, location, owner_id: userId },
+          { name: businessName, location, restaurant_image: imageUrl, owner_id: userId },
         ]);
 
         if (restaurantInsertError) {
@@ -137,6 +177,10 @@ export default function SignUp() {
                   <div>
                     <Input {...register("location")} type="text" placeholder="Location" className="w-full text-sm sm:text-base py-2 sm:py-3 px-3 sm:px-4" />
                     {errors.location && <p className="text-red-500 text-xs">{errors.location.message}</p>}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium">Business Image</label>
+                    <Input type="file" accept="image/*" onChange={handleFileChange} />
                   </div>
                 </>
               )}
