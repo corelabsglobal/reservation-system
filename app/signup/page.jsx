@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2 } from "lucide-react";
+import { Loader2, X } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
 
 const signUpSchema = z.object({
@@ -38,9 +38,20 @@ export default function SignUp() {
 
   const selectedRole = watch("role");
   const [image, setImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
 
   const handleFileChange = (e) => {
-    setImage(e.target.files[0]);
+    //setImage(e.target.files[0]);
+    const file = e.target.files[0];
+    if (file) {
+      setImage(file);
+      setImagePreview(URL.createObjectURL(file));
+    };
+  };
+
+  const removeImage = () => {
+    setImage(null);
+    setImagePreview(null);
   };
 
   const handleUpload = async (file) => {
@@ -180,7 +191,27 @@ export default function SignUp() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium">Business Image</label>
-                    <Input type="file" accept="image/*" onChange={handleFileChange} />
+                    <div className="flex flex-col items-center gap-3 p-4 border border-gray-600 rounded-lg bg-gray-700">
+                      {!imagePreview && (
+                        <>
+                          <Input type="file" accept="image/*" onChange={handleFileChange} className="hidden" id="fileUpload" />
+                          <label
+                            htmlFor="fileUpload"
+                            className="px-4 py-2 text-sm bg-blue-500 text-white rounded cursor-pointer hover:bg-blue-600"
+                          >
+                            Upload Image
+                          </label>
+                        </>
+                      )}
+                      {imagePreview && (
+                        <div className="relative mt-2">
+                          <img src={imagePreview} alt="Uploaded Preview" className="w-24 h-24 rounded-md object-cover border border-gray-500" />
+                          <button onClick={removeImage} className="absolute -top-2 -right-2 bg-red-500 text-white p-1 rounded-full">
+                            <X size={14} />
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </>
               )}
