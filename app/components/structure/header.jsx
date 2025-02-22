@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabaseClient";
-import { User } from "lucide-react";
+import { User, UserCircle } from "lucide-react";
 
 const getUserInitials = (name) => {
   if (!name) return "";
@@ -42,13 +42,13 @@ export default function Header() {
       <div className="relative">
         {user ? (
           <div 
-            className="w-10 h-10 flex items-center justify-center bg-purple-600 text-white rounded-full font-bold text-lg shadow-md cursor-pointer"
+            className="w-9 h-9 flex items-center justify-center bg-purple-600 text-white rounded-full font-bold text-lg shadow-md cursor-pointer"
             onClick={() => setMenuOpen(!menuOpen)}
           >
             {getUserInitials(user.user_metadata?.full_name || user.email)}
           </div>
         ) : (
-          <User className="w-10 h-10 text-gray-400" />
+          <UserCircle className="w-8 h-8 text-gray-400" onClick={() => setMenuOpen(!menuOpen)}/>
         )}
 
         {menuOpen && (
