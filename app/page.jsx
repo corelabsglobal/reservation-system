@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabaseClient";
+import { useRouter } from "next/navigation";
 import Header from "./components/structure/header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Search, User } from "lucide-react";
@@ -12,6 +13,7 @@ export default function Home() {
   const [search, setSearch] = useState("");
   const [restaurants, setRestaurants] = useState([]);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchRestaurants = async () => {
@@ -105,7 +107,10 @@ export default function Home() {
                       {restaurant.name}
                     </h2>
                     <p className="text-gray-300">{restaurant.location}</p>
-                    <Button className="mt-4 w-full bg-gradient-to-r from-yellow-400 to-orange-600 hover:from-orange-500 hover:to-orange-700 transition-all">
+                    <Button 
+                      className="mt-4 w-full bg-gradient-to-r from-yellow-400 to-orange-600 hover:from-orange-500 hover:to-orange-700 transition-all"
+                      onClick={() => router.push(`/restaurants/${restaurant.id}`)}
+                    >
                       Book Now
                     </Button>
                   </CardContent>
