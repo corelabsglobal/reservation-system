@@ -115,8 +115,9 @@ export default function SignUp() {
 
     try {
       const { error: userInsertError } = await supabase.from("users").insert([
-        { name, email, role, owner_id: role === "Business Owner" ? userId : null },
+        { name, email, role, owner_id: userId },
       ]);
+      //role === "Business Owner" ? userId : null
 
       if (userInsertError) {
         throw userInsertError;
