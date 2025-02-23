@@ -24,16 +24,22 @@ export default function RestaurantPage() {
 
   useEffect(() => {
     async function fetchUser() {
-      const { data: userData, error } = await supabase.auth.getUser();
-      if (error) {
-        console.error("Error fetching user:", error.message);
-      } else {
-        setUserId(userData?.user?.id);
+      try {
+        const { data: userData, error } = await supabase.auth.getUser();
+        
+        if (error || !userData?.user) {
+          console.log("User not authenticated");
+          return;
+        }
+  
+        setUserId(userData.user.id);
+      } catch (err) {
+        console.error("Unexpected error fetching user:", err.message);
       }
     }
-
+  
     fetchUser();
-  }, []);
+  }, []);  
 
   // Fixed time slots (10 AM to 10 PM, every 2 hours)
   const timeSlots = ["10:00", "12:00", "14:00", "16:00", "18:00", "20:00", "22:00"];
@@ -104,12 +110,17 @@ export default function RestaurantPage() {
     setBookingSuccess(null);
 
     if (!userId) {
-      setBookingError("User not authenticated.");
+      setBookingError("You must sign in or continue as a guest.");
       return;
     }
 
     if (!email.trim()) {
       setBookingError("Email is required.");
+      return;
+    }
+
+    if (!name.trim()) {
+      setBookingError("Name is required.");
       return;
     }
 
@@ -130,7 +141,7 @@ export default function RestaurantPage() {
         restaurant_id: id,
         time: selectedSlot,
         date: selectedDate,
-        user_id: userId,
+        user_id: userId === "guest" ? "00000000-0000-0000-0000-000000000000" : userId,
         email,
         name,
       },
@@ -222,31 +233,82 @@ export default function RestaurantPage() {
             <p className="text-gray-300">Tables remaining: <span className="font-bold text-yellow-400">{tablesLeft}</span></p>
 
             {tablesLeft > 0 ? (
-              <form onSubmit={handleBooking}>
-                <input
-                  type="text"
-                  placeholder="Your Name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full bg-gray-700 text-white px-4 py-2 rounded-md border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                />
-                <input
-                  type="email"
-                  placeholder="Your Email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full mt-3 bg-gray-700 text-white px-4 py-2 rounded-md border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                />
-                {bookingError && <p className="text-red-500">{bookingError}</p>}
-                <button
-                  type="submit"
-                  className="mt-4 w-full bg-yellow-500 hover:bg-yellow-600 transition-all px-4 py-2 rounded-md font-semibold"
-                >
-                  Confirm Booking
-                </button>
-              </form>
+              <>
+                {!userId ? (
+                  <div>
+                    <p className="text-gray-400 mb-2">
+                      You are not signed in. You can either sign in or continue as a guest.
+                    </p>
+                    <div className="flex gap-3">
+                      <button
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md"
+                        onClick={() => {
+                          window.location.href = "/signin";
+                        }}
+                      >
+                        Sign In
+                      </button>
+                      <button
+                        className="px-4 py-2 bg-gradient-to-r from-yellow-400 to-orange-600 hover:from-orange-500 hover:to-orange-700 transition-all text-white rounded-md"
+                        onClick={() => setUserId("guest")}
+                      >
+                        Continue as Guest
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <form onSubmit={handleBooking} className="mt-4 flex flex-col gap-3">
+                    {userId === "guest" && (
+                      <>
+                        <input
+                          type="text"
+                          placeholder="Your Name"
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          required
+                          className="bg-gray-700 text-white px-4 py-2 rounded-md border border-gray-600 focus:ring-2 focus:ring-yellow-400"
+                        />
+                        <input
+                          type="email"
+                          placeholder="Your Email"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          required
+                          className="bg-gray-700 text-white px-4 py-2 rounded-md border border-gray-600 focus:ring-2 focus:ring-yellow-400"
+                        />
+                      </>
+                    )}
+                    {userId !== "guest" && (
+                      <>
+                        <input
+                          type="text"
+                          placeholder="Your Name"
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          required
+                          className="bg-gray-700 text-white px-4 py-2 rounded-md border border-gray-600 focus:ring-2 focus:ring-yellow-400"
+                        />
+                        <input
+                          type="email"
+                          placeholder="Your Email"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          required
+                          className="bg-gray-700 text-white px-4 py-2 rounded-md border border-gray-600 focus:ring-2 focus:ring-yellow-400"
+                        />
+                      </>
+                    )}
+                    <button
+                      type="submit"
+                      className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-black font-bold rounded-md"
+                    >
+                      Confirm Booking
+                    </button>
+                  </form>
+                )}
+              </>
             ) : (
-              <p className="text-red-400">No more tables available for this time slot.</p>
+              <p className="text-red-400">No tables available for this time slot.</p>
             )}
           </div>
 
