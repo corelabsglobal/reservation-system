@@ -152,7 +152,11 @@ export default function RestaurantPage() {
   if (!restaurant) return <p className="text-center text-red-500">Restaurant not found.</p>;
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white px-4 md:px-6 py-10 flex items-center justify-center">
+    <div className="relative min-h-screen bg-gray-900 text-white px-4 md:px-6 py-10 flex items-center justify-center">
+      <div
+        className="absolute inset-0 bg-cover bg-center bg-fixed opacity-50"
+        style={{ backgroundImage: "url('/images/background.jpeg')" }}
+      />
       <Toaster />
       <div className="max-w-6xl w-full mx-auto flex flex-col md:flex-row gap-8 p-4 md:p-6 rounded-lg shadow-2xl bg-gray-800/90 backdrop-blur-md">
         

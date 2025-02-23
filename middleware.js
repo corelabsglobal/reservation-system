@@ -10,7 +10,7 @@ export async function middleware(req, ev) {
   } = await supabase.auth.getSession();
 
   // Redirect unauthenticated users from protected pages
-  if (!session && req.nextUrl.pathname.startsWith("/restaurants/")) {
+  if (!session && req.nextUrl.pathname.startsWith("/dashboard")) {
     return NextResponse.redirect(new URL("/signin", req.url));
   }
 
@@ -18,5 +18,5 @@ export async function middleware(req, ev) {
 }
 
 export const config = {
-  matcher: ["/restaurants/:id*"],
+  matcher: ["/"],
 };
