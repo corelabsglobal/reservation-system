@@ -32,10 +32,6 @@ export default function SignIn() {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
 
     setLoading(false);
-    const { session, user } = signInData;
-    if (session) {
-      await supabase.auth.setSession(session);
-    }
 
     if (error) {
       toast.error(error.message);

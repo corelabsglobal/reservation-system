@@ -33,15 +33,7 @@ export default function Home() {
   }, []);
 
   const handleBooking = async (restaurantId) => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      router.push(`/restaurants/${restaurantId}`);
-    } else {
-      setShowModal(true);
-      setTimeout(() => {
-        router.push("/signin");
-      }, 3000);
-    }
+    router.push(`/restaurants/${restaurantId}`);
   };
 
   return (
