@@ -157,7 +157,7 @@ export default function RestaurantPage() {
         className="absolute inset-0 bg-cover bg-center bg-fixed opacity-50"
         style={{ backgroundImage: "url('/images/background.jpeg')" }}
       />
-      <Toaster />
+      <Toaster position="top-right" />
       <div className="max-w-6xl w-full mx-auto flex flex-col md:flex-row gap-8 p-4 md:p-6 rounded-lg shadow-2xl bg-gray-800/90 backdrop-blur-md">
         
         {/* Left - Restaurant Image */}
