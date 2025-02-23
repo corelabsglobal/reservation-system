@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose } from "@/components/ui/dialog";
-import { useSession } from "@supabase/auth-helpers-react";
+import toast, { Toaster } from "react-hot-toast";
 
 export default function RestaurantPage() {
   const { id } = useParams();
@@ -15,10 +15,24 @@ export default function RestaurantPage() {
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [tablesLeft, setTablesLeft] = useState(0);
   const [openDialog, setOpenDialog] = useState(false);
-  const session = useSession();
+  const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
+  const [userId, setUserId] = useState(null);
+  const [bookingError, setBookingError] = useState(null);
+  const [bookingSuccess, setBookingSuccess] = useState(null);
 
+  useEffect(() => {
+    async function fetchUser() {
+      const { data: userData, error } = await supabase.auth.getUser();
+      if (error) {
+        console.error("Error fetching user:", error.message);
+      } else {
+        setUserId(userData?.user?.id);
+      }
+    }
 
-  console.log("session:" ,session)
+    fetchUser();
+  }, []);
 
   // Fixed time slots (10 AM to 10 PM, every 2 hours)
   const timeSlots = ["10:00", "12:00", "14:00", "16:00", "18:00", "20:00", "22:00"];
@@ -82,11 +96,52 @@ export default function RestaurantPage() {
     setOpenDialog(true);
   };
 
+  const handleBooking = async (e) => {
+    e.preventDefault();
+    setBookingError(null);
+    setBookingSuccess(null);
+
+    if (!userId) {
+      setBookingError("User not authenticated.");
+      return;
+    }
+
+    if (!email.trim()) {
+      setBookingError("Email is required.");
+      return;
+    }
+
+    const today = new Date().toISOString().split("T")[0];
+
+    const { data, error } = await supabase.from("reservations").insert([
+      {
+        restaurant_id: id,
+        time: selectedSlot,
+        date: today,
+        user_id: userId,
+        email,
+        name,
+      },
+    ]);
+
+    if (error) {
+      setBookingError(error.message);
+      toast.error(`Booking failed: ${error.message}`);
+    } else {
+      setBookingSuccess("Reservation successful!");
+      toast.success("Reservation successful!");
+      setReservations([...reservations, { time: selectedSlot, date: today }]);
+      setAvailableSlots(availableSlots.filter((slot) => slot !== selectedSlot));
+      setTimeout(() => setOpenDialog(false), 2000); 
+    }
+  };
+
   if (loading) return <p className="text-center text-gray-400">Loading...</p>;
   if (!restaurant) return <p className="text-center text-red-500">Restaurant not found.</p>;
 
   return (
     <div className="min-h-screen bg-gray-900 text-white px-4 md:px-6 py-10 flex items-center justify-center">
+      <Toaster />
       <div className="max-w-6xl w-full mx-auto flex flex-col md:flex-row gap-8 p-4 md:p-6 rounded-lg shadow-2xl bg-gray-800/90 backdrop-blur-md">
         
         {/* Left - Restaurant Image */}
@@ -142,17 +197,22 @@ export default function RestaurantPage() {
             <p className="text-gray-300">Tables remaining: <span className="font-bold text-yellow-400">{tablesLeft}</span></p>
 
             {tablesLeft > 0 ? (
-              <form>
+              <form onSubmit={handleBooking}>
                 <input
                   type="text"
                   placeholder="Your Name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
                   className="w-full bg-gray-700 text-white px-4 py-2 rounded-md border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-400"
                 />
                 <input
                   type="email"
                   placeholder="Your Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="w-full mt-3 bg-gray-700 text-white px-4 py-2 rounded-md border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-400"
                 />
+                {bookingError && <p className="text-red-500">{bookingError}</p>}
                 <button
                   type="submit"
                   className="mt-4 w-full bg-yellow-500 hover:bg-yellow-600 transition-all px-4 py-2 rounded-md font-semibold"
