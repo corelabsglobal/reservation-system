@@ -15,6 +15,7 @@ export default function RestaurantPage() {
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [tablesLeft, setTablesLeft] = useState(0);
   const [openDialog, setOpenDialog] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0]);
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [userId, setUserId] = useState(null);
@@ -54,8 +55,9 @@ export default function RestaurantPage() {
         // Fetch reservations
         const { data: reservationsData, error: reservationsError } = await supabase
           .from("reservations")
-          .select("time, date")
-          .eq("restaurant_id", id);
+          .select("time, date, user_id")
+          .eq("restaurant_id", id)
+          .eq("date", selectedDate);
 
         if (reservationsError) throw reservationsError;
         setReservations(reservationsData);
@@ -85,7 +87,7 @@ export default function RestaurantPage() {
     };
 
     fetchRestaurantData();
-  }, [id]);
+  }, [id, selectedDate]);
 
   // Handle opening the dialog
   const handleOpenDialog = (slot) => {
@@ -111,13 +113,23 @@ export default function RestaurantPage() {
       return;
     }
 
+    const existingReservation = reservations.find(
+      (r) => r.user_id === userId && r.time === selectedSlot && r.date === selectedDate
+    );
+
+    if (existingReservation) {
+      setBookingError("You already have a reservation for this time slot on this date.");
+      toast.error("Duplicate reservation not allowed.");
+      return;
+    }
+
     const today = new Date().toISOString().split("T")[0];
 
     const { data, error } = await supabase.from("reservations").insert([
       {
         restaurant_id: id,
         time: selectedSlot,
-        date: today,
+        date: selectedDate,
         user_id: userId,
         email,
         name,
@@ -130,7 +142,7 @@ export default function RestaurantPage() {
     } else {
       setBookingSuccess("Reservation successful!");
       toast.success("Reservation successful!");
-      setReservations([...reservations, { time: selectedSlot, date: today }]);
+      setReservations([...reservations, { time: selectedSlot, date: selectedDate, user_id: userId }]);
       setAvailableSlots(availableSlots.filter((slot) => slot !== selectedSlot));
       setTimeout(() => setOpenDialog(false), 2000); 
     }
@@ -160,6 +172,15 @@ export default function RestaurantPage() {
           <p className="mt-3 text-gray-300 leading-relaxed text-sm sm:text-md md:text-lg">
             {restaurant.description || "No description available."}
           </p>
+          <div className="mt-4">
+            <label className="text-yellow-400 font-semibold">Select Date:</label>
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              className="bg-gray-700 text-white px-4 py-2 rounded-md border border-gray-600 focus:ring-2 focus:ring-yellow-400 w-full mt-2"
+            />
+          </div>
 
           {/* Reservation Section */}
           <div className="mt-6">
