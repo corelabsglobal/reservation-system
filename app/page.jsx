@@ -13,6 +13,7 @@ export default function Home() {
   const [search, setSearch] = useState("");
   const [restaurants, setRestaurants] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -30,6 +31,18 @@ export default function Home() {
 
     fetchRestaurants();
   }, []);
+
+  const handleBooking = async (restaurantId) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      router.push(`/restaurants/${restaurantId}`);
+    } else {
+      setShowModal(true);
+      setTimeout(() => {
+        router.push("/signin");
+      }, 3000);
+    }
+  };
 
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-gray-900 to-black text-white px-6 py-10 overflow-hidden">
@@ -109,7 +122,7 @@ export default function Home() {
                     <p className="text-gray-300">{restaurant.location}</p>
                     <Button 
                       className="mt-4 w-full bg-gradient-to-r from-yellow-400 to-orange-600 hover:from-orange-500 hover:to-orange-700 transition-all"
-                      onClick={() => router.push(`/restaurants/${restaurant.id}`)}
+                      onClick={() => handleBooking(restaurant.id)}
                     >
                       Book Now
                     </Button>
@@ -120,6 +133,31 @@ export default function Home() {
               <p className="text-center text-gray-400 col-span-3">
                 No restaurants found.
               </p>
+            )}
+            {showModal && (
+              <motion.div
+                className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+              >
+                <motion.div
+                  className="bg-gray-900 text-white p-6 rounded-lg shadow-xl max-w-sm text-center"
+                  initial={{ scale: 0.8 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 200, damping: 15 }}
+                >
+                  <h2 className="text-xl font-semibold mb-2">Sign In Required</h2>
+                  <p className="text-gray-300 mb-4">
+                    Please sign in to continue booking your dining experience.
+                  </p>
+                  <Button
+                    className="bg-yellow-500 hover:bg-yellow-600 transition-all"
+                    onClick={() => router.push("/signin")}
+                  >
+                    Go to Sign In
+                  </Button>
+                </motion.div>
+              </motion.div>
             )}
           </div>
         )}
