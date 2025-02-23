@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
 export default function RestaurantPage() {
@@ -10,45 +11,72 @@ export default function RestaurantPage() {
   const [restaurant, setRestaurant] = useState(null);
   const [loading, setLoading] = useState(true);
   const [reservations, setReservations] = useState([]);
+  const [availableSlots, setAvailableSlots] = useState([]);
+  const [selectedSlot, setSelectedSlot] = useState(null);
+  const [tablesLeft, setTablesLeft] = useState(0);
+  const [openDialog, setOpenDialog] = useState(false);
+
+  // Fixed time slots (10 AM to 10 PM, every 2 hours)
+  const timeSlots = ["10:00", "12:00", "14:00", "16:00", "18:00", "20:00", "22:00"];
 
   useEffect(() => {
     if (!id) return;
 
-    const fetchRestaurant = async () => {
+    const fetchRestaurantData = async () => {
       try {
-        const { data, error } = await supabase
+        const { data: restaurantData, error: restaurantError } = await supabase
           .from("restaurants")
           .select("*")
           .eq("id", id)
           .single();
-        if (error) throw error;
-        setRestaurant(data);
+
+        if (restaurantError) throw restaurantError;
+        setRestaurant(restaurantData);
+
+        // Fetch reservations
+        const { data: reservationsData, error: reservationsError } = await supabase
+          .from("reservations")
+          .select("time, date")
+          .eq("restaurant_id", id);
+
+        if (reservationsError) throw reservationsError;
+        setReservations(reservationsData);
+
+        // Process available slots based on reservations
+        const today = new Date().toISOString().split("T")[0];
+        const bookedSlots = new Map();
+
+        reservationsData.forEach(({ date, time }) => {
+          if (!bookedSlots.has(date)) bookedSlots.set(date, new Map());
+          const timeCount = bookedSlots.get(date).get(time) || 0;
+          bookedSlots.get(date).set(time, timeCount + 1);
+        });
+
+        const slotsForToday = bookedSlots.get(today) || new Map();
+        const filteredSlots = timeSlots.filter((slot) => {
+          const bookedCount = slotsForToday.get(slot) || 0;
+          return bookedCount < restaurantData.tables; // Exclude fully booked slots
+        });
+
+        setAvailableSlots(filteredSlots);
       } catch (err) {
-        console.error("Error fetching restaurant:", err.message);
+        console.error("Error fetching data:", err.message);
       } finally {
         setLoading(false);
       }
     };
 
-    const fetchReservations = async () => {
-      try {
-        const { data, error } = await supabase
-          .from("reservations")
-          .select("*")
-          .eq("restaurant_id", id)
-          .eq("is_available", true)
-          .order("date", { ascending: true })
-          .order("time", { ascending: true });
-        if (error) throw error;
-        setReservations(data);
-      } catch (err) {
-        console.error("Error fetching reservations:", err.message);
-      }
-    };
-
-    fetchRestaurant();
-    fetchReservations();
+    fetchRestaurantData();
   }, [id]);
+
+  // Handle opening the dialog
+  const handleOpenDialog = (slot) => {
+    const today = new Date().toISOString().split("T")[0];
+    const bookedCount = reservations.filter((r) => r.date === today && r.time.startsWith(slot)).length;
+    setTablesLeft(restaurant.tables - bookedCount);
+    setSelectedSlot(slot);
+    setOpenDialog(true);
+  };
 
   if (loading) return <p className="text-center text-gray-400">Loading...</p>;
   if (!restaurant) return <p className="text-center text-red-500">Restaurant not found.</p>;
@@ -78,13 +106,14 @@ export default function RestaurantPage() {
           <div className="mt-6">
             <h2 className="text-xl sm:text-2xl font-semibold text-yellow-400 mb-3">Available Reservations</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {reservations.length > 0 ? (
-                reservations.map((res) => (
+              {availableSlots.length > 0 ? (
+                availableSlots.map((slot) => (
                   <button
-                    key={res.id}
+                    key={slot}
+                    onClick={() => handleOpenDialog(slot)}
                     className="px-3 py-2 sm:px-4 sm:py-3 bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-orange-500 hover:to-orange-700 transition-all rounded-lg shadow-md text-sm sm:text-lg font-semibold"
                   >
-                    {new Date(res.date).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })} @ {res.time.slice(0, 5)}
+                    {slot}
                   </button>
                 ))
               ) : (
@@ -94,6 +123,49 @@ export default function RestaurantPage() {
           </div>
         </div>
       </div>
+
+      {/* Booking Dialog */}
+      <Dialog open={openDialog} onOpenChange={setOpenDialog}>
+        <DialogContent className="bg-gray-800 text-white border border-gray-700 shadow-xl rounded-lg p-6">
+          <DialogHeader>
+            <DialogTitle className="text-yellow-400 text-lg">Book a Table</DialogTitle>
+            <DialogDescription>
+              {selectedSlot ? `Booking for ${selectedSlot}` : ""}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex flex-col gap-4">
+            <p className="text-gray-300">Tables remaining: <span className="font-bold text-yellow-400">{tablesLeft}</span></p>
+
+            {tablesLeft > 0 ? (
+              <form>
+                <input
+                  type="text"
+                  placeholder="Your Name"
+                  className="w-full bg-gray-700 text-white px-4 py-2 rounded-md border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                />
+                <input
+                  type="email"
+                  placeholder="Your Email"
+                  className="w-full mt-3 bg-gray-700 text-white px-4 py-2 rounded-md border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                />
+                <button
+                  type="submit"
+                  className="mt-4 w-full bg-yellow-500 hover:bg-yellow-600 transition-all px-4 py-2 rounded-md font-semibold"
+                >
+                  Confirm Booking
+                </button>
+              </form>
+            ) : (
+              <p className="text-red-400">No more tables available for this time slot.</p>
+            )}
+          </div>
+
+          <DialogClose asChild>
+            <button className="w-full mt-4 px-4 py-2 bg-gray-600 hover:bg-gray-700 transition-all rounded-md text-white">Close</button>
+          </DialogClose>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
