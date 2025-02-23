@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { User, UserCircle } from "lucide-react";
-import { toast } from "react-hot-toast";
+import toast, { Toaster } from "react-hot-toast";
 
 const getUserInitials = (name) => {
   if (!name) return "";
@@ -19,8 +19,6 @@ export default function Header() {
   const [user, setUser] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const router = useRouter();
-
-  console.log("user" ,user)
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -49,6 +47,7 @@ export default function Header() {
 
   return (
     <header className="fixed top-0 left-0 right-0 bg-gray-900 bg-opacity-90 text-white flex justify-between items-center px-6 py-4 z-50 shadow-md">
+      <Toaster />
       <div className="font-serif italic text-white opacity-90">
         <h1 className="text-center text-xl sm:text-2xl md:text-2xl lg:text-2xl">SerenePath</h1>
       </div>
