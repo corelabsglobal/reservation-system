@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import { useSession } from "@supabase/auth-helpers-react";
 
 export default function RestaurantPage() {
   const { id } = useParams();
@@ -15,6 +15,10 @@ export default function RestaurantPage() {
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [tablesLeft, setTablesLeft] = useState(0);
   const [openDialog, setOpenDialog] = useState(false);
+  const session = useSession();
+
+
+  console.log("session:" ,session)
 
   // Fixed time slots (10 AM to 10 PM, every 2 hours)
   const timeSlots = ["10:00", "12:00", "14:00", "16:00", "18:00", "20:00", "22:00"];
@@ -88,7 +92,7 @@ export default function RestaurantPage() {
         {/* Left - Restaurant Image */}
         <div className="md:w-1/2">
           <img
-            src={restaurant.restaurant_image || "/images/default.jpeg"}
+            src={restaurant.restaurant_image || "/images/golden-lounge.jpeg"}
             alt={restaurant.name}
             className="w-full h-[300px] sm:h-[400px] md:h-[500px] lg:h-[600px] object-cover rounded-lg shadow-lg"
           />

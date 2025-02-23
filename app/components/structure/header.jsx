@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { User, UserCircle } from "lucide-react";
+import { toast } from "react-hot-toast";
 
 const getUserInitials = (name) => {
   if (!name) return "";
@@ -16,6 +18,9 @@ const getUserInitials = (name) => {
 export default function Header() {
   const [user, setUser] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const router = useRouter();
+
+  console.log("user" ,user)
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -31,6 +36,15 @@ export default function Header() {
     await supabase.auth.signOut();
     setUser(null);
     setMenuOpen(false);
+    toast.success("Signed out successfully");
+  };
+
+  const handleUserClick = () => {
+    if (user) {
+      setMenuOpen(!menuOpen);
+    } else {
+      router.push("/signin");
+    }
   };
 
   return (
@@ -48,7 +62,7 @@ export default function Header() {
             {getUserInitials(user.user_metadata?.full_name || user.email)}
           </div>
         ) : (
-          <UserCircle className="w-8 h-8 text-gray-400" onClick={() => setMenuOpen(!menuOpen)}/>
+          <UserCircle className="w-8 h-8 text-gray-400 cursor-pointer" onClick={handleUserClick}/>
         )}
 
         {menuOpen && (
