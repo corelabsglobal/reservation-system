@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
+import { FcGoogle } from "react-icons/fc";
 
 const signInSchema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
@@ -38,6 +39,19 @@ export default function SignIn() {
     } else {
       toast.success("Signed in successfully!");
       router.push("/");
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: "https://uchnyrxklpmkqraeurng.supabase.co/auth/v1/callback",
+      },
+    });
+
+    if (error) {
+      toast.error(error.message);
     }
   };
 
@@ -72,6 +86,14 @@ export default function SignIn() {
                 {loading ? <Loader2 className="animate-spin" /> : "Sign In"}
               </Button>
             </form>
+            <div className="mt-4 flex justify-center">
+              <Button
+                className="w-full flex items-center justify-center gap-2 bg-white text-gray-900 border border-gray-300 hover:bg-gray-200"
+                onClick={handleGoogleSignIn}
+              >
+                <FcGoogle className="text-xl" /> Sign in with Google
+              </Button>
+            </div>
             <p className="mt-4 text-center text-gray-400">
               Don't have an account? <a href="/signup" className="text-blue-400">Sign up</a>
             </p>
