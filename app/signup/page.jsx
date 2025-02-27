@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -8,6 +8,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import GoogleSignInButton from "../components/structure/googleSignIn";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, X } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
@@ -78,6 +79,69 @@ export default function SignUp() {
     }
   };  
 
+  const saveGoogleUser = async (user) => {
+    try {
+      // Check if user already exists
+      const { data: existingUser, error: fetchError } = await supabase
+        .from("users")
+        .select("id")
+        .eq("email", user.email)
+        .single();
+  
+      if (fetchError && fetchError.code !== "PGRST116") {
+        throw fetchError;
+      }
+  
+      if (!existingUser) {
+        const { error: insertError } = await supabase.from("users").insert([
+          {
+            name: user.user_metadata.full_name || user.email,
+            email: user.email,
+            role: "Customer",
+            owner_id: user.id,
+          },
+        ]);
+  
+        if (insertError) throw insertError;
+      }
+  
+      toast.success("Signed in successfully!");
+      router.push("/");
+    } catch (error) {
+      console.error("Google Sign-in Error:", error.message);
+      toast.error("Failed to save user data.");
+    } finally {
+      setLoading(false);
+    }
+  };  
+
+  const handleGoogleSignIn = async () => {
+    setLoading(true);
+  
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: "https://uchnyrxklpmkqraeurng.supabase.co/auth/v1/callback",
+      },
+    });
+  
+    if (error) {
+      toast.error("Google sign-in failed: " + error.message);
+      setLoading(false);
+      return;
+    }
+  
+    // Wait for user session to be established
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+  
+    if (user) {
+      await saveGoogleUser(user);
+      toast.success("Signed in successfully! Note: Only client accounts can be created.");
+    }
+  };   
+
   const onSubmit = async (data) => {
     setLoading(true);
 
@@ -142,6 +206,17 @@ export default function SignUp() {
     }
   };
 
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data } = await supabase.auth.getUser();
+      if (data?.user) {
+        router.push("/");
+      }
+    };
+
+    checkUser();
+  }, []);
+
   return (
     <div className="relative min-h-screen flex flex-col justify-center items-center bg-gray-900 text-white">
       <Toaster />
@@ -161,6 +236,7 @@ export default function SignUp() {
             <CardTitle className="text-2xl">Sign Up</CardTitle>
           </CardHeader>
           <CardContent>
+            <GoogleSignInButton  onClick={handleGoogleSignIn} />
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div>
                 <Input {...register("name")} type="text" placeholder="Full Name" className="w-full text-sm sm:text-base py-2 sm:py-3 px-3 sm:px-4" />
