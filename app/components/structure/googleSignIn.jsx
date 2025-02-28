@@ -8,7 +8,7 @@ export default function GoogleSignInButton({ onClick }) {
       onClick={onClick}
     >
       <FcGoogle className="text-2xl" />
-      Google Sign Up
+      Google Sign In
     </Button>
   );
 }
