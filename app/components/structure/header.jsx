@@ -6,7 +6,8 @@ import { supabase } from "@/lib/supabaseClient";
 import { UserCircle, Menu } from "lucide-react";
 import { FaSignOutAlt } from "react-icons/fa";
 import { BsFillBuildingsFill, BsFillPeopleFill } from "react-icons/bs";
-import { FiHome } from "react-icons/fi";
+import { FiUser, FiHome, FiLogOut } from "react-icons/fi";
+import { BsCalendarCheck } from "react-icons/bs";
 import Link from "next/link";
 import toast, { Toaster } from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
@@ -47,37 +48,62 @@ export default function Header() {
       <Toaster />
       <h1 className="text-xl sm:text-2xl font-serif italic">SerenePath</h1>
 
-      {/* Desktop & Tablet Navigation */}
-      <nav className="hidden md:flex items-center space-x-6 relative">
-        <div className="group relative">
-          <button className="text-white opacity-80 hover:opacity-100 transition-all text-lg font-semibold py-2 px-6 bg-purple-600 rounded-full shadow-lg transform hover:scale-105">
-            Reservations
-          </button>
-          <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-xl shadow-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 overflow-hidden">
-            <Link href="/reservations" className="block px-5 py-3 text-gray-800 hover:bg-purple-100">View Reservations</Link>
-            <Link href="/new-reservation" className="block px-5 py-3 text-gray-800 hover:bg-purple-100">New Reservation</Link>
-          </div>
-        </div>
-        <Link href="/profile" className="text-white opacity-80 hover:opacity-100 transition-all text-lg font-semibold py-2 px-6 bg-blue-600 rounded-full shadow-lg transform hover:scale-105">
-          Profile
+      <nav className="hidden md:flex items-center space-x-8 relative bg-transparent">
+        {/* Reservations Button */}
+        <Link
+          href="/reservations"
+          className="flex items-center gap-2 text-white bg-gradient-to-r from-[#7B61FF] to-[#5E3AFF] hover:from-[#5E3AFF] hover:to-[#7B61FF] transition-all text-lg font-medium py-2 px-6 rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-1 duration-300"
+        >
+          <BsCalendarCheck size={19} />
+          <span>Reservations</span>
         </Link>
+
+        {/* Profile Link */}
+        <Link
+          href="/profile"
+          className="flex items-center gap-2 text-white bg-gradient-to-r from-[#00C6FF] to-[#0072FF] hover:from-[#0072FF] hover:to-[#00C6FF] transition-all text-lg font-medium py-2 px-6 rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-1 duration-300"
+        >
+          <FiUser size={19} />
+          <span>Profile</span>
+        </Link>
+
+        {/* User Dropdown */}
         {user ? (
           <div className="relative group">
-            <div className="w-10 h-10 flex items-center justify-center bg-purple-600 text-white rounded-full font-bold text-lg cursor-pointer">
+            {/* Profile Avatar */}
+            <div className="w-10 h-10 flex items-center justify-center bg-gradient-to-r from-[#7B61FF] to-[#5E3AFF] text-white rounded-full font-bold text-lg cursor-pointer shadow-lg border-[3px] border-white hover:scale-105 transition-all">
               {getUserInitials(user.user_metadata?.full_name || user.email)}
             </div>
-            <div className="absolute top-full right-0 mt-2 w-40 bg-white rounded-xl shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 overflow-hidden">
-              <Link href="/profile" className="block px-5 py-3 text-gray-800 hover:bg-purple-100">Profile</Link>
+
+            {/* Dropdown Menu with Glassmorphism Effect */}
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              className="absolute top-full right-0 mt-3 w-52 bg-white/10 backdrop-blur-lg rounded-xl shadow-2xl border border-white/20 overflow-hidden opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+            >
+              <Link
+                href="/profile"
+                className="flex items-center gap-2 px-5 py-4 text-white hover:bg-white/20 transition"
+              >
+                <FiUser size={18} />
+                <span>Profile</span>
+              </Link>
               <button
                 onClick={handleSignOut}
-                className="block w-full text-left px-5 py-3 text-gray-800 hover:bg-red-100"
+                className="flex items-center gap-2 w-full text-left px-5 py-4 text-red-400 hover:bg-red-400/20 transition"
               >
-                Sign Out
+                <FiLogOut size={18} />
+                <span>Sign Out</span>
               </button>
-            </div>
+            </motion.div>
           </div>
         ) : (
-          <UserCircle className="w-10 h-10 text-gray-400 cursor-pointer" onClick={() => router.push("/signin")} />
+          <UserCircle
+            className="w-10 h-10 text-gray-300 hover:text-white transition cursor-pointer"
+            onClick={() => router.push("/signin")}
+          />
         )}
       </nav>
 
@@ -103,7 +129,7 @@ export default function Header() {
               <span>Home</span>
             </Link>
             <Link href="/" className="flex space-x-2" onClick={() => setMobileMenuOpen(false)}>
-              <BsFillBuildingsFill />
+              <BsCalendarCheck />
               <span>Reservations</span>
             </Link>
             <Link href="/" className="flex space-x-2" onClick={() => setMobileMenuOpen(false)}>
