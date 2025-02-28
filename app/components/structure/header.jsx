@@ -9,6 +9,7 @@ import { BsFillBuildingsFill, BsFillPeopleFill } from "react-icons/bs";
 import { FiHome } from "react-icons/fi";
 import Link from "next/link";
 import toast, { Toaster } from "react-hot-toast";
+import { motion, AnimatePresence } from "framer-motion";
 
 const getUserInitials = (name) => {
   if (!name) return "";
@@ -88,31 +89,39 @@ export default function Header() {
       </div>
 
       {/* Mobile Full-Screen Menu */}
-      {mobileMenuOpen && (
-        <div className="fixed top-14 left-0 w-full bg-gray-900 text-white p-5 flex flex-col space-y-4 z-40">
-          <Link href="/" className="flex space-x-2" onClick={() => setMobileMenuOpen(false)}>
-            <FiHome size={18} />
-            <span>Home</span>
-          </Link>
-          <Link href="/" className="flex space-x-2" onClick={() => setMobileMenuOpen(false)}>
-            <BsFillBuildingsFill />
-            <span>Reservations</span>
-          </Link>
-          <Link href="/" className="flex space-x-2" onClick={() => setMobileMenuOpen(false)}>
-            <BsFillPeopleFill size={18} />
-            <span>Profile</span>
-          </Link>
-          <div className="mt-6 border-t border-white/30 pt-4 flex justify-center">
-            <button
-              onClick={handleSignOut}
-              className="flex items-center space-x-2 text-red-400 hover:text-red-300 transition duration-300"
-            >
-              <FaSignOutAlt size={18} />
-              <span>Logout</span>
-            </button>
-          </div>
-        </div>
-      )}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+            className="fixed top-14 left-0 w-full bg-gray-900 text-white p-5 flex flex-col space-y-4 z-40"
+          >
+            <Link href="/" className="flex space-x-2" onClick={() => setMobileMenuOpen(false)}>
+              <FiHome size={18} />
+              <span>Home</span>
+            </Link>
+            <Link href="/" className="flex space-x-2" onClick={() => setMobileMenuOpen(false)}>
+              <BsFillBuildingsFill />
+              <span>Reservations</span>
+            </Link>
+            <Link href="/" className="flex space-x-2" onClick={() => setMobileMenuOpen(false)}>
+              <BsFillPeopleFill size={18} />
+              <span>Profile</span>
+            </Link>
+            <div className="mt-6 border-t border-white/30 pt-4 flex justify-center">
+              <button
+                onClick={handleSignOut}
+                className="flex items-center space-x-2 text-red-400 hover:text-red-300 transition duration-300"
+              >
+                <FaSignOutAlt size={18} />
+                <span>Logout</span>
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </header>
   );
 }
