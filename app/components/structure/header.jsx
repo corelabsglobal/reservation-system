@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { User, UserCircle } from "lucide-react";
+import Link from "next/link";
 import toast, { Toaster } from "react-hot-toast";
 
 const getUserInitials = (name) => {
