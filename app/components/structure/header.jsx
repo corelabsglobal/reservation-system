@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { UserCircle, Menu } from "lucide-react";
 import { FaSignOutAlt } from "react-icons/fa";
-import { BsFillBuildingsFill, BsFillPeopleFill } from "react-icons/bs";
+import { BsFillPeopleFill } from "react-icons/bs";
 import { FiUser, FiHome, FiLogOut } from "react-icons/fi";
 import { BsCalendarCheck } from "react-icons/bs";
 import Link from "next/link";
@@ -135,14 +135,24 @@ export default function Header() {
               <BsFillPeopleFill size={18} />
               <span>Profile</span>
             </Link>
-            <div className="mt-6 border-t border-white/30 pt-4 flex justify-center">
-              <button
-                onClick={handleSignOut}
-                className="flex items-center space-x-2 text-red-400 hover:text-red-300 transition duration-300"
-              >
-                <FaSignOutAlt size={18} />
-                <span>Logout</span>
-              </button>
+            <div className="mt-6 border-t border-white/40 pt-4 flex justify-center">
+              {user ? (
+                <button
+                  onClick={handleSignOut}
+                  className="flex items-center space-x-2 text-red-400 hover:text-red-300 transition duration-300"
+                >
+                  <FaSignOutAlt size={18} />
+                  <span>Logout</span>
+                </button>
+              ) : (
+                <button
+                  onClick={() => router.push("/signin")}
+                  className="flex items-center space-x-2 text-blue-400 hover:text-blue-300 transition duration-300"
+                >
+                  <FiLogOut size={18} />
+                  <span>Sign In</span>
+                </button>
+              )}
             </div>
           </motion.div>
         )}
