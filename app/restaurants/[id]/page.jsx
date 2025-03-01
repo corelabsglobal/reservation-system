@@ -105,6 +105,11 @@ export default function RestaurantPage() {
     setOpenDialog(true);
   };
 
+  const [occasionDetails, setOccasionDetails] = useState({
+    occasion: "",
+    specialRequest: "",
+  });
+
   const handleBooking = async (e) => {
     e.preventDefault();
     setBookingError(null);
@@ -145,6 +150,8 @@ export default function RestaurantPage() {
         user_id: userId === "guest" ? "00000000-0000-0000-0000-000000000000" : userId,
         email,
         name,
+        special_request: occasionDetails.specialRequest,
+        occassion: occasionDetails.occasion,
       },
     ]);
 
@@ -298,7 +305,7 @@ export default function RestaurantPage() {
                           required
                           className="bg-gray-700 text-white px-4 py-2 rounded-md border border-gray-600 focus:ring-2 focus:ring-yellow-400"
                         />
-                        <OccasionDetails onChange={(data) => setReservationDetails(prev => ({ ...prev, ...data }))} />
+                        <OccasionDetails onChange={setOccasionDetails} />
                       </>
                     )}
                     <button
