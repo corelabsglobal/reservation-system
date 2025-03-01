@@ -25,13 +25,27 @@ const OccasionDetails = ({ onChange }) => {
   return (
     <div>
         <div className="flex flex-col">
-          <input
-            type="number"
-            placeholder="Enter Phone Number"
-            value={number}
-            onChange={handleNumberChange}
-            className="bg-gray-700 text-white px-4 py-2 rounded-md border border-gray-600 focus:ring-2 focus:ring-yellow-400"
-          />
+          <div className="flex space-x-2">
+            {/* Country Code Box */}
+            <div className="flex items-center bg-gray-700 text-white px-3 py-2 rounded-md border border-gray-600 w-28 justify-center">
+                <Image
+                src="/ghana-flag.jpg"
+                alt="Ghana Flag"
+                width={20}
+                height={15}
+                className="mr-1"
+                />
+                <span className="pl-1 text-md">+233</span>
+            </div>
+
+            <input
+                type="tel"
+                placeholder="Enter Phone Number"
+                value={number}
+                onChange={handleNumberChange}
+                className="bg-gray-700 text-white px-4 py-2 rounded-md border border-gray-600 focus:ring-2 focus:ring-yellow-400 flex-1 outline-none"
+            />
+          </div>
         </div>
         <div className="flex flex-col mt-3">
           <Label className="mb-2">Occasion</Label>
