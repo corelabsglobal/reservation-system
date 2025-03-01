@@ -127,7 +127,7 @@ export default function Header() {
               <FiHome size={18} />
               <span>Home</span>
             </Link>
-            <Link href="/" className="flex space-x-2" onClick={() => setMobileMenuOpen(false)}>
+            <Link href="/reservations" className="flex space-x-2" onClick={() => setMobileMenuOpen(false)}>
               <BsCalendarCheck />
               <span>Reservations</span>
             </Link>
