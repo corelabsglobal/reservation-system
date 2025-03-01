@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Label } from "@/components/ui/label";
 import Image from "next/image";
+import { FiUser } from "react-icons/fi";
 
 const OccasionDetails = ({ onChange }) => {
   const [occasion, setOccasion] = useState("");
@@ -54,13 +55,16 @@ const OccasionDetails = ({ onChange }) => {
           </div>
         </div>
         <div className="flex flex-col mt-3">
-          <input
-            type="number"
-            placeholder="Number of People"
-            value={people}
-            onChange={handlePeopleChange}
-            className="bg-gray-700 text-white px-4 py-2 rounded-md border border-gray-600 focus:ring-2 focus:ring-yellow-400"
-          />
+            <div className="relative">
+            <FiUser className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <input
+                type="number"
+                placeholder="Number of People"
+                value={people}
+                onChange={handlePeopleChange}
+                className="bg-gray-700 text-white pl-10 pr-4 py-2 rounded-md border border-gray-600 focus:ring-2 focus:ring-yellow-400 w-full"
+            />
+            </div>
         </div>
         <div className="flex flex-col mt-3">
           <Label className="mb-2">Occasion</Label>
