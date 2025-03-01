@@ -67,45 +67,43 @@ export default function Header() {
           <span>Profile</span>
         </Link>
 
-        {/* User Dropdown */}
-        {/* User Dropdown */}
-{user ? (
-  <div className="relative group">
-    {/* Profile Avatar */}
-    <div className="w-10 h-10 flex items-center justify-center bg-gradient-to-r from-[#7B61FF] to-[#5E3AFF] text-white rounded-full font-bold text-lg cursor-pointer shadow-lg border-[3px] border-white hover:scale-105 transition-all">
-      {getUserInitials(user.user_metadata?.full_name || user.email)}
-    </div>
+        {user ? (
+          <div className="relative group">
+            {/* Profile Avatar */}
+            <div className="w-10 h-10 flex items-center justify-center bg-gradient-to-r from-[#7B61FF] to-[#5E3AFF] text-white rounded-full font-bold text-lg cursor-pointer shadow-lg border-[3px] border-white hover:scale-105 transition-all">
+              {getUserInitials(user.user_metadata?.full_name || user.email)}
+            </div>
 
-    {/* Dropdown Menu with Glassmorphism Effect */}
-    <motion.div
-      initial={{ opacity: 0, y: -10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
-      transition={{ duration: 0.3, ease: "easeInOut" }}
-      className="absolute top-full right-0 mt-3 w-52 bg-white/10 backdrop-blur-lg rounded-xl shadow-2xl border border-white/20 overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible group-hover:pointer-events-auto transition-opacity duration-300 pointer-events-none"
-    >
-      <Link
-        href="/profile"
-        className="flex items-center gap-2 px-5 py-4 text-white hover:bg-white/20 transition"
-      >
-        <FiUser size={18} />
-        <span>Profile</span>
-      </Link>
-      <button
-        onClick={handleSignOut}
-        className="flex items-center gap-2 w-full text-left px-5 py-4 text-red-400 hover:bg-red-400/20 transition"
-      >
-        <FiLogOut size={18} />
-        <span>Sign Out</span>
-      </button>
-    </motion.div>
-  </div>
-) : (
-  <UserCircle
-    className="w-10 h-10 text-gray-300 hover:text-white transition cursor-pointer"
-    onClick={() => router.push("/signin")}
-  />
-)}
+            {/* Dropdown Menu with Glassmorphism Effect */}
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              className="absolute top-full right-0 mt-3 w-52 bg-white/10 backdrop-blur-lg rounded-xl shadow-2xl border border-white/20 overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible group-hover:pointer-events-auto transition-opacity duration-300 pointer-events-none"
+            >
+              <Link
+                href="/profile"
+                className="flex items-center gap-2 px-5 py-4 text-white hover:bg-white/20 transition"
+              >
+                <FiUser size={18} />
+                <span>Profile</span>
+              </Link>
+              <button
+                onClick={handleSignOut}
+                className="flex items-center gap-2 w-full text-left px-5 py-4 text-red-400 hover:bg-red-400/20 transition"
+              >
+                <FiLogOut size={18} />
+                <span>Sign Out</span>
+              </button>
+            </motion.div>
+          </div>
+        ) : (
+          <UserCircle
+            className="w-10 h-10 text-gray-300 hover:text-white transition cursor-pointer"
+            onClick={() => router.push("/signin")}
+          />
+        )}
       </nav>
 
       {/* Mobile Navigation */}
@@ -123,7 +121,7 @@ export default function Header() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="fixed top-14 left-0 w-full bg-gray-900 text-white p-5 flex flex-col space-y-4 z-40"
+            className="fixed top-14 left-0 w-full bg-gray/20 backdrop-blur-lg text-white p-5 flex flex-col space-y-4 z-40"
           >
             <Link href="/" className="flex space-x-2" onClick={() => setMobileMenuOpen(false)}>
               <FiHome size={18} />
