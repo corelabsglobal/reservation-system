@@ -5,16 +5,22 @@ import Image from "next/image";
 const OccasionDetails = ({ onChange }) => {
   const [occasion, setOccasion] = useState("");
   const [number, setNumber] = useState("");
+  const [people, setPeople] = useState("");
   const [specialRequest, setSpecialRequest] = useState("");
 
   const handleOccasionChange = (e) => {
     setOccasion(e.target.value);
-    onChange({ occasion: e.target.value, number, specialRequest });
+    onChange({ occasion: e.target.value, people, number, specialRequest });
   };
 
   const handleNumberChange = (e) => {
     setNumber(e.target.value);
-    onChange({ occasion, number: e.target.value, specialRequest });
+    onChange({ occasion, people, number: e.target.value, specialRequest });
+  };
+
+  const handlePeopleChange = (e) => {
+    setPeople(e.target.value);
+    onChange({ occasion, people: e.target.value, number, specialRequest });
   };
 
   const handleSpecialRequestChange = (e) => {
@@ -46,6 +52,15 @@ const OccasionDetails = ({ onChange }) => {
                 className="bg-gray-700 text-white px-4 py-2 rounded-md border border-gray-600 focus:ring-2 focus:ring-yellow-400 flex-1 outline-none"
             />
           </div>
+        </div>
+        <div className="flex flex-col mt-3">
+          <input
+            type="number"
+            placeholder="Number of People"
+            value={people}
+            onChange={handlePeopleChange}
+            className="bg-gray-700 text-white px-4 py-2 rounded-md border border-gray-600 focus:ring-2 focus:ring-yellow-400"
+          />
         </div>
         <div className="flex flex-col mt-3">
           <Label className="mb-2">Occasion</Label>

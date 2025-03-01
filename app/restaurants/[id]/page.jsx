@@ -109,6 +109,7 @@ export default function RestaurantPage() {
     occasion: "",
     specialRequest: "",
     number: "",
+    people: "",
   });
 
   const handleBooking = async (e) => {
@@ -154,6 +155,7 @@ export default function RestaurantPage() {
         special_request: occasionDetails?.specialRequest,
         occassion: occasionDetails?.occasion,
         number:  occasionDetails?.number,
+        people: occasionDetails?.people,
       },
     ]);
 
