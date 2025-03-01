@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import Image from 'next/image';
+import Header from '../components/structure/header';
 
 const ReservationsPage = () => {
   const [reservations, setReservations] = useState([]);
@@ -34,7 +35,7 @@ const ReservationsPage = () => {
       const { data, error } = await supabase
         .from("reservations")
         .select(`
-          id, date, time, special_request, restaurant_id,
+          id, date, time, special_request, restaurant_id, name, occassion,
           restaurants:restaurant_id (id, name, location, restaurant_image)
         `)
         .eq("user_id", user.id);
@@ -70,26 +71,28 @@ const ReservationsPage = () => {
 
   return (
     <div className="relative min-h-screen bg-cover bg-center" style={{ backgroundImage: 'url(/images/background.jpeg)' }}>
+      <Header />
       <div className="bg-black bg-opacity-50 min-h-screen flex flex-col items-center py-10 px-5">
-        <h1 className="text-4xl font-bold text-white mb-8">Your Reservations</h1>
+        <h1 className="mt-12 text-4xl font-bold mb-8 bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 to-pink-600 drop-shadow-lg">Your Reservations</h1>
 
         {loading ? (
           <p className="text-white">Loading reservations...</p>
         ) : (
           <div className="w-full max-w-4xl space-y-6">
             {Object.values(groupedReservations).map(({ restaurant, reservations }) => (
-              <div key={restaurant.id} className="bg-gray-800 p-6 rounded-lg shadow-lg text-white">
+              <div key={restaurant.id} className="bg-gray-800 p-6 rounded-xl shadow-lg text-white">
                 <div className="flex items-center space-x-4">
-                  <Image
-                    src={restaurant?.restaurant_image || "/images/golden-lounge.jpeg"}
-                    alt={restaurant.name}
-                    width={80}
-                    height={80}
-                    className="rounded-lg"
-                    onError={(e) => (e.target.src = "/images/golden-lounge.jpeg")}
-                  />
+                  <div className="w-32 h-32 overflow-hidden rounded-lg">
+                    <Image
+                      src={restaurant?.restaurant_image || "/images/golden-lounge.jpeg"}
+                      alt={restaurant.name}
+                      width={128}
+                      height={128}
+                      className="object-cover w-full h-full"
+                    />
+                  </div>
                   <div>
-                    <h2 className="text-2xl font-semibold">{restaurant.name}</h2>
+                    <h2 className="text-2xl font-semibold text-yellow-400">{restaurant.name}</h2>
                     <p className="text-gray-400">{restaurant.location}</p>
                   </div>
                 </div>
@@ -107,7 +110,9 @@ const ReservationsPage = () => {
                       <div key={res.id} className="mt-4 p-4 bg-gray-700 rounded-md">
                         <p><strong>Date:</strong> {new Date(res.date).toLocaleDateString()}</p>
                         <p><strong>Time:</strong> {res.time}</p>
+                        <p><strong>Booked For:</strong> {res.name || 'None'}</p>
                         <p><strong>Special Request:</strong> {res.special_request || 'None'}</p>
+                        <p><strong>Occassion:</strong> {res.occassion || 'None'}</p>
                       </div>
                     ))}
                   </div>
