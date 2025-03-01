@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose } from "@/components/ui/dialog";
 import toast, { Toaster } from "react-hot-toast";
+import OccasionDetails from "@/app/components/restaurants/OccassionDetails";
 
 export default function RestaurantPage() {
   const { id } = useParams();
@@ -276,6 +277,7 @@ export default function RestaurantPage() {
                           required
                           className="bg-gray-700 text-white px-4 py-2 rounded-md border border-gray-600 focus:ring-2 focus:ring-yellow-400"
                         />
+                        <OccasionDetails onChange={(data) => setReservationDetails(prev => ({ ...prev, ...data }))} />
                       </>
                     )}
                     {userId !== "guest" && (
@@ -296,6 +298,7 @@ export default function RestaurantPage() {
                           required
                           className="bg-gray-700 text-white px-4 py-2 rounded-md border border-gray-600 focus:ring-2 focus:ring-yellow-400"
                         />
+                        <OccasionDetails onChange={(data) => setReservationDetails(prev => ({ ...prev, ...data }))} />
                       </>
                     )}
                     <button
