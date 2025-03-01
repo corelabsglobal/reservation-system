@@ -73,7 +73,7 @@ const ReservationsPage = () => {
     <div className="relative min-h-screen bg-cover bg-center" style={{ backgroundImage: 'url(/images/background.jpeg)' }}>
       <Header />
       <div className="bg-black bg-opacity-50 min-h-screen flex flex-col items-center py-10 px-5">
-        <h1 className="mt-12 text-4xl font-bold mb-8 bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 to-pink-600 drop-shadow-lg">Your Reservations</h1>
+        <h1 className="mt-12 mb-8 text-4xl sm:text-5xl md:text-5xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 to-pink-600 drop-shadow-lg">Your Reservations</h1>
 
         {loading ? (
           <p className="text-white">Loading reservations...</p>
