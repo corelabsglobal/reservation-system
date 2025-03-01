@@ -108,6 +108,7 @@ export default function RestaurantPage() {
   const [occasionDetails, setOccasionDetails] = useState({
     occasion: "",
     specialRequest: "",
+    number: "",
   });
 
   const handleBooking = async (e) => {
@@ -150,8 +151,9 @@ export default function RestaurantPage() {
         user_id: userId === "guest" ? "00000000-0000-0000-0000-000000000000" : userId,
         email,
         name,
-        special_request: occasionDetails.specialRequest,
-        occassion: occasionDetails.occasion,
+        special_request: occasionDetails?.specialRequest,
+        occassion: occasionDetails?.occasion,
+        number:  occasionDetails?.number,
       },
     ]);
 
@@ -284,7 +286,7 @@ export default function RestaurantPage() {
                           required
                           className="bg-gray-700 text-white px-4 py-2 rounded-md border border-gray-600 focus:ring-2 focus:ring-yellow-400"
                         />
-                        <OccasionDetails onChange={(data) => setReservationDetails(prev => ({ ...prev, ...data }))} />
+                        <OccasionDetails onChange={(data) => setOccasionDetails(prev => ({ ...prev, ...data }))} />
                       </>
                     )}
                     {userId !== "guest" && (
