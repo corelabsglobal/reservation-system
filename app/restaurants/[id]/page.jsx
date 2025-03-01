@@ -310,7 +310,7 @@ export default function RestaurantPage() {
                     )}
                     <button
                       type="submit"
-                      className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-black font-bold rounded-md"
+                      className="mt-5 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-black font-bold rounded-md"
                     >
                       Confirm Booking
                     </button>
@@ -323,7 +323,7 @@ export default function RestaurantPage() {
           </div>
 
           <DialogClose asChild>
-            <button className="w-full mt-4 px-4 py-2 bg-gray-600 hover:bg-gray-700 transition-all rounded-md text-white">Close</button>
+            <button className="w-full px-4 py-2 bg-gray-600 hover:bg-gray-700 transition-all rounded-md text-white">Close</button>
           </DialogClose>
         </DialogContent>
       </Dialog>
