@@ -50,13 +50,13 @@ export default function Header() {
 
       <nav className="hidden md:flex items-center space-x-8 relative bg-transparent">
         {/* Reservations Button */}
-        <Link
-          href="/reservations"
+        <button
+          onClick={() => router.push(user ? "/reservations" : "/guests")}
           className="flex items-center gap-2 text-white bg-gradient-to-r from-[#7B61FF] to-[#5E3AFF] hover:from-[#5E3AFF] hover:to-[#7B61FF] transition-all text-lg font-medium py-2 px-6 rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-1 duration-300"
         >
           <BsCalendarCheck size={19} />
           <span>Reservations</span>
-        </Link>
+        </button>
 
         {/* Profile Link */}
         <Link
@@ -127,10 +127,16 @@ export default function Header() {
               <FiHome size={18} />
               <span>Home</span>
             </Link>
-            <Link href="/reservations" className="flex space-x-2" onClick={() => setMobileMenuOpen(false)}>
+            <button
+              onClick={() => {
+                router.push(user ? "/reservations" : "/guests");
+                setMobileMenuOpen(false);
+              }}
+              className="flex space-x-2"
+            >
               <BsCalendarCheck />
               <span>Reservations</span>
-            </Link>
+            </button>
             <Link href="/" className="flex space-x-2" onClick={() => setMobileMenuOpen(false)}>
               <BsFillPeopleFill size={18} />
               <span>Profile</span>
