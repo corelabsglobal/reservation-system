@@ -18,7 +18,6 @@ const ReservationsPage = () => {
         console.error("Error fetching user:", error);
         return;
       }
-      console.log("User Data:", userData.user); // ✅ Debugging step
       setUser(userData.user);
     };
 

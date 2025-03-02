@@ -143,6 +143,7 @@ export default function RestaurantPage() {
     }
 
     const today = new Date().toISOString().split("T")[0];
+    const reservationToken = crypto.randomUUID();
 
     const { data, error } = await supabase.from("reservations").insert([
       {
@@ -152,6 +153,7 @@ export default function RestaurantPage() {
         user_id: userId === "guest" ? "00000000-0000-0000-0000-000000000000" : userId,
         email,
         name,
+        reservation_token: reservationToken,
         special_request: occasionDetails?.specialRequest,
         occassion: occasionDetails?.occasion,
         number:  occasionDetails?.number,
@@ -167,6 +169,9 @@ export default function RestaurantPage() {
       toast.success("Reservation successful!");
       setReservations([...reservations, { time: selectedSlot, date: selectedDate, user_id: userId }]);
       setAvailableSlots(availableSlots.filter((slot) => slot !== selectedSlot));
+
+      localStorage.setItem("reservationToken", reservationToken);
+      localStorage.setItem("reservationEmail", email);
       setTimeout(() => setOpenDialog(false), 2000); 
     }
   };
