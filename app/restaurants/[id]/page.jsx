@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose } from "@/components/ui/dialog";
 import toast, { Toaster } from "react-hot-toast";
+import { useRouter } from "next/navigation";
 import OccasionDetails from "@/app/components/restaurants/OccassionDetails";
 
 export default function RestaurantPage() {
@@ -22,6 +23,7 @@ export default function RestaurantPage() {
   const [userId, setUserId] = useState(null);
   const [bookingError, setBookingError] = useState(null);
   const [bookingSuccess, setBookingSuccess] = useState(null);
+  const router = useRouter();
 
   useEffect(() => {
     async function fetchUser() {
@@ -172,7 +174,10 @@ export default function RestaurantPage() {
 
       localStorage.setItem("reservationToken", reservationToken);
       localStorage.setItem("reservationEmail", email);
-      setTimeout(() => setOpenDialog(false), 2000); 
+
+      setTimeout(() => {
+        router.push(userId === "guest" ? "/guests" : "/reservations");
+      }, 2200);
     }
   };
 
