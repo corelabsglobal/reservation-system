@@ -13,9 +13,10 @@ const ProfilePage = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterDate, setFilterDate] = useState('');
-  const [activeTab, setActiveTab] = useState('home');
+  const [activeTab, setActiveTab] = useState('overview');
   const [showAllReservations, setShowAllReservations] = useState(false);
   const [newImage, setNewImage] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchRestaurant = async () => {
@@ -30,7 +31,7 @@ const ProfilePage = () => {
       
       if (restError) return;
       setRestaurant(data);
-      setTablesAvailable(data.tables_available);
+      setTablesAvailable(data.tables);
     };
 
     fetchRestaurant();
@@ -385,6 +386,7 @@ const ProfilePage = () => {
           <div className="mb-6 p-6 shadow-2xl bg-gray-800/90 backdrop-blur-md rounded-xl">
             <h2 className="text-2xl font-semibold mb-4">Manage Restaurant</h2>
             <div className="space-y-6">
+              {/* Update Restaurant Image Section */}
               <div>
                 <h3 className="text-xl font-bold mb-2">Update Restaurant Image</h3>
                 <div className="flex flex-col sm:flex-row items-center gap-4">
@@ -408,6 +410,8 @@ const ProfilePage = () => {
                   )}
                 </div>
               </div>
+
+              {/* Update Tables Available Section */}
               <div>
                 <h3 className="text-xl font-bold mb-2">Update Tables Available</h3>
                 <div className="flex gap-3">
@@ -415,10 +419,10 @@ const ProfilePage = () => {
                     type="number"
                     value={tablesAvailable}
                     onChange={(e) => setTablesAvailable(e.target.value)}
-                    className="p-3 border rounded-lg text-black w-24"
+                    className="p-2 border rounded-lg text-black w-24"
                   />
                   <button
-                    onClick={updateTables}
+                    onClick={() => setIsModalOpen(true)}
                     className="bg-gradient-to-r from-yellow-400 to-pink-600 px-5 py-2 rounded-lg hover:opacity-80 transition-all"
                   >
                     Update
@@ -426,6 +430,38 @@ const ProfilePage = () => {
                 </div>
               </div>
             </div>
+
+            {/* Custom Modal for Confirmation */}
+            {isModalOpen && (
+              <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3 }}
+                  className="bg-gray-800 p-6 rounded-lg shadow-lg max-w-sm w-full"
+                >
+                  <h3 className="text-xl font-semibold mb-4">Confirm Update</h3>
+                  <p className="mb-6">Are you sure you want to update the number of tables?</p>
+                  <div className="flex justify-end gap-3">
+                    <button
+                      onClick={() => setIsModalOpen(false)}
+                      className="bg-gray-700 px-4 py-2 rounded-lg hover:bg-gray-600 transition-all"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => {
+                        updateTables();
+                        setIsModalOpen(false);
+                      }}
+                      className="bg-gradient-to-r from-yellow-400 to-pink-600 px-4 py-2 rounded-lg hover:opacity-80 transition-all"
+                    >
+                      Confirm
+                    </button>
+                  </div>
+                </motion.div>
+              </div>
+            )}
           </div>
         )}
       </div>
