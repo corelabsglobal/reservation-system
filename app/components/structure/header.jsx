@@ -23,22 +23,38 @@ const getUserInitials = (name) => {
 
 export default function Header() {
   const [user, setUser] = useState(null);
+  const [isOwner, setIsOwner] = useState(false); // New state to check if user is an owner
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    const fetchUser = async () => {
+    const fetchUserAndRestaurant = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         setUser(user);
+
+        // Fetch restaurant data to check if the user is an owner
+        const { data: restaurant, error } = await supabase
+          .from("restaurants")
+          .select("owner_id")
+          .eq("owner_id", user.id)
+          .single();
+
+        if (restaurant && !error) {
+          setIsOwner(true); // User is an owner
+        } else {
+          setIsOwner(false); // User is not an owner
+        }
       }
     };
-    fetchUser();
+
+    fetchUserAndRestaurant();
   }, []);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     setUser(null);
+    setIsOwner(false); // Reset owner status on sign-out
     setMobileMenuOpen(false);
     toast.success("Signed out successfully");
   };
@@ -58,14 +74,16 @@ export default function Header() {
           <span>Reservations</span>
         </button>
 
-        {/* Profile Link */}
-        <Link
-          href="/profile"
-          className="flex items-center gap-2 text-white bg-gradient-to-r from-[#00C6FF] to-[#0072FF] hover:from-[#0072FF] hover:to-[#00C6FF] transition-all text-lg font-medium py-2 px-6 rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-1 duration-300"
-        >
-          <FiUser size={19} />
-          <span>Profile</span>
-        </Link>
+        {/* Conditionally render Profile Link */}
+        {isOwner && (
+          <Link
+            href="/profile"
+            className="flex items-center gap-2 text-white bg-gradient-to-r from-[#00C6FF] to-[#0072FF] hover:from-[#0072FF] hover:to-[#00C6FF] transition-all text-lg font-medium py-2 px-6 rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-1 duration-300"
+          >
+            <FiUser size={19} />
+            <span>Profile</span>
+          </Link>
+        )}
 
         {user ? (
           <div className="relative group">
@@ -82,13 +100,15 @@ export default function Header() {
               transition={{ duration: 0.3, ease: "easeInOut" }}
               className="absolute top-full right-0 mt-3 w-52 bg-white/10 backdrop-blur-lg rounded-xl shadow-2xl border border-white/20 overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible group-hover:pointer-events-auto transition-opacity duration-300 pointer-events-none"
             >
-              <Link
-                href="/profile"
-                className="flex items-center gap-2 px-5 py-4 text-white hover:bg-white/20 transition"
-              >
-                <FiUser size={18} />
-                <span>Profile</span>
-              </Link>
+              {isOwner && (
+                <Link
+                  href="/profile"
+                  className="flex items-center gap-2 px-5 py-4 text-white hover:bg-white/20 transition"
+                >
+                  <FiUser size={18} />
+                  <span>Profile</span>
+                </Link>
+              )}
               <button
                 onClick={handleSignOut}
                 className="flex items-center gap-2 w-full text-left px-5 py-4 text-red-400 hover:bg-red-400/20 transition"
@@ -137,10 +157,12 @@ export default function Header() {
               <BsCalendarCheck />
               <span>Reservations</span>
             </button>
-            <Link href="/" className="flex space-x-2" onClick={() => setMobileMenuOpen(false)}>
-              <BsFillPeopleFill size={18} />
-              <span>Profile</span>
-            </Link>
+            {isOwner && (
+              <Link href="/profile" className="flex space-x-2" onClick={() => setMobileMenuOpen(false)}>
+                <BsFillPeopleFill size={18} />
+                <span>Profile</span>
+              </Link>
+            )}
             <div className="mt-6 border-t border-white/40 pt-4 flex justify-center">
               {user ? (
                 <button
@@ -165,4 +187,4 @@ export default function Header() {
       </AnimatePresence>
     </header>
   );
-}
+};
