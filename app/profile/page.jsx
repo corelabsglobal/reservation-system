@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie } from 'recharts';
 
 const ProfilePage = () => {
   const [restaurant, setRestaurant] = useState(null);
@@ -57,7 +57,7 @@ const ProfilePage = () => {
   const updateTables = async () => {
     const { error } = await supabase
       .from('restaurants')
-      .update({ tables_available: tablesAvailable })
+      .update({ tables: tablesAvailable })
       .eq('id', restaurant.id);
 
     if (error) {
@@ -124,10 +124,15 @@ const ProfilePage = () => {
   return (
     <div className="relative min-h-screen bg-cover bg-center bg-fixed p-6 flex flex-col items-center" style={{ backgroundImage: "url('/images/background.jpeg')" }}>
       <div className="absolute inset-0 bg-black opacity-50"></div>
+        <div className="text-center">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 to-pink-600 drop-shadow-lg mb-8">
+              Dashboard
+            </h1>
+        </div>
       <div className="relative z-10 w-full max-w-5xl text-white">
         {/* Navbar */}
         <nav className="flex flex-wrap justify-center gap-2 mb-8">
-          {['home', 'overview', 'customers', 'reservations', 'manage'].map((tab) => (
+          {['overview', 'customers', 'reservations', 'manage'].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -140,20 +145,142 @@ const ProfilePage = () => {
           ))}
         </nav>
 
-        {/* Home Tab */}
-        {activeTab === 'home' && (
-          <div className="text-center">
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 to-pink-600 drop-shadow-lg mb-8">
-              Restaurant Dashboard
-            </h1>
-          </div>
-        )}
-
         {/* Overview Tab */}
         {activeTab === 'overview' && (
           <div className="mb-6 p-6 shadow-2xl bg-gray-800/90 backdrop-blur-md rounded-xl">
-            <h2 className="text-2xl font-semibold mb-4">Reservation Overview</h2>
-            <div className="w-full h-64 sm:h-80">
+            <h2 className="text-2xl font-semibold mb-6">Reservation Overview</h2>
+
+            {/* Circle Charts Container */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              {/* Chart 1: Reservation Status Distribution */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                className="p-6 bg-gray-700/50 rounded-xl shadow-lg"
+              >
+                <h3 className="text-lg font-semibold mb-4">Reservation Status</h3>
+                <ResponsiveContainer width="100%" height={200}>
+                  <PieChart>
+                    <Pie
+                      data={[
+                        { name: 'Confirmed', value: 70, fill: '#4ADE80' },
+                        { name: 'Pending', value: 20, fill: '#FBBF24' },
+                        { name: 'Canceled', value: 10, fill: '#EF4444' },
+                      ]}
+                      dataKey="value"
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={80}
+                      paddingAngle={5}
+                      label
+                    >
+                      {[
+                        { name: 'Confirmed', fill: '#4ADE80' },
+                        { name: 'Pending', fill: '#FBBF24' },
+                        { name: 'Canceled', fill: '#EF4444' },
+                      ].map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.fill} />
+                      ))}
+                    </Pie>
+                    <Tooltip contentStyle={{ backgroundColor: '#2D3748', border: 'none', borderRadius: '8px' }} />
+                    <Legend
+                      iconType="circle"
+                      wrapperStyle={{ fontSize: '12px', color: '#CBD5E0' }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </motion.div>
+
+              {/* Chart 2: Customer Type Distribution */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.4 }}
+                className="p-6 bg-gray-700/50 rounded-xl shadow-lg"
+              >
+                <h3 className="text-lg font-semibold mb-4">Customer Type</h3>
+                <ResponsiveContainer width="100%" height={200}>
+                  <PieChart>
+                    <Pie
+                      data={[
+                        { name: 'New Customers', value: 60, fill: '#60A5FA' },
+                        { name: 'Returning Customers', value: 40, fill: '#A78BFA' },
+                      ]}
+                      dataKey="value"
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={80}
+                      paddingAngle={5}
+                      label
+                    >
+                      {[
+                        { name: 'New Customers', fill: '#60A5FA' },
+                        { name: 'Returning Customers', fill: '#A78BFA' },
+                      ].map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.fill} />
+                      ))}
+                    </Pie>
+                    <Tooltip contentStyle={{ backgroundColor: '#2D3748', border: 'none', borderRadius: '8px' }} />
+                    <Legend
+                      iconType="circle"
+                      wrapperStyle={{ fontSize: '12px', color: '#CBD5E0' }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </motion.div>
+
+              {/* Chart 3: Peak Reservation Times */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.6 }}
+                className="p-6 bg-gray-700/50 rounded-xl shadow-lg"
+              >
+                <h3 className="text-lg font-semibold mb-4">Peak Times</h3>
+                <ResponsiveContainer width="100%" height={200}>
+                  <PieChart>
+                    <Pie
+                      data={[
+                        { name: 'Morning', value: 30, fill: '#F472B6' },
+                        { name: 'Afternoon', value: 50, fill: '#FB923C' },
+                        { name: 'Evening', value: 20, fill: '#818CF8' },
+                      ]}
+                      dataKey="value"
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={80}
+                      paddingAngle={5}
+                      label
+                    >
+                      {[
+                        { name: 'Morning', fill: '#F472B6' },
+                        { name: 'Afternoon', fill: '#FB923C' },
+                        { name: 'Evening', fill: '#818CF8' },
+                      ].map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.fill} />
+                      ))}
+                    </Pie>
+                    <Tooltip contentStyle={{ backgroundColor: '#2D3748', border: 'none', borderRadius: '8px' }} />
+                    <Legend
+                      iconType="circle"
+                      wrapperStyle={{ fontSize: '12px', color: '#CBD5E0' }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </motion.div>
+            </div>
+
+            {/* Bar Chart */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.8 }}
+              className="w-full h-64 sm:h-80"
+            >
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#4A5568" />
@@ -161,10 +288,15 @@ const ProfilePage = () => {
                   <YAxis stroke="#CBD5E0" />
                   <Tooltip contentStyle={{ backgroundColor: '#2D3748', border: 'none', borderRadius: '8px' }} />
                   <Legend />
-                  <Bar dataKey="reservations" fill="#8884d8" radius={[4, 4, 0, 0]} />
+                  <Bar
+                    dataKey="reservations"
+                    fill="#8884d8"
+                    radius={[4, 4, 0, 0]}
+                    animationDuration={1500}
+                  />
                 </BarChart>
               </ResponsiveContainer>
-            </div>
+            </motion.div>
           </div>
         )}
 
