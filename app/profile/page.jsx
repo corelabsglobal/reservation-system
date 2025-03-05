@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 const ProfilePage = () => {
   const [restaurant, setRestaurant] = useState(null);
@@ -12,6 +13,9 @@ const ProfilePage = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterDate, setFilterDate] = useState('');
+  const [activeTab, setActiveTab] = useState('home');
+  const [showAllReservations, setShowAllReservations] = useState(false);
+  const [newImage, setNewImage] = useState(null);
 
   useEffect(() => {
     const fetchRestaurant = async () => {
@@ -78,56 +82,143 @@ const ProfilePage = () => {
     (filterDate ? res.date === filterDate : true)
   );
 
+  const handleImageChange = async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setNewImage(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const updateRestaurantImage = async () => {
+    if (!newImage) return;
+
+    const { error } = await supabase
+      .from('restaurants')
+      .update({ image: newImage })
+      .eq('id', restaurant.id);
+
+    if (error) {
+      toast.error('Failed to update image');
+    } else {
+      toast.success('Image updated successfully');
+      setRestaurant({ ...restaurant, image: newImage });
+      setNewImage(null);
+    }
+  };
+
+  const reservationData = reservations.reduce((acc, res) => {
+    const month = new Date(res.date).toLocaleString('default', { month: 'long' });
+    acc[month] = (acc[month] || 0) + 1;
+    return acc;
+  }, {});
+
+  const chartData = Object.keys(reservationData).map(month => ({
+    month,
+    reservations: reservationData[month]
+  }));
+
   return (
-    <div className="relative min-h-screen bg-cover bg-center p-6 flex flex-col items-center" style={{ backgroundImage: "url('/images/background.jpeg')" }}>
-      <div className="absolute bg-black opacity-50"></div>
+    <div className="relative min-h-screen bg-cover bg-center bg-fixed p-6 flex flex-col items-center" style={{ backgroundImage: "url('/images/background.jpeg')" }}>
+      <div className="absolute inset-0 bg-black opacity-50"></div>
       <div className="relative z-10 w-full max-w-5xl text-white">
-        <h1 className=" text-4xl sm:text-5xl md:text-5xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 to-pink-600 drop-shadow-lg text-center mb-8">Restaurant Dashboard</h1>
-
-        <div className="mb-6 p-6 shadow-2xl bg-gray-800/90 backdrop-blur-md rounded-xl">
-          <h2 className="text-2xl font-semibold">Update Tables Available</h2>
-          <div className="mt-4 flex gap-3">
-            <input 
-              type="number" 
-              value={tablesAvailable} 
-              onChange={(e) => setTablesAvailable(e.target.value)} 
-              className="p-3 border rounded-lg text-black w-24"
-            />
-            <button onClick={updateTables} className="bg-gold px-5 py-2 rounded-lg hover:bg-opacity-80 transition-all">
-              Update
+        {/* Navbar */}
+        <nav className="flex flex-wrap justify-center gap-2 mb-8">
+          {['home', 'overview', 'customers', 'reservations', 'manage'].map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-4 py-2 rounded-lg text-sm sm:text-base transition-all ${
+                activeTab === tab ? 'bg-gradient-to-r from-yellow-400 to-pink-600 text-white' : 'bg-gray-700 hover:bg-gray-600'
+              }`}
+            >
+              {tab.charAt(0).toUpperCase() + tab.slice(1)}
             </button>
-          </div>
-        </div>
+          ))}
+        </nav>
 
-        <div className="mb-6 p-6 bg-black bg-opacity-50 rounded-xl shadow-lg">
-          <h2 className="text-2xl font-semibold">Find Reservations</h2>
-          <div className="mt-4 flex gap-4">
-            <input 
-              type="text" 
-              placeholder="Search by Name" 
-              value={searchQuery} 
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="p-3 border rounded-lg text-black flex-1"
-            />
-            <input 
-              type="date" 
-              value={filterDate} 
-              onChange={(e) => setFilterDate(e.target.value)}
-              className="p-3 border rounded-lg text-black"
-            />
+        {/* Home Tab */}
+        {activeTab === 'home' && (
+          <div className="text-center">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 to-pink-600 drop-shadow-lg mb-8">
+              Restaurant Dashboard
+            </h1>
           </div>
-        </div>
+        )}
 
-        <h2 className="text-3xl font-semibold mb-4 text-center">Reservations</h2>
-        {loading ? (
-          <p className="text-center">Loading reservations...</p>
-        ) : (
-          filteredReservations.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {filteredReservations.map((res) => (
-                <motion.div 
-                  key={res.id} 
-                  initial={{ opacity: 0, y: 20 }} 
+        {/* Overview Tab */}
+        {activeTab === 'overview' && (
+          <div className="mb-6 p-6 shadow-2xl bg-gray-800/90 backdrop-blur-md rounded-xl">
+            <h2 className="text-2xl font-semibold mb-4">Reservation Overview</h2>
+            <div className="w-full h-64 sm:h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#4A5568" />
+                  <XAxis dataKey="month" stroke="#CBD5E0" />
+                  <YAxis stroke="#CBD5E0" />
+                  <Tooltip contentStyle={{ backgroundColor: '#2D3748', border: 'none', borderRadius: '8px' }} />
+                  <Legend />
+                  <Bar dataKey="reservations" fill="#8884d8" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        )}
+
+        {/* Customers Tab */}
+        {activeTab === 'customers' && (
+          <div className="mb-6 p-6 shadow-2xl bg-gray-800/90 backdrop-blur-md rounded-xl">
+            <h2 className="text-2xl font-semibold mb-4">Customers</h2>
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[600px]">
+                <thead>
+                  <tr className="bg-gray-700">
+                    <th className="px-4 py-3 text-left">Name</th>
+                    <th className="px-4 py-3 text-left">Email</th>
+                    <th className="px-4 py-3 text-left">Phone</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {reservations.map((res) => (
+                    <tr key={res.id} className="border-b border-gray-700 hover:bg-gray-700/50 transition-all">
+                      <td className="px-4 py-3">{res.name}</td>
+                      <td className="px-4 py-3">{res.email}</td>
+                      <td className="px-4 py-3">{res.number ? `0${res.number}` : ''}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Reservations Tab */}
+        {activeTab === 'reservations' && (
+          <div className="mb-6 p-6 shadow-2xl bg-gray-800/90 backdrop-blur-md rounded-xl">
+            <h2 className="text-2xl font-semibold mb-4">Reservations</h2>
+            <div className="flex flex-col sm:flex-row gap-4 mb-4">
+              <input
+                type="text"
+                placeholder="Search by Name"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="p-3 border rounded-lg text-black flex-1"
+              />
+              <input
+                type="date"
+                value={filterDate}
+                onChange={(e) => setFilterDate(e.target.value)}
+                className="p-3 border rounded-lg text-black"
+              />
+            </div>
+            <div className="space-y-4">
+              {filteredReservations.slice(0, showAllReservations ? filteredReservations.length : 5).map((res) => (
+                <motion.div
+                  key={res.id}
+                  initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4 }}
                   className="p-6 bg-white text-black rounded-xl shadow-xl relative"
@@ -137,18 +228,73 @@ const ProfilePage = () => {
                   <p><strong>Time:</strong> {res.time}</p>
                   <p><strong>Guests:</strong> {res.guest_count}</p>
                   <p><strong>Special Request:</strong> {res.special_request || 'None'}</p>
-                  <button 
+                  <button
                     onClick={() => cancelReservation(res.id)}
-                    className="absolute top-3 right-3 bg-red-500 text-white px-3 py-1 rounded-lg"
+                    className="absolute top-3 right-3 bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600 transition-all"
                   >
                     Cancel
                   </button>
                 </motion.div>
               ))}
+              {filteredReservations.length > 5 && (
+                <button
+                  onClick={() => setShowAllReservations(!showAllReservations)}
+                  className="mt-4 bg-gradient-to-r from-yellow-400 to-pink-600 px-5 py-2 rounded-lg hover:opacity-80 transition-all"
+                >
+                  {showAllReservations ? 'Show Less' : 'Show More'}
+                </button>
+              )}
             </div>
-          ) : (
-            <p className="text-center">No reservations found.</p>
-          )
+          </div>
+        )}
+
+        {/* Manage Tab */}
+        {activeTab === 'manage' && (
+          <div className="mb-6 p-6 shadow-2xl bg-gray-800/90 backdrop-blur-md rounded-xl">
+            <h2 className="text-2xl font-semibold mb-4">Manage Restaurant</h2>
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-xl font-bold mb-2">Update Restaurant Image</h3>
+                <div className="flex flex-col sm:flex-row items-center gap-4">
+                  <img
+                    src={restaurant?.image || '/images/lounge.jpeg'}
+                    alt="Restaurant"
+                    className="w-32 h-32 rounded-lg object-cover"
+                  />
+                  <input
+                    type="file"
+                    onChange={handleImageChange}
+                    className="mt-2 sm:mt-0"
+                  />
+                  {newImage && (
+                    <button
+                      onClick={updateRestaurantImage}
+                      className="bg-gradient-to-r from-yellow-400 to-pink-600 px-5 py-2 rounded-lg hover:opacity-80 transition-all"
+                    >
+                      Update Image
+                    </button>
+                  )}
+                </div>
+              </div>
+              <div>
+                <h3 className="text-xl font-bold mb-2">Update Tables Available</h3>
+                <div className="flex gap-3">
+                  <input
+                    type="number"
+                    value={tablesAvailable}
+                    onChange={(e) => setTablesAvailable(e.target.value)}
+                    className="p-3 border rounded-lg text-black w-24"
+                  />
+                  <button
+                    onClick={updateTables}
+                    className="bg-gradient-to-r from-yellow-400 to-pink-600 px-5 py-2 rounded-lg hover:opacity-80 transition-all"
+                  >
+                    Update
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </div>
