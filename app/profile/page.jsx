@@ -85,29 +85,50 @@ const ProfilePage = () => {
 
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setNewImage(reader.result);
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+  
+    const formData = new FormData();
+    formData.append('file', file);
+  
+    try {
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+  
+      const data = await response.json();
+  
+      if (data.url) {
+        setNewImage(data.url);
+        toast.success('Image uploaded to Cloudinary');
+      } else {
+        toast.error('Failed to upload image');
+      }
+    } catch (error) {
+      toast.error('Error uploading image');
+      console.error(error);
     }
   };
 
   const updateRestaurantImage = async () => {
     if (!newImage) return;
-
-    const { error } = await supabase
-      .from('restaurants')
-      .update({ image: newImage })
-      .eq('id', restaurant.id);
-
-    if (error) {
-      toast.error('Failed to update image');
-    } else {
-      toast.success('Image updated successfully');
-      setRestaurant({ ...restaurant, image: newImage });
-      setNewImage(null);
+  
+    try {
+      const { error } = await supabase
+        .from('restaurants')
+        .update({ image: newImage })
+        .eq('id', restaurant.id);
+  
+      if (error) {
+        toast.error('Failed to update image in Supabase');
+      } else {
+        toast.success('Image updated successfully');
+        setRestaurant({ ...restaurant, image: newImage });
+        setNewImage(null);
+      }
+    } catch (error) {
+      toast.error('Error updating image');
+      console.error(error);
     }
   };
 
@@ -386,7 +407,6 @@ const ProfilePage = () => {
           <div className="mb-6 p-6 shadow-2xl bg-gray-800/90 backdrop-blur-md rounded-xl">
             <h2 className="text-2xl font-semibold mb-4">Manage Restaurant</h2>
             <div className="space-y-6">
-              {/* Update Restaurant Image Section */}
               <div>
                 <h3 className="text-xl font-bold mb-2">Update Restaurant Image</h3>
                 <div className="flex flex-col sm:flex-row items-center gap-4">
@@ -411,7 +431,6 @@ const ProfilePage = () => {
                 </div>
               </div>
 
-              {/* Update Tables Available Section */}
               <div>
                 <h3 className="text-xl font-bold mb-2">Update Tables Available</h3>
                 <div className="flex gap-3">
