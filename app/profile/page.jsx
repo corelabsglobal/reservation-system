@@ -380,8 +380,9 @@ const ProfilePage = () => {
                   <h3 className="text-xl font-bold">{res.name}</h3>
                   <p><strong>Date:</strong> {new Date(res.date).toDateString()}</p>
                   <p><strong>Time:</strong> {res.time}</p>
-                  <p><strong>Guests:</strong> {res.guest_count}</p>
+                  <p><strong>Guests:</strong> {res.people}</p>
                   <p><strong>Special Request:</strong> {res.special_request || 'None'}</p>
+                  <p><strong>Occasion:</strong> {res.occassion || 'None'}</p>
                   <button
                     onClick={() => cancelReservation(res.id)}
                     className="absolute top-3 right-3 bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600 transition-all"
