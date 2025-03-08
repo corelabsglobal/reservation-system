@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose } from "@/components/ui/dialog";
 import toast, { Toaster } from "react-hot-toast";
+import Header from "@/app/components/structure/header";
 import { useRouter } from "next/navigation";
 import OccasionDetails from "@/app/components/restaurants/OccassionDetails";
 
@@ -191,7 +192,8 @@ export default function RestaurantPage() {
         style={{ backgroundImage: "url('/images/background.jpeg')" }}
       />
       <Toaster position="top-right" />
-      <div className="max-w-6xl w-full mx-auto flex flex-col md:flex-row gap-8 p-4 md:p-6 rounded-lg shadow-2xl bg-gray-800/90 backdrop-blur-md">
+      <Header />
+      <div className="mt-14 max-w-6xl w-full mx-auto flex flex-col md:flex-row gap-8 p-4 md:p-6 rounded-lg shadow-2xl bg-gray-800/90 backdrop-blur-md">
         
         {/* Left - Restaurant Image */}
         <div className="md:w-1/2">
