@@ -147,6 +147,12 @@ export default function SignUp() {
 
     const { name, email, password, role, businessName, location } = data;
 
+    if (role === "Business Owner" && !image) {
+      toast.error("Business Image is required");
+      setLoading(false);
+      return;
+    }
+
     let imageUrl = "";
     if (image) {
       try {
@@ -265,11 +271,11 @@ export default function SignUp() {
 
               {selectedRole === "Business Owner" && (
                 <div className="transition-all duration-300 ease-in-out">
-                  <div>
+                  <div className="mb-3">
                     <Input {...register("businessName")} type="text" placeholder="Business Name" className="w-full text-sm sm:text-base py-2 sm:py-3 px-3 sm:px-4" />
                     {errors.businessName && <p className="text-red-500 text-xs">{errors.businessName.message}</p>}
                   </div>
-                  <div>
+                  <div className="mb-2">
                     <Input {...register("location")} type="text" placeholder="Location" className="w-full text-sm sm:text-base py-2 sm:py-3 px-3 sm:px-4" />
                     {errors.location && <p className="text-red-500 text-xs">{errors.location.message}</p>}
                   </div>
@@ -294,6 +300,9 @@ export default function SignUp() {
                         </div>
                       )}
                     </div>
+                    {!image && selectedRole === "Business Owner" && (
+                      <p className="text-red-500 text-xs mt-1">Business Image is required</p>
+                    )}
                   </div>
                 </div>
               )}
