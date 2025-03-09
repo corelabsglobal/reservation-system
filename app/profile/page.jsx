@@ -4,7 +4,9 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
+import Header from '../components/structure/header';
 import { BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie } from 'recharts';
+import SubscriptionManager from '../components/structure/hooks/SubscriptionManager';
 
 const ProfilePage = () => {
   const [restaurant, setRestaurant] = useState(null);
@@ -146,11 +148,13 @@ const ProfilePage = () => {
   return (
     <div className="relative min-h-screen bg-cover bg-center bg-fixed p-6 flex flex-col items-center" style={{ backgroundImage: "url('/images/background.jpeg')" }}>
       <div className="absolute inset-0 bg-black opacity-50"></div>
-        <div className="text-center">
+        <Header />
+        <div className="text-center mt-14">
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 to-pink-600 drop-shadow-lg mb-8">
               Dashboard
             </h1>
         </div>
+        {/*restaurant && <SubscriptionManager restaurant={restaurant} />*/}
       <div className="relative z-10 w-full max-w-5xl text-white">
         {/* Navbar */}
         <nav className="flex flex-wrap justify-center gap-2 mb-8">
