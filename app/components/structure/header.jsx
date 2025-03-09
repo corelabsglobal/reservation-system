@@ -62,7 +62,9 @@ export default function Header() {
   return (
     <header className="fixed top-0 left-0 right-0 bg-gray-900 bg-opacity-90 text-white flex justify-between items-center px-6 py-4 z-50 shadow-md">
       <Toaster />
-      <h1 className="text-xl sm:text-2xl font-serif italic">SerenePath</h1>
+      <a href="/">
+        <h1 className="text-xl sm:text-2xl font-serif italic">SerenePath</h1>
+      </a>
 
       <nav className="hidden md:flex items-center space-x-8 relative bg-transparent">
         {/* Reservations Button */}
@@ -81,7 +83,7 @@ export default function Header() {
             className="flex items-center gap-2 text-white bg-gradient-to-r from-[#00C6FF] to-[#0072FF] hover:from-[#0072FF] hover:to-[#00C6FF] transition-all text-lg font-medium py-2 px-6 rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-1 duration-300"
           >
             <FiUser size={19} />
-            <span>Profile</span>
+            <span>Dashboard</span>
           </Link>
         )}
 
@@ -160,7 +162,7 @@ export default function Header() {
             {isOwner && (
               <Link href="/profile" className="flex space-x-2" onClick={() => setMobileMenuOpen(false)}>
                 <BsFillPeopleFill size={18} />
-                <span>Profile</span>
+                <span>Dashboard</span>
               </Link>
             )}
             <div className="mt-6 border-t border-white/40 pt-4 flex justify-center">
