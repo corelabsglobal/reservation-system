@@ -6,7 +6,6 @@ import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
 import Header from '../components/structure/header';
 import { BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie } from 'recharts';
-import SubscriptionManager from '../components/structure/hooks/SubscriptionManager';
 
 const ProfilePage = () => {
   const [restaurant, setRestaurant] = useState(null);
