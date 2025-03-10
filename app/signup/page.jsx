@@ -164,6 +164,24 @@ export default function SignUp() {
       }
     }
 
+    const { data: existingUser, error: emailCheckError } = await supabase
+    .from("users")
+    .select("email")
+    .eq("email", email)
+    .limit(1);
+
+    if (emailCheckError) {
+      toast.error("Error checking email availability");
+      setLoading(false);
+      return;
+    }
+
+    if (existingUser) {
+      toast.error("This email is already registered. Please use a different one.");
+      setLoading(false);
+      return;
+    }
+
     // Sign up user with authentication
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
