@@ -12,6 +12,13 @@ import GoogleSignInButton from "../components/structure/googleSignIn";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, X } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
 const signUpSchema = z.object({
   name: z.string().min(1, { message: "Name is required" }),
@@ -40,6 +47,7 @@ export default function SignUp() {
   const selectedRole = watch("role");
   const [image, setImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
 
   const handleFileChange = (e) => {
     //setImage(e.target.files[0]);
@@ -164,7 +172,7 @@ export default function SignUp() {
       }
     }
 
-    const { data: existingUser, error: emailCheckError } = await supabase
+    {/*const { data: existingUser, error: emailCheckError } = await supabase
     .from("users")
     .select("email")
     .eq("email", email)
@@ -180,7 +188,7 @@ export default function SignUp() {
       toast.error("This email is already registered. Please use a different one.");
       setLoading(false);
       return;
-    }
+    }*/}
 
     // Sign up user with authentication
     const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -219,10 +227,13 @@ export default function SignUp() {
         if (restaurantInsertError) {
           throw restaurantInsertError;
         }
+
+        setShowVerificationModal(true);
+      } else {
+        toast.success("Check your email for a confirmation link!");
+        router.push("/signin");
       }
 
-      toast.success("Check your email for a confirmation link!");
-      router.push("/signin");
     } catch (error) {
         toast.error(error.message);
     } finally {
@@ -336,6 +347,27 @@ export default function SignUp() {
           </CardContent>
         </Card>
       </div>
+      <Dialog open={showVerificationModal} onOpenChange={setShowVerificationModal}>
+        <DialogContent className="sm:max-w-md bg-gray-800 text-white">
+          <DialogHeader>
+            <DialogTitle className="text-2xl">Account Verification</DialogTitle>
+          </DialogHeader>
+          <DialogDescription className="text-gray-300">
+            Thank you for signing up as a Business Owner! SerenePath needs <strong>7 business days</strong> to verify your account. Once verified, your account will become fully active, and users will be able to book reservations from you.
+          </DialogDescription>
+          <div className="flex justify-end mt-4">
+            <Button
+              onClick={() => {
+                setShowVerificationModal(false);
+                router.push("/signin");
+              }}
+              className="bg-blue-500 hover:bg-blue-600"
+            >
+              Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
