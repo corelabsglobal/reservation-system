@@ -19,7 +19,7 @@ export default function Home() {
   useEffect(() => {
     const fetchRestaurants = async () => {
       try {
-        const { data, error } = await supabase.from("restaurants").select("*");
+        const { data, error } = await supabase.from("restaurants").select("*").eq("verified", true);
         if (error) throw error;
         setRestaurants(data);
       } catch (err) {
