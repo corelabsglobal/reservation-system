@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabaseClient';
 import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
 import Header from '../components/structure/header';
+import SubscriptionManager from '../components/structure/hooks/SubscriptionManager';
 import { BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie } from 'recharts';
 
 const ProfilePage = () => {
@@ -153,7 +154,7 @@ const ProfilePage = () => {
               Dashboard
             </h1>
         </div>
-        {/*restaurant && <SubscriptionManager restaurant={restaurant} />*/}
+        {restaurant && <SubscriptionManager restaurant={restaurant} />}
       <div className="relative z-10 w-full max-w-5xl text-white">
         {/* Navbar */}
         <nav className="flex flex-wrap justify-center gap-2 mb-8">
