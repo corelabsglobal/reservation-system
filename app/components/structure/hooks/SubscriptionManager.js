@@ -74,9 +74,17 @@ const SubscriptionManager = ({ restaurant }) => {
     amount: 15000,
     publicKey: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
     plan: "PLN_uafopm4zrehnsyb",
+    metadata: {
+      restaurant_id: restaurant.id, // Ensure restaurant_id is included
+    },
   };
 
+  // Initialize Paystack payment
   const initializePayment = usePaystackPayment(config);
+
+  useEffect(() => {
+    console.log("initializePayment:", initializePayment);
+  }, [initializePayment]);
 
   // Handle payment success
   const onSuccess = async (response) => {
@@ -94,20 +102,20 @@ const SubscriptionManager = ({ restaurant }) => {
             authorization_code: response.authorization?.authorization_code, // Save authorization code
           },
         ]);
-  
+
       if (error) {
         console.error("Supabase insert error:", error);
         throw error;
       }
-  
+
       console.log("Payment saved to Supabase:", data);
-  
+
       // Update the first charge date
       setFirstChargeDate(new Date());
-  
+
       // Hide the subscription prompt
       setShowSubscriptionPrompt(false);
-  
+
       toast.success("Payment successful! Subscription renewed.");
       setSubscriptionDue(false); // Reset subscription due flag
     } catch (error) {
@@ -125,7 +133,18 @@ const SubscriptionManager = ({ restaurant }) => {
 
   // Trigger payment
   const handlePayment = () => {
-    initializePayment(onSuccess, onClose);
+    if (!initializePayment) {
+      console.error("initializePayment is not initialized properly");
+      toast.error("Payment initialization failed. Please refresh and try again.");
+      return;
+    }
+  
+    try {
+      initializePayment(onSuccess, onClose);
+    } catch (error) {
+      console.error("Error initializing payment:", error);
+      toast.error("An error occurred while initializing payment.");
+    }
   };
 
   return (
