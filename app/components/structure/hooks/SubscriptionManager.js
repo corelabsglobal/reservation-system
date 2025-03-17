@@ -3,7 +3,13 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import toast from "react-hot-toast";
-import { usePaystackPayment } from "react-paystack";
+import dynamic from "next/dynamic";
+
+// Dynamically import PaystackButton (client-side only)
+const PaystackButton = dynamic(
+  () => import("react-paystack").then((mod) => mod.PaystackButton),
+  { ssr: false }
+);
 
 const SubscriptionManager = ({ restaurant }) => {
   const [subscriptionDue, setSubscriptionDue] = useState(false);
@@ -71,20 +77,13 @@ const SubscriptionManager = ({ restaurant }) => {
   const config = {
     reference: new Date().getTime().toString(),
     email: restaurant?.owner_email || "kbtechnologies2@gmail.com",
-    amount: 15000,
+    amount: 15000, // Amount in kobo (15000 kobo = 150 GHS)
     publicKey: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
     plan: "PLN_uafopm4zrehnsyb",
     metadata: {
       restaurant_id: restaurant.id, // Ensure restaurant_id is included
     },
   };
-
-  // Initialize Paystack payment
-  const initializePayment = usePaystackPayment(config);
-
-  useEffect(() => {
-    console.log("initializePayment:", initializePayment);
-  }, [initializePayment]);
 
   // Handle payment success
   const onSuccess = async (response) => {
@@ -131,22 +130,6 @@ const SubscriptionManager = ({ restaurant }) => {
     toast.error("Payment canceled or failed. Please try again.");
   };
 
-  // Trigger payment
-  const handlePayment = () => {
-    if (!initializePayment) {
-      console.error("initializePayment is not initialized properly");
-      toast.error("Payment initialization failed. Please refresh and try again.");
-      return;
-    }
-  
-    try {
-      initializePayment(onSuccess, onClose);
-    } catch (error) {
-      console.error("Error initializing payment:", error);
-      toast.error("An error occurred while initializing payment.");
-    }
-  };
-
   return (
     <>
       {/* Non-closable subscription prompt for first-time users */}
@@ -157,13 +140,16 @@ const SubscriptionManager = ({ restaurant }) => {
             <p className="text-white mb-6">
               To access the system, you need to subscribe to our monthly plan for 150 GHS.
             </p>
-            <button
-              onClick={handlePayment}
-              disabled={loading}
-              className="bg-gradient-to-r from-yellow-400 to-pink-600 px-4 py-2 rounded-lg hover:opacity-80 transition-all disabled:opacity-50 w-full"
-            >
-              {loading ? "Processing..." : "Subscribe Now"}
-            </button>
+            {PaystackButton && (
+              <PaystackButton
+                {...config}
+                text="Subscribe Now"
+                onSuccess={onSuccess}
+                onClose={onClose}
+                className="bg-gradient-to-r from-yellow-400 to-pink-600 px-4 py-2 rounded-lg hover:opacity-80 transition-all disabled:opacity-50 w-full"
+                disabled={loading}
+              />
+            )}
           </div>
         </div>
       )}
@@ -174,13 +160,16 @@ const SubscriptionManager = ({ restaurant }) => {
           <p className="text-white">
             Your monthly subscription of 150 GHS is due in 2 days.
           </p>
-          <button
-            onClick={handlePayment}
-            disabled={loading}
-            className="bg-gradient-to-r from-yellow-400 to-pink-600 px-4 py-2 rounded-lg hover:opacity-80 transition-all disabled:opacity-50"
-          >
-            {loading ? "Processing..." : "Pay Now"}
-          </button>
+          {PaystackButton && (
+            <PaystackButton
+              {...config}
+              text="Pay Now"
+              onSuccess={onSuccess}
+              onClose={onClose}
+              className="bg-gradient-to-r from-yellow-400 to-pink-600 px-4 py-2 rounded-lg hover:opacity-80 transition-all disabled:opacity-50"
+              disabled={loading}
+            />
+          )}
         </div>
       )}
     </>
