@@ -23,7 +23,7 @@ export default function Home() {
         if (error) throw error;
         setRestaurants(data);
       } catch (err) {
-        console.error("Error fetching restaurants:", err.message);
+        console.error("Error fetching restaurants: ", err.message);
       } finally {
         setLoading(false);
       }
