@@ -19,6 +19,7 @@ const ProfilePage = () => {
   const [showAllReservations, setShowAllReservations] = useState(false);
   const [newImage, setNewImage] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [bookingCostInput, setBookingCostInput] = useState(restaurant?.booking_cost || 0);
 
   useEffect(() => {
     const fetchRestaurant = async () => {
@@ -67,6 +68,20 @@ const ProfilePage = () => {
       toast.error('Failed to update tables');
     } else {
       toast.success('Tables updated successfully');
+    }
+  };
+
+  const updateBookingCost = async () => {
+    const { error } = await supabase
+      .from('restaurants')
+      .update({ booking_cost: bookingCostInput })
+      .eq('id', restaurant.id);
+  
+    if (error) {
+      toast.error('Failed to update booking cost');
+    } else {
+      toast.success('Booking cost updated successfully');
+      setRestaurant((prev) => ({ ...prev, booking_cost: bookingCostInput }));
     }
   };
 
@@ -447,6 +462,24 @@ const ProfilePage = () => {
                   />
                   <button
                     onClick={() => setIsModalOpen(true)}
+                    className="bg-gradient-to-r from-yellow-400 to-pink-600 px-5 py-2 rounded-lg hover:opacity-80 transition-all"
+                  >
+                    Update
+                  </button>
+                </div>
+              </div>
+              <div>
+                <h3 className="text-xl font-bold mb-2">Set Booking Cost</h3>
+                <div className="flex gap-3">
+                  <input
+                    type="number"
+                    value={bookingCostInput}
+                    onChange={(e) => setBookingCostInput(Number(e.target.value))}
+                    className="p-2 border rounded-lg text-black w-24"
+                    placeholder="Enter amount in GHS"
+                  />
+                  <button
+                    onClick={updateBookingCost}
                     className="bg-gradient-to-r from-yellow-400 to-pink-600 px-5 py-2 rounded-lg hover:opacity-80 transition-all"
                   >
                     Update
