@@ -8,6 +8,12 @@ import toast, { Toaster } from "react-hot-toast";
 import Header from "@/app/components/structure/header";
 import { useRouter } from "next/navigation";
 import OccasionDetails from "@/app/components/restaurants/OccassionDetails";
+import dynamic from "next/dynamic";
+
+const PaystackButton = dynamic(
+  () => import("react-paystack").then((mod) => mod.PaystackButton),
+  { ssr: false }
+);
 
 export default function RestaurantPage() {
   const { id } = useParams();
@@ -24,6 +30,9 @@ export default function RestaurantPage() {
   const [userId, setUserId] = useState(null);
   const [bookingError, setBookingError] = useState(null);
   const [bookingSuccess, setBookingSuccess] = useState(null);
+  const [showPaystack, setShowPaystack] = useState(false);
+  const [bookingCost, setBookingCost] = useState(0);
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -62,6 +71,10 @@ export default function RestaurantPage() {
         if (restaurantError) throw restaurantError;
         setRestaurant(restaurantData);
 
+        if (restaurantData.booking_cost) {
+          setBookingCost(restaurantData.booking_cost);
+        }
+
         // Fetch reservations
         const { data: reservationsData, error: reservationsError } = await supabase
           .from("reservations")
@@ -99,6 +112,33 @@ export default function RestaurantPage() {
     fetchRestaurantData();
   }, [id, selectedDate]);
 
+  const paystackConfig = {
+    reference: new Date().getTime().toString(),
+    email: email || "kbtechnologies2@gmail.com",
+    amount: bookingCost * 100,
+    publicKey: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
+    currency: "GHS",
+    metadata: {
+      restaurant_id: id,
+      user_id: userId,
+    },
+  };
+  
+  // Handle Paystack payment success
+  const onPaystackSuccess = async (response) => {
+    setPaymentSuccess(true);
+    toast.success("Payment successful! Proceeding with reservation...");
+  
+    // Save reservation after successful payment
+    await saveReservation();
+  };
+  
+  // Handle Paystack payment failure
+  const onPaystackClose = () => {
+    toast.error("Payment canceled or failed. Please try again.");
+    setShowPaystack(false);
+  };
+
   // Handle opening the dialog
   const handleOpenDialog = (slot) => {
     const today = new Date().toISOString().split("T")[0];
@@ -119,35 +159,46 @@ export default function RestaurantPage() {
     e.preventDefault();
     setBookingError(null);
     setBookingSuccess(null);
-
+  
     if (!userId) {
       setBookingError("You must sign in or continue as a guest.");
       return;
     }
-
+  
     if (!email.trim()) {
       setBookingError("Email is required.");
       return;
     }
-
+  
     if (!name.trim()) {
       setBookingError("Name is required.");
       return;
     }
-
+  
     const existingReservation = reservations.find(
       (r) => r.user_id === userId && r.time === selectedSlot && r.date === selectedDate
     );
-
+  
     if (existingReservation) {
       setBookingError("You already have a reservation for this time slot on this date.");
       toast.error("Duplicate reservation not allowed.");
       return;
     }
-
+  
+    // Check if booking cost exists
+    if (bookingCost > 0) {
+      setShowPaystack(true); // Show Paystack modal
+      return;
+    }
+  
+    // If no booking cost, proceed with reservation
+    await saveReservation();
+  };
+  
+  const saveReservation = async () => {
     const today = new Date().toISOString().split("T")[0];
     const reservationToken = crypto.randomUUID();
-
+  
     const { data, error } = await supabase.from("reservations").insert([
       {
         restaurant_id: id,
@@ -159,11 +210,12 @@ export default function RestaurantPage() {
         reservation_token: reservationToken,
         special_request: occasionDetails?.specialRequest,
         occassion: occasionDetails?.occasion,
-        number:  occasionDetails?.number,
+        number: occasionDetails?.number,
         people: occasionDetails?.people,
+        paid: bookingCost > 0, // Set paid to true if booking cost exists
       },
     ]);
-
+  
     if (error) {
       setBookingError(error.message);
       toast.error(`Booking failed: ${error.message}`);
@@ -172,10 +224,10 @@ export default function RestaurantPage() {
       toast.success("Reservation successful!");
       setReservations([...reservations, { time: selectedSlot, date: selectedDate, user_id: userId }]);
       setAvailableSlots(availableSlots.filter((slot) => slot !== selectedSlot));
-
+  
       localStorage.setItem("reservationToken", reservationToken);
       localStorage.setItem("reservationEmail", email);
-
+  
       setTimeout(() => {
         router.push(userId === "guest" ? "/guests" : "/reservations");
       }, 2200);
@@ -281,56 +333,74 @@ export default function RestaurantPage() {
                     </div>
                   </div>
                 ) : (
-                  <form onSubmit={handleBooking} className="mt-4 flex flex-col gap-3">
-                    {userId === "guest" && (
-                      <>
-                        <input
-                          type="text"
-                          placeholder="Your Name"
-                          value={name}
-                          onChange={(e) => setName(e.target.value)}
-                          required
-                          className="bg-gray-700 text-white px-4 py-2 rounded-md border border-gray-600 focus:ring-2 focus:ring-yellow-400"
-                        />
-                        <input
-                          type="email"
-                          placeholder="Your Email"
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          required
-                          className="bg-gray-700 text-white px-4 py-2 rounded-md border border-gray-600 focus:ring-2 focus:ring-yellow-400"
-                        />
-                        <OccasionDetails onChange={(data) => setOccasionDetails(prev => ({ ...prev, ...data }))} />
-                      </>
+                  <>
+                    {bookingCost > 0 && !paymentSuccess && (
+                      <div>
+                        <p className="text-yellow-400 mb-2">
+                          A booking fee of {bookingCost} GHS is required.
+                        </p>
+                        {showPaystack && (
+                          <PaystackButton
+                            {...paystackConfig}
+                            text="Pay Now"
+                            onSuccess={onPaystackSuccess}
+                            onClose={onPaystackClose}
+                            className="bg-gradient-to-r from-yellow-400 to-pink-600 px-4 py-2 rounded-lg hover:opacity-80 transition-all disabled:opacity-50 w-full"
+                          />
+                        )}
+                      </div>
                     )}
-                    {userId !== "guest" && (
-                      <>
-                        <input
-                          type="text"
-                          placeholder="Your Name"
-                          value={name}
-                          onChange={(e) => setName(e.target.value)}
-                          required
-                          className="bg-gray-700 text-white px-4 py-2 rounded-md border border-gray-600 focus:ring-2 focus:ring-yellow-400"
-                        />
-                        <input
-                          type="email"
-                          placeholder="Your Email"
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          required
-                          className="bg-gray-700 text-white px-4 py-2 rounded-md border border-gray-600 focus:ring-2 focus:ring-yellow-400"
-                        />
-                        <OccasionDetails onChange={setOccasionDetails} />
-                      </>
-                    )}
-                    <button
-                      type="submit"
-                      className="mt-5 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-black font-bold rounded-md"
-                    >
-                      Confirm Booking
-                    </button>
-                  </form>
+                    <form onSubmit={handleBooking} className="mt-4 flex flex-col gap-3">
+                      {userId === "guest" && (
+                        <>
+                          <input
+                            type="text"
+                            placeholder="Your Name"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            required
+                            className="bg-gray-700 text-white px-4 py-2 rounded-md border border-gray-600 focus:ring-2 focus:ring-yellow-400"
+                          />
+                          <input
+                            type="email"
+                            placeholder="Your Email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            required
+                            className="bg-gray-700 text-white px-4 py-2 rounded-md border border-gray-600 focus:ring-2 focus:ring-yellow-400"
+                          />
+                          <OccasionDetails onChange={(data) => setOccasionDetails(prev => ({ ...prev, ...data }))} />
+                        </>
+                      )}
+                      {userId !== "guest" && (
+                        <>
+                          <input
+                            type="text"
+                            placeholder="Your Name"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            required
+                            className="bg-gray-700 text-white px-4 py-2 rounded-md border border-gray-600 focus:ring-2 focus:ring-yellow-400"
+                          />
+                          <input
+                            type="email"
+                            placeholder="Your Email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            required
+                            className="bg-gray-700 text-white px-4 py-2 rounded-md border border-gray-600 focus:ring-2 focus:ring-yellow-400"
+                          />
+                          <OccasionDetails onChange={setOccasionDetails} />
+                        </>
+                      )}
+                      <button
+                        type="submit"
+                        className="mt-5 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-black font-bold rounded-md"
+                      >
+                        Confirm Booking
+                      </button>
+                    </form>
+                  </>
                 )}
               </>
             ) : (
