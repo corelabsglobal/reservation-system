@@ -425,64 +425,70 @@ const ProfilePage = () => {
         {/* Manage Tab */}
         {activeTab === 'manage' && (
           <div className="mb-6 p-6 shadow-2xl bg-gray-800/90 backdrop-blur-md rounded-xl">
-            <h2 className="text-2xl font-semibold mb-4">Manage Restaurant</h2>
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-xl font-bold mb-2">Update Restaurant Image</h3>
-                <div className="flex flex-col sm:flex-row items-center gap-4">
+            <h2 className="text-2xl font-semibold mb-6 text-yellow-400">Manage Restaurant</h2>
+            <div className="space-y-8">
+              {/* Update Restaurant Image Section */}
+              <div className="bg-gray-700/50 p-6 rounded-lg shadow-lg">
+                <h3 className="text-xl font-bold mb-4 text-yellow-400">Update Restaurant Image</h3>
+                <div className="flex flex-col sm:flex-row items-center gap-6">
                   <img
                     src={restaurant?.image || '/images/lounge.jpeg'}
                     alt="Restaurant"
-                    className="w-32 h-32 rounded-lg object-cover"
+                    className="w-32 h-32 rounded-lg object-cover shadow-md"
                   />
-                  <input
-                    type="file"
-                    onChange={handleImageChange}
-                    className="mt-2 sm:mt-0"
-                  />
-                  {newImage && (
-                    <button
-                      onClick={updateRestaurantImage}
-                      className="bg-gradient-to-r from-yellow-400 to-pink-600 px-5 py-2 rounded-lg hover:opacity-80 transition-all"
-                    >
-                      Update Image
-                    </button>
-                  )}
+                  <div className="flex flex-col gap-4 w-full sm:w-auto">
+                    <input
+                      type="file"
+                      onChange={handleImageChange}
+                      className="w-full p-2 bg-gray-600 rounded-lg text-white focus:ring-2 focus:ring-yellow-400"
+                    />
+                    {newImage && (
+                      <button
+                        onClick={updateRestaurantImage}
+                        className="bg-gradient-to-r from-yellow-400 to-pink-600 px-5 py-2 rounded-lg hover:opacity-80 transition-all text-white font-semibold"
+                      >
+                        Update Image
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
 
-              <div>
-                <h3 className="text-xl font-bold mb-2">Update Tables Available</h3>
-                <div className="flex gap-3">
+              {/* Update Tables Available Section */}
+              <div className="bg-gray-700/50 p-6 rounded-lg shadow-lg">
+                <h3 className="text-xl font-bold mb-4 text-yellow-400">Update Tables Available</h3>
+                <div className="flex flex-col sm:flex-row gap-4">
                   <input
                     type="number"
                     value={tablesAvailable}
                     onChange={(e) => setTablesAvailable(e.target.value)}
-                    className="p-2 border rounded-lg text-black w-24"
+                    className="p-2 bg-gray-600 rounded-lg text-white focus:ring-2 focus:ring-yellow-400 w-full sm:w-32"
                   />
                   <button
                     onClick={() => setIsModalOpen(true)}
-                    className="bg-gradient-to-r from-yellow-400 to-pink-600 px-5 py-2 rounded-lg hover:opacity-80 transition-all"
+                    className="bg-gradient-to-r from-yellow-400 to-pink-600 px-5 py-2 rounded-lg hover:opacity-80 transition-all text-white font-semibold"
                   >
-                    Update
+                    Update Tables
                   </button>
                 </div>
               </div>
-              <div>
-                <h3 className="text-xl font-bold mb-2">Set Booking Cost</h3>
-                <div className="flex gap-3">
+
+              {/* Set Booking Cost Section */}
+              <div className="bg-gray-700/50 p-6 rounded-lg shadow-lg">
+                <h3 className="text-xl font-bold mb-4 text-yellow-400">Set Booking Cost</h3>
+                <div className="flex flex-col sm:flex-row gap-4">
                   <input
                     type="number"
                     value={bookingCostInput}
                     onChange={(e) => setBookingCostInput(Number(e.target.value))}
-                    className="p-2 border rounded-lg text-black w-24"
+                    className="p-2 bg-gray-600 rounded-lg text-white focus:ring-2 focus:ring-yellow-400 w-full sm:w-32"
                     placeholder="Enter amount in GHS"
                   />
                   <button
                     onClick={updateBookingCost}
-                    className="bg-gradient-to-r from-yellow-400 to-pink-600 px-5 py-2 rounded-lg hover:opacity-80 transition-all"
+                    className="bg-gradient-to-r from-yellow-400 to-pink-600 px-5 py-2 rounded-lg hover:opacity-80 transition-all text-white font-semibold"
                   >
-                    Update
+                    Update Cost
                   </button>
                 </div>
               </div>
@@ -497,12 +503,12 @@ const ProfilePage = () => {
                   transition={{ duration: 0.3 }}
                   className="bg-gray-800 p-6 rounded-lg shadow-lg max-w-sm w-full"
                 >
-                  <h3 className="text-xl font-semibold mb-4">Confirm Update</h3>
-                  <p className="mb-6">Are you sure you want to update the number of tables?</p>
+                  <h3 className="text-xl font-semibold mb-4 text-yellow-400">Confirm Update</h3>
+                  <p className="mb-6 text-gray-300">Are you sure you want to update the number of tables?</p>
                   <div className="flex justify-end gap-3">
                     <button
                       onClick={() => setIsModalOpen(false)}
-                      className="bg-gray-700 px-4 py-2 rounded-lg hover:bg-gray-600 transition-all"
+                      className="bg-gray-700 px-4 py-2 rounded-lg hover:bg-gray-600 transition-all text-white"
                     >
                       Cancel
                     </button>
@@ -511,7 +517,7 @@ const ProfilePage = () => {
                         updateTables();
                         setIsModalOpen(false);
                       }}
-                      className="bg-gradient-to-r from-yellow-400 to-pink-600 px-4 py-2 rounded-lg hover:opacity-80 transition-all"
+                      className="bg-gradient-to-r from-yellow-400 to-pink-600 px-4 py-2 rounded-lg hover:opacity-80 transition-all text-white font-semibold"
                     >
                       Confirm
                     </button>
