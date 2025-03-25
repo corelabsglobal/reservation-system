@@ -27,7 +27,6 @@ const SubscriptionManager = ({ restaurant }) => {
         .order("created_at", { ascending: true })
         .limit(1);
 
-      console.log(data)
       if (data && data.length > 0) {
         setFirstChargeDate(new Date(data[0].created_at));
       } else {
