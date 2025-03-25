@@ -27,6 +27,7 @@ const SubscriptionManager = ({ restaurant }) => {
         .order("created_at", { ascending: true })
         .limit(1);
 
+      console.log(data)
       if (data && data.length > 0) {
         setFirstChargeDate(new Date(data[0].created_at));
       } else {
@@ -81,7 +82,7 @@ const SubscriptionManager = ({ restaurant }) => {
     publicKey: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
     plan: "PLN_uafopm4zrehnsyb",
     metadata: {
-      restaurant_id: restaurant.id, // Ensure restaurant_id is included
+      restaurant_id: restaurant.id,
     },
   };
 
@@ -98,7 +99,7 @@ const SubscriptionManager = ({ restaurant }) => {
             amount: 150, // Save the amount in GHS
             status: "success",
             transaction_reference: response.reference,
-            authorization_code: response.authorization?.authorization_code, // Save authorization code
+            authorization_code: response.authorization?.authorization_code, 
           },
         ]);
 

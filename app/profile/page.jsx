@@ -429,7 +429,17 @@ const ProfilePage = () => {
             <div className="space-y-8">
               {/* Update Restaurant Image Section */}
               <div className="bg-gray-700/50 p-6 rounded-lg shadow-lg">
-                <h3 className="text-xl font-bold mb-4 text-yellow-400">Update Restaurant Image</h3>
+                <div className="flex items-center gap-2 mb-4">
+                  <h3 className="text-xl font-bold text-yellow-400">Update Restaurant Image</h3>
+                  <div className="group relative">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <div className="absolute hidden group-hover:block bottom-full mb-2 w-64 bg-gray-900 text-white text-sm p-3 rounded-lg shadow-lg">
+                      Upload a new image for your restaurant. This will be displayed to customers when they browse your restaurant.
+                    </div>
+                  </div>
+                </div>
                 <div className="flex flex-col sm:flex-row items-center gap-6">
                   <img
                     src={restaurant?.image || '/images/lounge.jpeg'}
@@ -456,7 +466,17 @@ const ProfilePage = () => {
 
               {/* Update Tables Available Section */}
               <div className="bg-gray-700/50 p-6 rounded-lg shadow-lg">
-                <h3 className="text-xl font-bold mb-4 text-yellow-400">Update Tables Available</h3>
+                <div className="flex items-center gap-2 mb-4">
+                  <h3 className="text-xl font-bold text-yellow-400">Update Tables Available</h3>
+                  <div className="group relative">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <div className="absolute hidden group-hover:block bottom-full mb-2 w-64 bg-gray-900 text-white text-sm p-3 rounded-lg shadow-lg">
+                      Set the number of available tables in your restaurant. This determines how many simultaneous bookings you can accept.
+                    </div>
+                  </div>
+                </div>
                 <div className="flex flex-col sm:flex-row gap-4">
                   <input
                     type="number"
@@ -475,7 +495,17 @@ const ProfilePage = () => {
 
               {/* Set Booking Cost Section */}
               <div className="bg-gray-700/50 p-6 rounded-lg shadow-lg">
-                <h3 className="text-xl font-bold mb-4 text-yellow-400">Set Booking Cost</h3>
+                <div className="flex items-center gap-2 mb-4">
+                  <h3 className="text-xl font-bold text-yellow-400">Set Booking Cost</h3>
+                  <div className="group relative">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <div className="absolute hidden group-hover:block bottom-full mb-2 w-64 bg-gray-900 text-white text-sm p-3 rounded-lg shadow-lg">
+                      Set the cost per booking in GHS. This is the amount customers will pay when they reserve a table at your restaurant.
+                    </div>
+                  </div>
+                </div>
                 <div className="flex flex-col sm:flex-row gap-4">
                   <input
                     type="number"
