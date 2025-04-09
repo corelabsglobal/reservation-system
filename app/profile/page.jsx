@@ -19,6 +19,7 @@ const ProfilePage = () => {
   const [newImage, setNewImage] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [bookingCostInput, setBookingCostInput] = useState(0);
+  const [lastVisit, setLastVisit] = useState(null);
   
   // New state for table management
   const [tableTypes, setTableTypes] = useState([]);
@@ -53,6 +54,19 @@ const ProfilePage = () => {
     fetchRestaurant();
   }, []);
 
+  const markAsSeen = async (reservationId) => {
+    const { error } = await supabase
+      .from('reservations')
+      .update({ is_new: false })
+      .eq('id', reservationId);
+    
+    if (!error) {
+      setReservations(reservations.map(res => 
+        res.id === reservationId ? { ...res, is_new: false } : res
+      ));
+    }
+  };
+  
   useEffect(() => {
     const fetchReservations = async () => {
       if (!restaurant) return;
@@ -60,11 +74,19 @@ const ProfilePage = () => {
       setLoading(true);
       const { data, error } = await supabase
         .from('reservations')
-        .select('*')
+        .select('*, tables(table_number)')
         .eq('restaurant_id', restaurant.id)
-        .order('date', { ascending: true });
-      
-      if (!error) setReservations(data);
+        .order('created_at', { ascending: false });
+  
+      if (!error) {
+        const markedData = data.map(res => ({
+          ...res,
+          table_number: res.tables?.table_number,
+          is_new: lastVisit ? new Date(res.created_at) > new Date(lastVisit) : false
+        }));
+        setReservations(markedData);
+        setLastVisit(new Date().toISOString());
+      }
       setLoading(false);
     };
     
@@ -491,52 +513,137 @@ const ProfilePage = () => {
         {/* Reservations Tab */}
         {activeTab === 'reservations' && (
           <div className="mb-6 p-6 shadow-2xl bg-gray-800/90 backdrop-blur-md rounded-xl">
-            <h2 className="text-2xl font-semibold mb-4">Reservations</h2>
-            <div className="flex flex-col sm:flex-row gap-4 mb-4">
-              <input
-                type="text"
-                placeholder="Search by Name"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="p-3 border rounded-lg text-black flex-1"
-              />
-              <input
-                type="date"
-                value={filterDate}
-                onChange={(e) => setFilterDate(e.target.value)}
-                className="p-3 border rounded-lg text-black"
-              />
-            </div>
-            <div className="space-y-4">
-              {filteredReservations.slice(0, showAllReservations ? filteredReservations.length : 5).map((res) => (
-                <motion.div
-                  key={res.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4 }}
-                  className="p-6 bg-white text-black rounded-xl shadow-xl relative"
-                >
-                  <h3 className="text-xl font-bold">{res.name}</h3>
-                  <p><strong>Date:</strong> {new Date(res.date).toDateString()}</p>
-                  <p><strong>Time:</strong> {res.time}</p>
-                  <p><strong>Guests:</strong> {res.people}</p>
-                  <p><strong>Special Request:</strong> {res.special_request || 'None'}</p>
-                  <p><strong>Occasion:</strong> {res.occassion || 'None'}</p>
-                  <button
-                    onClick={() => cancelReservation(res.id)}
-                    className="absolute top-3 right-3 bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600 transition-all"
-                  >
-                    Cancel
-                  </button>
-                </motion.div>
-              ))}
-              {filteredReservations.length > 5 && (
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-semibold">Reservations</h2>
+              <div className="flex items-center gap-2">
                 <button
-                  onClick={() => setShowAllReservations(!showAllReservations)}
-                  className="mt-4 bg-gradient-to-r from-yellow-400 to-pink-600 px-5 py-2 rounded-lg hover:opacity-80 transition-all"
+                  onClick={() => {
+                    setFilterDate('');
+                    setSearchQuery('');
+                  }}
+                  className="px-3 py-1 text-sm bg-gray-700 hover:bg-gray-600 rounded-md transition-all"
                 >
-                  {showAllReservations ? 'Show Less' : 'Show More'}
+                  Clear Filters
                 </button>
+              </div>
+            </div>
+
+            {/* Enhanced Filter Controls */}
+            <div className="flex flex-col sm:flex-row gap-4 mb-6">
+              <div className="relative flex-1">
+                <input
+                  type="text"
+                  placeholder="Search by Name"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full p-3 bg-gray-700 text-white rounded-lg border border-gray-600 focus:ring-2 focus:ring-yellow-400"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+              
+              <div className="relative">
+                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <input
+                  type="date"
+                  value={filterDate}
+                  onChange={(e) => setFilterDate(e.target.value)}
+                  className="w-full pl-10 p-3 bg-gray-700 text-white rounded-lg border border-gray-600 focus:ring-2 focus:ring-yellow-400 appearance-none"
+                />
+              </div>
+            </div>
+
+            {/* New Reservations Indicator */}
+            {filteredReservations.some(res => res.is_new) && (
+              <div className="mb-4 p-3 bg-blue-900/50 border border-blue-500 rounded-lg flex items-center gap-2">
+                <span className="flex h-3 w-3 relative">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
+                </span>
+                <span className="text-blue-300">New reservations since your last visit</span>
+              </div>
+            )}
+
+            {/* Reservations List */}
+            <div className="space-y-4">
+              {filteredReservations.length === 0 ? (
+                <div className="p-6 bg-gray-700/50 rounded-xl text-center text-gray-400">
+                  No reservations found {filterDate ? `on ${new Date(filterDate).toLocaleDateString()}` : ''}
+                </div>
+              ) : (
+                <>
+                  {filteredReservations.slice(0, showAllReservations ? filteredReservations.length : 5).map((res) => (
+                    <motion.div
+                      key={res.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.4 }}
+                      className={`p-6 rounded-xl shadow-xl relative ${res.is_new ? 'border-l-4 border-blue-500 bg-gray-700' : 'bg-white text-black'}`}
+                    >
+                      {res.is_new && (
+                        <span className="absolute -top-2 -left-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
+                          New
+                        </span>
+                      )}
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className={`text-xl font-bold ${res.is_new ? 'text-white' : 'text-black'}`}>
+                            {res.name}
+                            {res.is_new && <span className="ml-2 animate-pulse">✨</span>}
+                          </h3>
+                          <p><strong className={res.is_new ? 'text-blue-300' : ''}>Date:</strong> {new Date(res.date).toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}</p>
+                          <p><strong className={res.is_new ? 'text-blue-300' : ''}>Time:</strong> {res.time}</p>
+                          <p><strong className={res.is_new ? 'text-blue-300' : ''}>Guests:</strong> {res.people}</p>
+                          {res.table_number && (
+                            <p><strong className={res.is_new ? 'text-blue-300' : ''}>Table:</strong> {res.table_number}</p>
+                          )}
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => markAsSeen(res.id)}
+                            className="px-3 py-1 bg-gray-600 hover:bg-gray-500 text-white rounded-md text-sm transition-all"
+                          >
+                            Mark Seen
+                          </button>
+                          <button
+                            onClick={() => cancelReservation(res.id)}
+                            className="px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded-md text-sm transition-all"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                      
+                      {res.special_request && (
+                        <div className="mt-3 pt-3 border-t border-gray-600">
+                          <p><strong className={res.is_new ? 'text-blue-300' : ''}>Special Request:</strong> {res.special_request}</p>
+                        </div>
+                      )}
+                      {res.occassion && (
+                        <p><strong className={res.is_new ? 'text-blue-300' : ''}>Occasion:</strong> {res.occassion}</p>
+                      )}
+                    </motion.div>
+                  ))}
+
+                  {filteredReservations.length > 5 && (
+                    <button
+                      onClick={() => setShowAllReservations(!showAllReservations)}
+                      className="mt-4 w-full bg-gradient-to-r from-yellow-400 to-pink-600 px-5 py-3 rounded-lg hover:opacity-80 transition-all font-semibold"
+                    >
+                      {showAllReservations ? 'Show Less' : `Show All (${filteredReservations.length})`}
+                    </button>
+                  )}
+                </>
               )}
             </div>
           </div>
