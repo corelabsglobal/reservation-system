@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
@@ -22,7 +22,8 @@ export default function RestaurantPage() {
   const [reservations, setReservations] = useState([]);
   const [availableSlots, setAvailableSlots] = useState([]);
   const [selectedSlot, setSelectedSlot] = useState(null);
-  const [tablesLeft, setTablesLeft] = useState(0);
+  const [availableTables, setAvailableTables] = useState([]);
+  const [selectedTable, setSelectedTable] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0]);
   const [email, setEmail] = useState("");
@@ -33,35 +34,37 @@ export default function RestaurantPage() {
   const [showPaystack, setShowPaystack] = useState(false);
   const [bookingCost, setBookingCost] = useState(0);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [partySize, setPartySize] = useState(2);
+  const [tableTypes, setTableTypes] = useState([]);
+  const [allTables, setAllTables] = useState([]);
+  const [fallbackMode, setFallbackMode] = useState(false);
   const router = useRouter();
+
+  // Fixed time slots (10 AM to 10 PM, every 2 hours)
+  const timeSlots = ["10:00", "12:00", "14:00", "16:00", "18:00", "20:00", "22:00"];
 
   useEffect(() => {
     async function fetchUser() {
       try {
         const { data: userData, error } = await supabase.auth.getUser();
-        
         if (error || !userData?.user) {
           console.log("User not authenticated");
           return;
         }
-  
         setUserId(userData.user.id);
       } catch (err) {
         console.error("Unexpected error fetching user:", err.message);
       }
     }
-  
     fetchUser();
   }, []);  
-
-  // Fixed time slots (10 AM to 10 PM, every 2 hours)
-  const timeSlots = ["10:00", "12:00", "14:00", "16:00", "18:00", "20:00", "22:00"];
 
   useEffect(() => {
     if (!id) return;
 
     const fetchRestaurantData = async () => {
       try {
+        // Fetch restaurant data
         const { data: restaurantData, error: restaurantError } = await supabase
           .from("restaurants")
           .select("*")
@@ -75,10 +78,40 @@ export default function RestaurantPage() {
           setBookingCost(restaurantData.booking_cost);
         }
 
-        // Fetch reservations
+        // Fetch table types and their tables
+        const { data: tableData, error: tableError } = await supabase
+          .from("table_types")
+          .select(`
+            *,
+            tables: tables!table_type_id (
+              id,
+              table_number,
+              is_available,
+              position_description
+            )
+          `)
+          .eq("restaurant_id", id);
+
+        if (tableError) throw tableError;
+        
+        setTableTypes(tableData);
+        const tables = tableData.flatMap(type => 
+          type.tables.map(table => ({ ...table, table_type_id: type.id }))
+        );
+        setAllTables(tables);
+
+        // Check if we need fallback mode (no tables defined)
+        if (tableData.length === 0 || tables.length === 0) {
+          setFallbackMode(true);
+          toast("This restaurant hasn't set up tables yet. Using basic reservation system.", {
+            icon: 'ℹ️',
+          });
+        }
+
+        // Fetch reservations for the selected date
         const { data: reservationsData, error: reservationsError } = await supabase
           .from("reservations")
-          .select("time, date, user_id")
+          .select("time, date, user_id, table_id, people")
           .eq("restaurant_id", id)
           .eq("date", selectedDate);
 
@@ -86,19 +119,28 @@ export default function RestaurantPage() {
         setReservations(reservationsData);
 
         // Process available slots based on reservations
-        const today = new Date().toISOString().split("T")[0];
-        const bookedSlots = new Map();
+        const bookedTables = new Set(reservationsData.map(r => r.table_id));
+        const availableTablesForSlots = new Map();
 
-        reservationsData.forEach(({ date, time }) => {
-          if (!bookedSlots.has(date)) bookedSlots.set(date, new Map());
-          const timeCount = bookedSlots.get(date).get(time) || 0;
-          bookedSlots.get(date).set(time, timeCount + 1);
+        timeSlots.forEach(slot => {
+          const availableTablesForSlot = tables.filter(table => 
+            !bookedTables.has(table.id)
+          );
+          availableTablesForSlots.set(slot, availableTablesForSlot);
         });
 
-        const slotsForToday = bookedSlots.get(today) || new Map();
-        const filteredSlots = timeSlots.filter((slot) => {
-          const bookedCount = slotsForToday.get(slot) || 0;
-          return bookedCount < restaurantData.tables; // Exclude fully booked slots
+        // Filter time slots with available tables that can accommodate party size
+        const filteredSlots = timeSlots.filter(slot => {
+          const slotTables = availableTablesForSlots.get(slot) || [];
+          
+          if (fallbackMode) {
+            return true; // In fallback mode, all slots are available
+          }
+          
+          return slotTables.some(table => {
+            const tableType = tableData.find(t => t.id === table.table_type_id);
+            return tableType?.capacity >= partySize;
+          });
         });
 
         setAvailableSlots(filteredSlots);
@@ -110,7 +152,55 @@ export default function RestaurantPage() {
     };
 
     fetchRestaurantData();
-  }, [id, selectedDate]);
+  }, [id, selectedDate, partySize]);
+
+  const fetchAvailableTablesForSlot = async (timeSlot) => {
+    try {
+      if (fallbackMode) {
+        setAvailableTables([]);
+        setSelectedTable(null);
+        return;
+      }
+
+      // Get reservations for this time slot
+      const { data: reservationsForSlot, error } = await supabase
+        .from("reservations")
+        .select("table_id")
+        .eq("restaurant_id", id)
+        .eq("date", selectedDate)
+        .eq("time", timeSlot);
+
+      if (error) throw error;
+
+      const bookedTableIds = new Set(reservationsForSlot.map(r => r.table_id));
+      
+      // Get available tables that can accommodate party size
+      const suitableTables = allTables.filter(table => {
+        const tableType = tableTypes.find(t => t.id === table.table_type_id);
+        return !bookedTableIds.has(table.id) && 
+               tableType?.capacity >= partySize;
+      });
+
+      // Group by table type for display
+      const tablesByType = suitableTables.reduce((acc, table) => {
+        if (!acc[table.table_type_id]) {
+          const type = tableTypes.find(t => t.id === table.table_type_id);
+          acc[table.table_type_id] = {
+            type,
+            tables: []
+          };
+        }
+        acc[table.table_type_id].tables.push(table);
+        return acc;
+      }, {});
+
+      setAvailableTables(Object.values(tablesByType));
+      setSelectedTable(suitableTables[0]?.id || null);
+    } catch (error) {
+      console.error("Error fetching tables:", error);
+      toast.error("Failed to fetch available tables");
+    }
+  };
 
   const paystackConfig = {
     reference: new Date().getTime().toString(),
@@ -124,27 +214,20 @@ export default function RestaurantPage() {
     },
   };
   
-  // Handle Paystack payment success
   const onPaystackSuccess = async (response) => {
     setPaymentSuccess(true);
     toast.success("Payment successful! Proceeding with reservation...");
-  
-    // Save reservation after successful payment
     await saveReservation();
   };
   
-  // Handle Paystack payment failure
   const onPaystackClose = () => {
     toast.error("Payment canceled or failed. Please try again.");
     setShowPaystack(false);
   };
 
-  // Handle opening the dialog
-  const handleOpenDialog = (slot) => {
-    const today = new Date().toISOString().split("T")[0];
-    const bookedCount = reservations.filter((r) => r.date === today && r.time.startsWith(slot)).length;
-    setTablesLeft(restaurant.tables - bookedCount);
+  const handleOpenDialog = async (slot) => {
     setSelectedSlot(slot);
+    await fetchAvailableTablesForSlot(slot);
     setOpenDialog(true);
   };
 
@@ -152,8 +235,17 @@ export default function RestaurantPage() {
     occasion: "",
     specialRequest: "",
     number: "",
-    people: "",
+    people: partySize,
   });
+
+  const handlePartySizeChange = (e) => {
+    const size = parseInt(e.target.value);
+    setPartySize(size);
+    setOccasionDetails(prev => ({ ...prev, people: size }));
+    if (selectedSlot) {
+      fetchAvailableTablesForSlot(selectedSlot);
+    }
+  };
 
   const handleBooking = async (e) => {
     e.preventDefault();
@@ -175,6 +267,11 @@ export default function RestaurantPage() {
       return;
     }
   
+    if (!fallbackMode && !selectedTable) {
+      setBookingError("Please select a table.");
+      return;
+    }
+  
     const existingReservation = reservations.find(
       (r) => r.user_id === userId && r.time === selectedSlot && r.date === selectedDate
     );
@@ -185,46 +282,59 @@ export default function RestaurantPage() {
       return;
     }
   
-    // Check if booking cost exists
     if (bookingCost > 0) {
-      setShowPaystack(true); // Show Paystack modal
+      setShowPaystack(true);
       return;
     }
   
-    // If no booking cost, proceed with reservation
     await saveReservation();
   };
   
   const saveReservation = async () => {
-    const today = new Date().toISOString().split("T")[0];
     const reservationToken = crypto.randomUUID();
   
-    const { data, error } = await supabase.from("reservations").insert([
-      {
-        restaurant_id: id,
-        time: selectedSlot,
-        date: selectedDate,
-        user_id: userId === "guest" ? "00000000-0000-0000-0000-000000000000" : userId,
-        email,
-        name,
-        reservation_token: reservationToken,
-        special_request: occasionDetails?.specialRequest,
-        occassion: occasionDetails?.occasion,
-        number: occasionDetails?.number,
-        people: occasionDetails?.people,
-        paid: bookingCost > 0, // Set paid to true if booking cost exists
-      },
-    ]);
+    const reservationData = {
+      restaurant_id: id,
+      time: selectedSlot,
+      date: selectedDate,
+      user_id: userId === "guest" ? "00000000-0000-0000-0000-000000000000" : userId,
+      email,
+      name,
+      reservation_token: reservationToken,
+      special_request: occasionDetails?.specialRequest,
+      occassion: occasionDetails?.occasion,
+      number: occasionDetails?.number,
+      people: occasionDetails?.people || partySize,
+      paid: bookingCost > 0,
+    };
+
+    // Include table_id if not in fallback mode
+    if (!fallbackMode) {
+      reservationData.table_id = selectedTable;
+    }
+  
+    const { data, error } = await supabase.from("reservations").insert([reservationData]);
   
     if (error) {
-      setBookingError(error.message);
       toast.error(`Booking failed: ${error.message}`);
     } else {
-      setBookingSuccess("Reservation successful!");
       toast.success("Reservation successful!");
-      setReservations([...reservations, { time: selectedSlot, date: selectedDate, user_id: userId }]);
-      setAvailableSlots(availableSlots.filter((slot) => slot !== selectedSlot));
-  
+      
+      // Update state
+      const updatedReservations = [...reservations, reservationData];
+      setReservations(updatedReservations);
+
+      // Update available slots if needed
+      if (!fallbackMode) {
+        const bookedTablesForSlot = updatedReservations
+          .filter(r => r.time === selectedSlot && r.date === selectedDate)
+          .map(r => r.table_id);
+        
+        if (bookedTablesForSlot.length >= allTables.length) {
+          setAvailableSlots(availableSlots.filter(slot => slot !== selectedSlot));
+        }
+      }
+
       localStorage.setItem("reservationToken", reservationToken);
       localStorage.setItem("reservationEmail", email);
   
@@ -270,7 +380,22 @@ export default function RestaurantPage() {
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
               className="bg-gray-700 text-white px-4 py-2 rounded-md border border-gray-600 focus:ring-2 focus:ring-yellow-400 w-full mt-2"
+              min={new Date().toISOString().split("T")[0]}
             />
+          </div>
+
+          {/* Party Size Selector */}
+          <div className="mt-4">
+            <label className="text-yellow-400 font-semibold">Party Size:</label>
+            <select
+              value={partySize}
+              onChange={handlePartySizeChange}
+              className="bg-gray-700 text-white px-4 py-2 rounded-md border border-gray-600 focus:ring-2 focus:ring-yellow-400 w-full mt-2"
+            >
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(size => (
+                <option key={size} value={size}>{size} {size === 1 ? 'person' : 'people'}</option>
+              ))}
+            </select>
           </div>
 
           {/* Reservation Section */}
@@ -288,7 +413,11 @@ export default function RestaurantPage() {
                   </button>
                 ))
               ) : (
-                <p className="text-gray-400 text-sm sm:text-md">No available slots.</p>
+                <p className="text-gray-400 text-sm sm:text-md">
+                  {fallbackMode 
+                    ? "No available slots for selected date." 
+                    : "No available slots for selected date/party size."}
+                </p>
               )}
             </div>
           </div>
@@ -297,18 +426,16 @@ export default function RestaurantPage() {
 
       {/* Booking Dialog */}
       <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-        <DialogContent className="bg-gray-800 text-white border border-gray-700 shadow-xl rounded-lg p-6">
+        <DialogContent className="bg-gray-800 text-white border border-gray-700 shadow-xl rounded-lg p-6 max-w-md">
           <DialogHeader>
             <DialogTitle className="text-yellow-400 text-lg">Book a Table</DialogTitle>
             <DialogDescription>
-              {selectedSlot ? `Booking for ${selectedSlot}` : ""}
+              {selectedSlot ? `Booking for ${selectedSlot} on ${selectedDate}` : ""}
             </DialogDescription>
           </DialogHeader>
 
           <div className="flex flex-col gap-4">
-            <p className="text-gray-300">Tables remaining: <span className="font-bold text-yellow-400">{tablesLeft}</span></p>
-
-            {tablesLeft > 0 ? (
+            {availableTables.length > 0 || fallbackMode ? (
               <>
                 {!userId ? (
                   <div>
@@ -334,6 +461,16 @@ export default function RestaurantPage() {
                   </div>
                 ) : (
                   <>
+                    
+
+                    {fallbackMode && (
+                      <div className="bg-yellow-600/20 p-3 rounded-md border border-yellow-400">
+                        <p className="text-yellow-400">
+                          This restaurant hasn't set up specific tables yet. Your reservation will be confirmed based on general availability.
+                        </p>
+                      </div>
+                    )}
+
                     {bookingCost > 0 && !paymentSuccess && (
                       <div>
                         <p className="text-yellow-400 mb-2">
@@ -369,7 +506,10 @@ export default function RestaurantPage() {
                             required
                             className="bg-gray-700 text-white px-4 py-2 rounded-md border border-gray-600 focus:ring-2 focus:ring-yellow-400"
                           />
-                          <OccasionDetails onChange={(data) => setOccasionDetails(prev => ({ ...prev, ...data }))} />
+                          <OccasionDetails 
+                            onChange={(data) => setOccasionDetails(prev => ({ ...prev, ...data }))} 
+                            partySize={partySize}
+                          />
                         </>
                       )}
                       {userId !== "guest" && (
@@ -390,12 +530,16 @@ export default function RestaurantPage() {
                             required
                             className="bg-gray-700 text-white px-4 py-2 rounded-md border border-gray-600 focus:ring-2 focus:ring-yellow-400"
                           />
-                          <OccasionDetails onChange={setOccasionDetails} />
+                          <OccasionDetails 
+                            onChange={setOccasionDetails} 
+                            partySize={partySize}
+                          />
                         </>
                       )}
                       <button
                         type="submit"
                         className="mt-5 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-black font-bold rounded-md"
+                        disabled={!fallbackMode && !selectedTable}
                       >
                         Confirm Booking
                       </button>
@@ -404,7 +548,11 @@ export default function RestaurantPage() {
                 )}
               </>
             ) : (
-              <p className="text-red-400">No tables available for this time slot.</p>
+              <p className="text-red-400">
+                {fallbackMode 
+                  ? "No availability for selected time." 
+                  : "No tables available for your party size at this time."}
+              </p>
             )}
           </div>
 
