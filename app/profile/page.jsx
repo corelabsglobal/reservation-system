@@ -331,7 +331,7 @@ const ProfilePage = () => {
         {/* Overview Tab */}
         {activeTab === 'overview' && (
           <div className="mb-6 p-6 shadow-2xl bg-gray-800/90 backdrop-blur-md rounded-xl">
-            <h2 className="text-2xl font-semibold mb-6">Reservation Overview</h2>
+            <h2 className="text-2xl font-semibold mb-6 text-gray-100">Reservation Overview</h2>
 
             {/* Circle Charts Container */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
@@ -342,8 +342,8 @@ const ProfilePage = () => {
                 transition={{ duration: 0.6, delay: 0.2 }}
                 className="p-6 bg-gray-700/50 rounded-xl shadow-lg"
               >
-                <h3 className="text-lg font-semibold mb-4">Reservation Status</h3>
-                <ResponsiveContainer width="100%" height={200}>
+                <h3 className="text-lg font-semibold mb-4 text-gray-200">Reservation Status</h3>
+                <ResponsiveContainer width="100%" height={220}>
                   <PieChart>
                     <Pie
                       data={[
@@ -354,10 +354,11 @@ const ProfilePage = () => {
                       dataKey="value"
                       cx="50%"
                       cy="50%"
-                      innerRadius={60}
+                      innerRadius={50}
                       outerRadius={80}
-                      paddingAngle={5}
-                      label
+                      paddingAngle={2}
+                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                      labelLine={false}
                     >
                       {[
                         { name: 'Confirmed', fill: '#4ADE80' },
@@ -367,10 +368,25 @@ const ProfilePage = () => {
                         <Cell key={`cell-${index}`} fill={entry.fill} />
                       ))}
                     </Pie>
-                    <Tooltip contentStyle={{ backgroundColor: '#2D3748', border: 'none', borderRadius: '8px' }} />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: '#1F2937', 
+                        border: '1px solid #374151', 
+                        borderRadius: '6px',
+                        color: '#F3F4F6'
+                      }}
+                      formatter={(value, name, props) => [`${value}%`, name]}
+                    />
                     <Legend
                       iconType="circle"
-                      wrapperStyle={{ fontSize: '12px', color: '#CBD5E0' }}
+                      wrapperStyle={{ 
+                        fontSize: '12px', 
+                        color: '#E5E7EB',
+                        marginTop: '10px'
+                      }}
+                      layout="horizontal"
+                      verticalAlign="bottom"
+                      align="center"
                     />
                   </PieChart>
                 </ResponsiveContainer>
@@ -383,8 +399,8 @@ const ProfilePage = () => {
                 transition={{ duration: 0.6, delay: 0.4 }}
                 className="p-6 bg-gray-700/50 rounded-xl shadow-lg"
               >
-                <h3 className="text-lg font-semibold mb-4">Customer Type</h3>
-                <ResponsiveContainer width="100%" height={200}>
+                <h3 className="text-lg font-semibold mb-4 text-gray-200">Customer Type</h3>
+                <ResponsiveContainer width="100%" height={220}>
                   <PieChart>
                     <Pie
                       data={[
@@ -394,10 +410,11 @@ const ProfilePage = () => {
                       dataKey="value"
                       cx="50%"
                       cy="50%"
-                      innerRadius={60}
+                      innerRadius={50}
                       outerRadius={80}
-                      paddingAngle={5}
-                      label
+                      paddingAngle={2}
+                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                      labelLine={false}
                     >
                       {[
                         { name: 'New Customers', fill: '#60A5FA' },
@@ -406,10 +423,25 @@ const ProfilePage = () => {
                         <Cell key={`cell-${index}`} fill={entry.fill} />
                       ))}
                     </Pie>
-                    <Tooltip contentStyle={{ backgroundColor: '#2D3748', border: 'none', borderRadius: '8px' }} />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: '#1F2937', 
+                        border: '1px solid #374151', 
+                        borderRadius: '6px',
+                        color: '#F3F4F6'
+                      }}
+                      formatter={(value, name, props) => [`${value}%`, name]}
+                    />
                     <Legend
                       iconType="circle"
-                      wrapperStyle={{ fontSize: '12px', color: '#CBD5E0' }}
+                      wrapperStyle={{ 
+                        fontSize: '12px', 
+                        color: '#E5E7EB',
+                        marginTop: '10px'
+                      }}
+                      layout="horizontal"
+                      verticalAlign="bottom"
+                      align="center"
                     />
                   </PieChart>
                 </ResponsiveContainer>
@@ -422,8 +454,8 @@ const ProfilePage = () => {
                 transition={{ duration: 0.6, delay: 0.6 }}
                 className="p-6 bg-gray-700/50 rounded-xl shadow-lg"
               >
-                <h3 className="text-lg font-semibold mb-4">Peak Times</h3>
-                <ResponsiveContainer width="100%" height={200}>
+                <h3 className="text-lg font-semibold mb-4 text-gray-200">Peak Times</h3>
+                <ResponsiveContainer width="100%" height={220}>
                   <PieChart>
                     <Pie
                       data={[
@@ -434,10 +466,11 @@ const ProfilePage = () => {
                       dataKey="value"
                       cx="50%"
                       cy="50%"
-                      innerRadius={60}
+                      innerRadius={50}
                       outerRadius={80}
-                      paddingAngle={5}
-                      label
+                      paddingAngle={2}
+                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                      labelLine={false}
                     >
                       {[
                         { name: 'Morning', fill: '#F472B6' },
@@ -447,10 +480,25 @@ const ProfilePage = () => {
                         <Cell key={`cell-${index}`} fill={entry.fill} />
                       ))}
                     </Pie>
-                    <Tooltip contentStyle={{ backgroundColor: '#2D3748', border: 'none', borderRadius: '8px' }} />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: '#1F2937', 
+                        border: '1px solid #374151', 
+                        borderRadius: '6px',
+                        color: '#F3F4F6'
+                      }}
+                      formatter={(value, name, props) => [`${value}%`, name]}
+                    />
                     <Legend
                       iconType="circle"
-                      wrapperStyle={{ fontSize: '12px', color: '#CBD5E0' }}
+                      wrapperStyle={{ 
+                        fontSize: '12px', 
+                        color: '#E5E7EB',
+                        marginTop: '10px'
+                      }}
+                      layout="horizontal"
+                      verticalAlign="bottom"
+                      align="center"
                     />
                   </PieChart>
                 </ResponsiveContainer>
@@ -462,17 +510,42 @@ const ProfilePage = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.8 }}
-              className="w-full h-64 sm:h-80"
+              className="w-full h-72 sm:h-80 bg-gray-700/50 rounded-xl p-6 shadow-lg"
             >
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData}>
+              <h3 className="text-lg font-semibold mb-4 text-gray-200">Monthly Reservations</h3>
+              <ResponsiveContainer width="100%" height="90%">
+                <BarChart 
+                  data={chartData}
+                  margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
+                >
                   <CartesianGrid strokeDasharray="3 3" stroke="#4A5568" />
-                  <XAxis dataKey="month" stroke="#CBD5E0" />
-                  <YAxis stroke="#CBD5E0" />
-                  <Tooltip contentStyle={{ backgroundColor: '#2D3748', border: 'none', borderRadius: '8px' }} />
-                  <Legend />
+                  <XAxis 
+                    dataKey="month" 
+                    stroke="#CBD5E0" 
+                    tick={{ fontSize: 12 }}
+                  />
+                  <YAxis 
+                    stroke="#CBD5E0" 
+                    tick={{ fontSize: 12 }}
+                  />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: '#1F2937', 
+                      border: '1px solid #374151', 
+                      borderRadius: '6px',
+                      color: '#F3F4F6'
+                    }}
+                  />
+                  <Legend 
+                    wrapperStyle={{
+                      fontSize: '12px',
+                      color: '#E5E7EB',
+                      paddingTop: '10px'
+                    }}
+                  />
                   <Bar
                     dataKey="reservations"
+                    name="Total Reservations"
                     fill="#8884d8"
                     radius={[4, 4, 0, 0]}
                     animationDuration={1500}
