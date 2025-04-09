@@ -486,26 +486,119 @@ const ProfilePage = () => {
         {/* Customers Tab */}
         {activeTab === 'customers' && (
           <div className="mb-6 p-6 shadow-2xl bg-gray-800/90 backdrop-blur-md rounded-xl">
-            <h2 className="text-2xl font-semibold mb-4">Customers</h2>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-semibold">Customers</h2>
+              <div className="flex items-center gap-3">
+                <div className="bg-yellow-500/20 px-3 py-1 rounded-full text-yellow-400 text-sm">
+                  Unique: {Array.from(new Set(reservations.map(res => res.email))).length}
+                </div>
+                <div className="bg-blue-500/20 px-3 py-1 rounded-full text-blue-400 text-sm">
+                  Total: {reservations.length}
+                </div>
+              </div>
+            </div>
+
             <div className="overflow-x-auto">
               <table className="w-full min-w-[600px]">
                 <thead>
                   <tr className="bg-gray-700">
-                    <th className="px-4 py-3 text-left">Name</th>
-                    <th className="px-4 py-3 text-left">Email</th>
-                    <th className="px-4 py-3 text-left">Phone</th>
+                    <th className="px-4 py-3 text-left">Customer</th>
+                    <th className="px-4 py-3 text-left">Contact</th>
+                    <th className="px-4 py-3 text-left">Reservations</th>
+                    <th className="px-4 py-3 text-left">Last Visit</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {reservations.map((res) => (
-                    <tr key={res.id} className="border-b border-gray-700 hover:bg-gray-700/50 transition-all">
-                      <td className="px-4 py-3">{res.name}</td>
-                      <td className="px-4 py-3">{res.email}</td>
-                      <td className="px-4 py-3">{res.number ? `0${res.number}` : ''}</td>
-                    </tr>
-                  ))}
+                  {Object.entries(
+                    reservations.reduce((acc, res) => {
+                      if (!acc[res.email]) {
+                        acc[res.email] = {
+                          name: res.name,
+                          email: res.email,
+                          phone: res.number ? `0${res.number}` : 'N/A',
+                          reservationCount: 0,
+                          lastVisit: '',
+                          reservations: []
+                        };
+                      }
+                      acc[res.email].reservationCount++;
+                      acc[res.email].reservations.push(res);
+                      return acc;
+                    }, {})
+                  )
+                  .sort(([,a], [,b]) => b.reservationCount - a.reservationCount)
+                  .map(([email, customer]) => {
+                    const lastReservation = customer.reservations
+                      .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+                    
+                    return (
+                      <tr key={email} className="border-b border-gray-700 hover:bg-gray-700/50 transition-all">
+                        <td className="px-4 py-3">
+                          <div className="font-medium">{customer.name}</div>
+                          <div className="text-xs text-gray-400">{customer.email}</div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div>{customer.phone}</div>
+                          {customer.reservationCount > 1 && (
+                            <div className="text-xs text-green-400">
+                              {customer.reservationCount} visits
+                            </div>
+                          )}
+                        </td>
+                        <td className="px-4 py-3">
+                          {lastReservation && (
+                            <>
+                              <div>{new Date(lastReservation.date).toLocaleDateString()}</div>
+                              <div className="text-xs text-gray-400">{lastReservation.time}</div>
+                            </>
+                          )}
+                        </td>
+                        <td className="px-4 py-3">
+                          {customer.reservationCount > 1 ? (
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded">
+                                Regular
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded">
+                              New
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
+            </div>
+
+            {/* Customer Stats Summary */}
+            <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="bg-gray-700/50 p-4 rounded-lg">
+                <div className="text-gray-400 text-sm">Total Customers</div>
+                <div className="text-2xl font-bold">
+                  {Array.from(new Set(reservations.map(res => res.email))).length}
+                </div>
+              </div>
+              <div className="bg-gray-700/50 p-4 rounded-lg">
+                <div className="text-gray-400 text-sm">Repeat Customers</div>
+                <div className="text-2xl font-bold">
+                  {Object.values(reservations.reduce((acc, res) => {
+                    acc[res.email] = (acc[res.email] || 0) + 1;
+                    return acc;
+                  }, {})).filter(count => count > 1).length}
+                </div>
+              </div>
+              <div className="bg-gray-700/50 p-4 rounded-lg">
+                <div className="text-gray-400 text-sm">New This Month</div>
+                <div className="text-2xl font-bold">
+                  {Array.from(new Set(reservations
+                    .filter(res => new Date(res.date) > new Date(new Date().setDate(new Date().getDate() - 30)))
+                    .map(res => res.email)
+                  )).length}
+                </div>
+              </div>
             </div>
           </div>
         )}
