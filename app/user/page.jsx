@@ -16,47 +16,58 @@ const UserProfilePage = () => {
 
   useEffect(() => {
     const fetchUserData = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      
-      if (user) {
-        // Fetch user profile
-        const { data: profile } = await supabase
-          .from('users')
-          .select('id, name, email, created_at, role')
-          .eq('owner_id', user.id)
-          .single()
+      try {
+        const { data: { user }, error: authError } = await supabase.auth.getUser()
+        
+        if (authError) throw authError
+        
+        if (user) {
+          // Fetch user profile - using id from auth user to match with users table
+          const { data: profile, error: profileError } = await supabase
+            .from('users')
+            .select('id, name, email, created_at, role')
+            .eq('id', user.id) // Changed from owner_id to id to match auth user
+            .single()
 
-        // Fetch user reservations
-        const { data: userReservations } = await supabase
-          .from('reservations')
-          .select('id, date, time, people, occasion, special_request, paid, created_at')
-          .eq('user_id', user.id)
-          .order('date', { ascending: false })
+          if (profileError) throw profileError
 
-        // Calculate stats
-        const totalReservations = userReservations?.length || 0
-        const totalGuests = userReservations?.reduce((sum, r) => sum + (r.people || 0), 0) || 0
-        const paidReservations = userReservations?.filter(r => r.paid).length || 0
-        const mostCommonOccasion = userReservations?.reduce((acc, r) => {
-          const occasion = r.occasion || 'Other'
-          acc[occasion] = (acc[occasion] || 0) + 1
-          return acc
-        }, {}) || {}
+          // Fetch user reservations - using id from auth user
+          const { data: userReservations, error: resError } = await supabase
+            .from('reservations')
+            .select('id, date, time, people, occasion, special_request, paid, created_at')
+            .eq('user_id', user.id) // Using auth user id to match reservations
+            .order('date', { ascending: false })
 
-        setUserData({
-          ...profile,
-          avatar: `https://api.dicebear.com/7.x/identicon/svg?seed=${profile?.name || 'User'}&backgroundType=gradientLinear`
-        })
-        setReservations(userReservations || [])
-        setStats({
-          totalReservations,
-          totalGuests,
-          paidReservations,
-          mostCommonOccasion: Object.entries(mostCommonOccasion).sort((a, b) => b[1] - a[1])[0]?.[0] || 'None',
-          joinDate: new Date(profile?.created_at).toLocaleDateString()
-        })
+          if (resError) throw resError
+
+          // Calculate stats
+          const totalReservations = userReservations?.length || 0
+          const totalGuests = userReservations?.reduce((sum, r) => sum + (r.people || 0), 0) || 0
+          const paidReservations = userReservations?.filter(r => r.paid).length || 0
+          const mostCommonOccasion = userReservations?.reduce((acc, r) => {
+            const occasion = r.occasion || 'Other'
+            acc[occasion] = (acc[occasion] || 0) + 1
+            return acc
+          }, {}) || {}
+
+          setUserData({
+            ...profile,
+            avatar: `https://api.dicebear.com/7.x/identicon/svg?seed=${profile?.name || 'User'}&backgroundType=gradientLinear`
+          })
+          setReservations(userReservations || [])
+          setStats({
+            totalReservations,
+            totalGuests,
+            paidReservations,
+            mostCommonOccasion: Object.entries(mostCommonOccasion).sort((a, b) => b[1] - a[1])[0]?.[0] || 'None',
+            joinDate: new Date(profile?.created_at).toLocaleDateString()
+          })
+        }
+      } catch (error) {
+        console.error('Error fetching user data:', error)
+      } finally {
+        setLoading(false)
       }
-      setLoading(false)
     }
 
     fetchUserData()
@@ -132,18 +143,18 @@ const UserProfilePage = () => {
   const occasionData = processOccasionData()
   const timeData = processTimeData()
 
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D']
+  const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6', '#14b8a6']
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-indigo-50 to-blue-100">
-        <div className="animate-pulse text-2xl font-medium text-indigo-600">Loading your profile...</div>
+      <div className="flex items-center justify-center min-h-screen bg-gray-900">
+        <div className="animate-pulse text-2xl font-medium text-indigo-400">Loading your profile...</div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-blue-100 p-4 md:p-8">
+    <div className="min-h-screen bg-gray-900 p-4 md:p-8">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -152,10 +163,10 @@ const UserProfilePage = () => {
       >
         {/* Profile Header */}
         <Header />
-        <div className="bg-white rounded-3xl shadow-xl overflow-hidden mb-8 mt-14">
-          <div className="relative h-48 bg-gradient-to-r from-indigo-500 to-purple-600">
+        <div className="bg-gray-800 rounded-3xl shadow-xl overflow-hidden mb-8 mt-14 border border-gray-700">
+          <div className="relative h-48 bg-gradient-to-r from-indigo-900 to-purple-900">
             <div className="absolute -bottom-16 left-8">
-              <div className="h-32 w-32 rounded-2xl border-4 border-white bg-white shadow-lg overflow-hidden">
+              <div className="h-32 w-32 rounded-2xl border-4 border-gray-800 bg-gray-800 shadow-lg overflow-hidden">
                 <img 
                   src={userData?.avatar} 
                   alt={userData?.name} 
@@ -167,12 +178,12 @@ const UserProfilePage = () => {
           <div className="pt-20 px-8 pb-8">
             <div className="flex flex-col md:flex-row md:items-end md:justify-between">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">{userData?.name}</h1>
-                <p className="text-indigo-600 mt-1">{userData?.email}</p>
-                <p className="text-gray-500 mt-2">Member since {stats?.joinDate}</p>
+                <h1 className="text-3xl font-bold text-white">{userData?.name || 'User'}</h1>
+                <p className="text-indigo-400 mt-1">{userData?.email || 'No email available'}</p>
+                <p className="text-gray-400 mt-2">Member since {stats?.joinDate || 'Unknown'}</p>
               </div>
               <div className="mt-4 md:mt-0">
-                <span className="inline-block bg-indigo-100 text-indigo-800 text-sm font-medium px-3 py-1 rounded-full">
+                <span className="inline-block bg-indigo-900 text-indigo-200 text-sm font-medium px-3 py-1 rounded-full">
                   {userData?.role || 'Member'}
                 </span>
               </div>
@@ -184,69 +195,69 @@ const UserProfilePage = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <motion.div 
             whileHover={{ scale: 1.03 }}
-            className="bg-white rounded-2xl shadow-lg p-6 flex items-center"
+            className="bg-gray-800 rounded-2xl shadow-lg p-6 flex items-center border border-gray-700"
           >
-            <div className="p-3 rounded-full bg-indigo-100 text-indigo-600 mr-4">
+            <div className="p-3 rounded-full bg-indigo-900/50 text-indigo-400 mr-4">
               <FiCalendar className="text-2xl" />
             </div>
             <div>
-              <p className="text-gray-500 text-sm">Total Reservations</p>
-              <p className="text-2xl font-bold text-gray-900">{stats?.totalReservations || 0}</p>
+              <p className="text-gray-400 text-sm">Total Reservations</p>
+              <p className="text-2xl font-bold text-white">{stats?.totalReservations || 0}</p>
             </div>
           </motion.div>
 
           <motion.div 
             whileHover={{ scale: 1.03 }}
-            className="bg-white rounded-2xl shadow-lg p-6 flex items-center"
+            className="bg-gray-800 rounded-2xl shadow-lg p-6 flex items-center border border-gray-700"
           >
-            <div className="p-3 rounded-full bg-green-100 text-green-600 mr-4">
+            <div className="p-3 rounded-full bg-green-900/50 text-green-400 mr-4">
               <FiUsers className="text-2xl" />
             </div>
             <div>
-              <p className="text-gray-500 text-sm">Total Guests</p>
-              <p className="text-2xl font-bold text-gray-900">{stats?.totalGuests || 0}</p>
+              <p className="text-gray-400 text-sm">Total Guests</p>
+              <p className="text-2xl font-bold text-white">{stats?.totalGuests || 0}</p>
             </div>
           </motion.div>
 
           <motion.div 
             whileHover={{ scale: 1.03 }}
-            className="bg-white rounded-2xl shadow-lg p-6 flex items-center"
+            className="bg-gray-800 rounded-2xl shadow-lg p-6 flex items-center border border-gray-700"
           >
-            <div className="p-3 rounded-full bg-yellow-100 text-yellow-600 mr-4">
+            <div className="p-3 rounded-full bg-yellow-900/50 text-yellow-400 mr-4">
               <FiStar className="text-2xl" />
             </div>
             <div>
-              <p className="text-gray-500 text-sm">Favorite Occasion</p>
-              <p className="text-2xl font-bold text-gray-900">{stats?.mostCommonOccasion || 'None'}</p>
+              <p className="text-gray-400 text-sm">Favorite Occasion</p>
+              <p className="text-2xl font-bold text-white">{stats?.mostCommonOccasion || 'None'}</p>
             </div>
           </motion.div>
 
           <motion.div 
             whileHover={{ scale: 1.03 }}
-            className="bg-white rounded-2xl shadow-lg p-6 flex items-center"
+            className="bg-gray-800 rounded-2xl shadow-lg p-6 flex items-center border border-gray-700"
           >
-            <div className="p-3 rounded-full bg-purple-100 text-purple-600 mr-4">
+            <div className="p-3 rounded-full bg-purple-900/50 text-purple-400 mr-4">
               <FiDollarSign className="text-2xl" />
             </div>
             <div>
-              <p className="text-gray-500 text-sm">Paid Reservations</p>
-              <p className="text-2xl font-bold text-gray-900">{stats?.paidReservations || 0}</p>
+              <p className="text-gray-400 text-sm">Paid Reservations</p>
+              <p className="text-2xl font-bold text-white">{stats?.paidReservations || 0}</p>
             </div>
           </motion.div>
         </div>
 
         {/* Dashboard Tabs */}
         <div className="mb-6">
-          <div className="flex space-x-4 border-b border-gray-200">
+          <div className="flex space-x-4 border-b border-gray-700">
             <button
               onClick={() => setActiveTab('overview')}
-              className={`pb-4 px-1 font-medium text-sm border-b-2 ${activeTab === 'overview' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+              className={`pb-4 px-1 font-medium text-sm border-b-2 ${activeTab === 'overview' ? 'border-indigo-500 text-indigo-400' : 'border-transparent text-gray-400 hover:text-gray-300'}`}
             >
               Overview
             </button>
             <button
               onClick={() => setActiveTab('reservations')}
-              className={`pb-4 px-1 font-medium text-sm border-b-2 ${activeTab === 'reservations' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+              className={`pb-4 px-1 font-medium text-sm border-b-2 ${activeTab === 'reservations' ? 'border-indigo-500 text-indigo-400' : 'border-transparent text-gray-400 hover:text-gray-300'}`}
             >
               My Reservations
             </button>
@@ -261,28 +272,35 @@ const UserProfilePage = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              className="bg-white rounded-2xl shadow-lg p-6"
+              className="bg-gray-800 rounded-2xl shadow-lg p-6 border border-gray-700"
             >
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">Reservations Over Time</h2>
+              <h2 className="text-xl font-semibold text-white mb-6">Reservations Over Time</h2>
               <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
                     <XAxis 
                       dataKey="month" 
-                      stroke="#6b7280"
-                      tick={{ fontSize: 12 }}
+                      stroke="#9CA3AF"
+                      tick={{ fill: '#9CA3AF', fontSize: 12 }}
                     />
                     <YAxis 
-                      stroke="#6b7280"
-                      tick={{ fontSize: 12 }}
+                      stroke="#9CA3AF"
+                      tick={{ fill: '#9CA3AF', fontSize: 12 }}
                     />
                     <Tooltip 
                       contentStyle={{
-                        backgroundColor: '#1f2937',
-                        border: 'none',
+                        backgroundColor: '#111827',
+                        border: '1px solid #374151',
                         borderRadius: '0.5rem',
-                        color: '#f9fafb'
+                        color: '#F3F4F6'
+                      }}
+                    />
+                    <Legend 
+                      wrapperStyle={{
+                        color: '#D1D5DB',
+                        fontSize: '0.75rem',
+                        paddingTop: '1rem'
                       }}
                     />
                     <Bar
@@ -303,9 +321,9 @@ const UserProfilePage = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
-                className="bg-white rounded-2xl shadow-lg p-6"
+                className="bg-gray-800 rounded-2xl shadow-lg p-6 border border-gray-700"
               >
-                <h2 className="text-xl font-semibold text-gray-900 mb-6">Reservation Occasions</h2>
+                <h2 className="text-xl font-semibold text-white mb-6">Reservation Occasions</h2>
                 <div className="h-64">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
@@ -325,17 +343,17 @@ const UserProfilePage = () => {
                       </Pie>
                       <Tooltip 
                         contentStyle={{
-                          backgroundColor: '#1f2937',
-                          border: 'none',
+                          backgroundColor: '#111827',
+                          border: '1px solid #374151',
                           borderRadius: '0.5rem',
-                          color: '#f9fafb'
+                          color: '#F3F4F6'
                         }}
                         formatter={(value, name) => [`${value} reservations`, name]}
                       />
                       <Legend 
                         wrapperStyle={{
                           fontSize: '0.75rem',
-                          color: '#6b7280'
+                          color: '#D1D5DB'
                         }}
                       />
                     </PieChart>
@@ -347,28 +365,35 @@ const UserProfilePage = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.4 }}
-                className="bg-white rounded-2xl shadow-lg p-6"
+                className="bg-gray-800 rounded-2xl shadow-lg p-6 border border-gray-700"
               >
-                <h2 className="text-xl font-semibold text-gray-900 mb-6">Preferred Time Slots</h2>
+                <h2 className="text-xl font-semibold text-white mb-6">Preferred Time Slots</h2>
                 <div className="h-64">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={timeData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                      <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
                       <XAxis 
                         dataKey="name" 
-                        stroke="#6b7280"
-                        tick={{ fontSize: 12 }}
+                        stroke="#9CA3AF"
+                        tick={{ fill: '#9CA3AF', fontSize: 12 }}
                       />
                       <YAxis 
-                        stroke="#6b7280"
-                        tick={{ fontSize: 12 }}
+                        stroke="#9CA3AF"
+                        tick={{ fill: '#9CA3AF', fontSize: 12 }}
                       />
                       <Tooltip 
                         contentStyle={{
-                          backgroundColor: '#1f2937',
-                          border: 'none',
+                          backgroundColor: '#111827',
+                          border: '1px solid #374151',
                           borderRadius: '0.5rem',
-                          color: '#f9fafb'
+                          color: '#F3F4F6'
+                        }}
+                      />
+                      <Legend 
+                        wrapperStyle={{
+                          color: '#D1D5DB',
+                          fontSize: '0.75rem',
+                          paddingTop: '1rem'
                         }}
                       />
                       <Line
@@ -393,12 +418,12 @@ const UserProfilePage = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="bg-white rounded-2xl shadow-lg overflow-hidden"
+            className="bg-gray-800 rounded-2xl shadow-lg overflow-hidden border border-gray-700"
           >
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900">My Reservations</h2>
+            <div className="px-6 py-4 border-b border-gray-700">
+              <h2 className="text-xl font-semibold text-white">My Reservations</h2>
             </div>
-            <div className="divide-y divide-gray-200">
+            <div className="divide-y divide-gray-700">
               {reservations.length > 0 ? (
                 reservations.map((reservation, index) => (
                   <motion.div
@@ -406,12 +431,12 @@ const UserProfilePage = () => {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3, delay: index * 0.05 }}
-                    className="p-6 hover:bg-gray-50 transition-colors duration-150"
+                    className="p-6 hover:bg-gray-700/50 transition-colors duration-150"
                   >
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                       <div>
                         <div className="flex items-center">
-                          <span className="text-lg font-medium text-gray-900">
+                          <span className="text-lg font-medium text-white">
                             {new Date(reservation.date).toLocaleDateString('en-US', {
                               weekday: 'short',
                               year: 'numeric',
@@ -419,33 +444,33 @@ const UserProfilePage = () => {
                               day: 'numeric'
                             })}
                           </span>
-                          <span className="mx-2 text-gray-400">|</span>
-                          <span className="text-gray-600 flex items-center">
+                          <span className="mx-2 text-gray-500">|</span>
+                          <span className="text-gray-400 flex items-center">
                             <FiClock className="mr-1" />
                             {reservation.time}
                           </span>
                         </div>
                         <div className="mt-2 flex flex-wrap gap-2">
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-900 text-indigo-200">
                             {reservation.occasion || 'General'}
                           </span>
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-900 text-green-200">
                             {reservation.people} {reservation.people === 1 ? 'person' : 'people'}
                           </span>
                           {reservation.paid && (
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-900 text-purple-200">
                               Paid
                             </span>
                           )}
                         </div>
                         {reservation.special_request && (
-                          <p className="mt-2 text-sm text-gray-600">
-                            <span className="font-medium">Special Request:</span> {reservation.special_request}
+                          <p className="mt-2 text-sm text-gray-300">
+                            <span className="font-medium text-gray-400">Special Request:</span> {reservation.special_request}
                           </p>
                         )}
                       </div>
                       <div className="mt-4 sm:mt-0">
-                        <button className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        <button className="inline-flex items-center px-3 py-1.5 border border-gray-600 shadow-sm text-sm leading-4 font-medium rounded-md text-white bg-gray-700 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                           View Details
                         </button>
                       </div>
@@ -454,11 +479,11 @@ const UserProfilePage = () => {
                 ))
               ) : (
                 <div className="p-12 text-center">
-                  <div className="text-gray-400 mb-4">
+                  <div className="text-gray-600 mb-4">
                     <FiCalendar className="mx-auto h-12 w-12" />
                   </div>
-                  <h3 className="text-lg font-medium text-gray-900">No reservations yet</h3>
-                  <p className="mt-1 text-sm text-gray-500">You haven't made any reservations yet.</p>
+                  <h3 className="text-lg font-medium text-white">No reservations yet</h3>
+                  <p className="mt-1 text-sm text-gray-400">You haven't made any reservations yet.</p>
                   <div className="mt-6">
                     <button className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                       Make a reservation
