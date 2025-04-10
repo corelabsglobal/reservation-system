@@ -11,6 +11,7 @@ const UserProfilePage = () => {
   const [user, setUser] = useState(null)
   const [userProfile, setUserProfile] = useState(null)
   const [reservations, setReservations] = useState([])
+  const [restaurants, setRestaurants] = useState([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('overview')
   const [stats, setStats] = useState(null)
@@ -106,6 +107,19 @@ const UserProfilePage = () => {
         }
 
         setReservations(userReservations || [])
+
+        const { data: userRestaurants, error: restaurantError } = await supabase
+          .from('restaurants')
+          .select('id, name, location, verified, created_at')
+          .eq('owner_id', user.id)
+          .maybeSingle()
+
+        if (restaurantError) {
+          console.error("Error fetching restaurant:", resError)
+          return
+        }
+
+        setRestaurants(userRestaurants || [])
 
         // Calculate stats
         const totalReservations = userReservations?.length || 0
@@ -237,7 +251,7 @@ const UserProfilePage = () => {
           <div className="pt-20 px-8 pb-8">
             <div className="flex flex-col md:flex-row md:items-end md:justify-between">
               <div>
-                <h1 className="text-3xl font-bold text-white">{userProfile?.name || 'User'}</h1>
+                <h1 className="text-3xl font-bold text-white">{restaurants?.name || userProfile?.name || 'User'}</h1>
                 <p className="text-indigo-400 mt-1">{userProfile?.email || user?.email || 'No email available'}</p>
                 <p className="text-gray-400 mt-2">Member since {stats?.joinDate || 'Unknown'}</p>
               </div>
