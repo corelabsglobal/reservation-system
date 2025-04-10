@@ -104,7 +104,7 @@ export default function Header() {
             >
               {isOwner && (
                 <Link
-                  href="/profile"
+                  href="/user"
                   className="flex items-center gap-2 px-5 py-4 text-white hover:bg-white/20 transition"
                 >
                   <FiUser size={18} />
@@ -159,6 +159,10 @@ export default function Header() {
               <BsCalendarCheck />
               <span>Reservations</span>
             </button>
+            <Link href="/user" className="flex space-x-2" onClick={() => setMobileMenuOpen(false)}>
+              <FiUser size={18} />
+              <span>Profile</span>
+            </Link>
             {isOwner && (
               <Link href="/profile" className="flex space-x-2" onClick={() => setMobileMenuOpen(false)}>
                 <BsFillPeopleFill size={18} />

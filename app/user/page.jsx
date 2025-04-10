@@ -15,7 +15,6 @@ const UserProfilePage = () => {
   const [activeTab, setActiveTab] = useState('overview')
   const [stats, setStats] = useState(null)
 
-  // Generate beautiful abstract pattern avatars
   const generateAvatar = (userId) => {
     const seed = userId ? [...userId].reduce((acc, char) => acc + char.charCodeAt(0), 0) : 0
     const color1 = `hsl(${seed % 360}, 70%, 60%)`
@@ -85,6 +84,7 @@ const UserProfilePage = () => {
           .from('users')
           .select('id, name, email, created_at, role')
           .eq('owner_id', user.id)
+          .maybeSingle()
 
         if (profileError) {
           console.error("Error fetching profile:", profileError)
@@ -207,9 +207,6 @@ const UserProfilePage = () => {
   const timeData = processTimeData()
 
   const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6', '#14b8a6']
-
-  console.log("profile", userProfile)
-  console.log("user", user)
 
   if (loading) {
     return (
