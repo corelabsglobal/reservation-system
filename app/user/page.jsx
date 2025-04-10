@@ -8,7 +8,8 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import { FiCalendar, FiClock, FiUsers, FiStar, FiDollarSign, FiAward } from 'react-icons/fi'
 
 const UserProfilePage = () => {
-  const [userData, setUserData] = useState(null)
+  const [user, setUser] = useState(null)
+  const [userProfile, setUserProfile] = useState(null)
   const [reservations, setReservations] = useState([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('overview')
@@ -16,7 +17,6 @@ const UserProfilePage = () => {
 
   // Generate beautiful abstract pattern avatars
   const generateAvatar = (userId) => {
-    // Create a unique pattern based on user ID
     const seed = userId ? [...userId].reduce((acc, char) => acc + char.charCodeAt(0), 0) : 0
     const color1 = `hsl(${seed % 360}, 70%, 60%)`
     const color2 = `hsl(${(seed + 120) % 360}, 70%, 60%)`
@@ -31,10 +31,7 @@ const UserProfilePage = () => {
         xmlns="http://www.w3.org/2000/svg"
         className="rounded-full"
       >
-        {/* Background gradient */}
         <rect width="200" height="200" rx="100" fill={`url(#gradient-${userId})`} />
-        
-        {/* Gradient definition */}
         <defs>
           <linearGradient 
             id={`gradient-${userId}`} 
@@ -49,7 +46,6 @@ const UserProfilePage = () => {
             <stop stopColor={color3} offset="100%" />
           </linearGradient>
         </defs>
-
         <circle cx="50" cy="50" r="30" fill={color1} opacity="0.7" />
         <circle cx="150" cy="150" r="40" fill={color2} opacity="0.7" />
         <rect x="70" y="70" width="60" height="60" rx="30" fill={color3} opacity="0.7" />
@@ -65,80 +61,87 @@ const UserProfilePage = () => {
   }
 
   useEffect(() => {
-    const fetchUserData = async () => {
+    const fetchUser = async () => {
+      const { data: userData, error } = await supabase.auth.getUser()
+      if (error) {
+        console.error("Error fetching user:", error)
+        return
+      }
+      setUser(userData.user)
+    }
+
+    fetchUser()
+  }, [])
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!user?.id) return
+
+      setLoading(true)
+      
       try {
-        const { data: { user }, error: authError } = await supabase.auth.getUser()
-        
-        if (authError) throw authError
-        
-        if (user) {
-          let { data: profile, error: profileError } = await supabase
-            .from('users')
-            .select('id, name, email, created_at, role')
-            .eq('owner_id', user.id)
-            .maybeSingle()
+        // Fetch user profile
+        const { data: profile, error: profileError } = await supabase
+          .from('users')
+          .select('id, name, email, created_at, role')
+          .eq('owner_id', user.id)
+          .maybeSingle()
 
-          // If no results, try with id (bigint)
-          if (!profile && profileError?.code === 'PGRST116') {
-            const { data: profileById, error: profileByIdError } = await supabase
-              .from('users')
-              .select('id, name, email, created_at, role')
-              .eq('id', user.id)
-              .maybeSingle()
-
-            profile = profileById
-            profileError = profileByIdError
-          }
-
-          if (profileError) throw profileError
-
-          // Fetch user reservations
-          const { data: userReservations, error: resError } = await supabase
-            .from('reservations')
-            .select('id, date, time, people, occasion, special_request, paid, created_at')
-            .eq('user_id', user.id)
-            .order('date', { ascending: false })
-
-          if (resError) throw resError
-
-          // Calculate stats
-          const totalReservations = userReservations?.length || 0
-          const totalGuests = userReservations?.reduce((sum, r) => sum + (r.people || 0), 0) || 0
-          const paidReservations = userReservations?.filter(r => r.paid).length || 0
-          const mostCommonOccasion = userReservations?.reduce((acc, r) => {
-            const occasion = r.occasion || 'Other'
-            acc[occasion] = (acc[occasion] || 0) + 1
-            return acc
-          }, {}) || {}
-
-          setUserData({
-            ...profile,
-            avatar: generateAvatar(user.id)
-          })
-          setReservations(userReservations || [])
-          setStats({
-            totalReservations,
-            totalGuests,
-            paidReservations,
-            mostCommonOccasion: Object.entries(mostCommonOccasion).sort((a, b) => b[1] - a[1])[0]?.[0] || 'None',
-            joinDate: new Date(profile?.created_at).toLocaleDateString()
-          })
+        if (profileError) {
+          console.error("Error fetching profile:", profileError)
+          return
         }
+
+        setUserProfile(profile)
+
+        // Fetch user reservations
+        const { data: userReservations, error: resError } = await supabase
+          .from('reservations')
+          .select('id, date, time, people, occassion, special_request, paid, created_at')
+          .eq('user_id', user.id)
+          .order('date', { ascending: false })
+
+        if (resError) {
+          console.error("Error fetching reservations:", resError)
+          return
+        }
+
+        setReservations(userReservations || [])
+
+        // Calculate stats
+        const totalReservations = userReservations?.length || 0
+        const totalGuests = userReservations?.reduce((sum, r) => sum + (r.people || 0), 0) || 0
+        const paidReservations = userReservations?.filter(r => r.paid).length || 0
+        const mostCommonOccasion = userReservations?.reduce((acc, r) => {
+          const occasion = r.occasion || 'Other'
+          acc[occasion] = (acc[occasion] || 0) + 1
+          return acc
+        }, {}) || {}
+
+        setStats({
+          totalReservations,
+          totalGuests,
+          paidReservations,
+          mostCommonOccasion: Object.entries(mostCommonOccasion).sort((a, b) => b[1] - a[1])[0]?.[0] || 'None',
+          joinDate: new Date(profile?.created_at).toLocaleDateString()
+        })
+
       } catch (error) {
-        console.error('Error fetching user data:', error)
+        console.error('Error fetching data:', error)
       } finally {
         setLoading(false)
       }
     }
 
-    fetchUserData()
-  }, [])
+    if (user) {
+      fetchData()
+    }
+  }, [user])
 
   // Process reservation data for charts
   const processReservationData = () => {
     if (!reservations || reservations.length === 0) return []
     
-    // Group by month
     const monthlyData = reservations.reduce((acc, reservation) => {
       const date = new Date(reservation.date)
       const month = date.toLocaleString('default', { month: 'short' })
@@ -228,20 +231,20 @@ const UserProfilePage = () => {
           <div className="relative h-48 bg-gradient-to-r from-indigo-900 to-purple-900">
             <div className="absolute -bottom-16 left-8">
               <div className="h-32 w-32 rounded-2xl border-4 border-gray-800 bg-gray-800 shadow-lg overflow-hidden">
-                {userData?.avatar || generateAvatar('default')}
+                {user?.id ? generateAvatar(user.id) : generateAvatar('default')}
               </div>
             </div>
           </div>
           <div className="pt-20 px-8 pb-8">
             <div className="flex flex-col md:flex-row md:items-end md:justify-between">
               <div>
-                <h1 className="text-3xl font-bold text-white">{userData?.name || 'User'}</h1>
-                <p className="text-indigo-400 mt-1">{userData?.email || 'No email available'}</p>
+                <h1 className="text-3xl font-bold text-white">{userProfile?.name || 'User'}</h1>
+                <p className="text-indigo-400 mt-1">{userProfile?.email || 'No email available'}</p>
                 <p className="text-gray-400 mt-2">Member since {stats?.joinDate || 'Unknown'}</p>
               </div>
               <div className="mt-4 md:mt-0">
                 <span className="inline-block bg-indigo-900 text-indigo-200 text-sm font-medium px-3 py-1 rounded-full">
-                  {userData?.role || 'Member'}
+                  {userProfile?.role || 'Member'}
                 </span>
               </div>
             </div>
