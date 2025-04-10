@@ -344,8 +344,18 @@ export default function RestaurantPage() {
     }
   };
 
-  if (loading) return <p className="text-center text-gray-400">Loading...</p>;
-  if (!restaurant) return <p className="text-center text-red-500">Restaurant not found.</p>;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-900">
+        <div className="animate-pulse text-2xl font-medium text-indigo-400">Loading restaurants...</div>
+      </div>
+    )
+  }
+  if (!restaurant) return (
+    <div className="flex items-center justify-center min-h-screen bg-gray-900">
+      <p className="text-center text-red-500">Restaurant not found.</p>
+    </div>
+  )
 
   return (
     <div className="relative min-h-screen bg-gray-900 text-white px-4 md:px-6 py-10 flex items-center justify-center">
