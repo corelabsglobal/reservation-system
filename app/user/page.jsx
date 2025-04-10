@@ -85,7 +85,6 @@ const UserProfilePage = () => {
           .from('users')
           .select('id, name, email, created_at, role')
           .eq('owner_id', user.id)
-          .maybeSingle()
 
         if (profileError) {
           console.error("Error fetching profile:", profileError)
@@ -209,6 +208,9 @@ const UserProfilePage = () => {
 
   const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6', '#14b8a6']
 
+  console.log("profile", userProfile)
+  console.log("user", user)
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-900">
@@ -239,7 +241,7 @@ const UserProfilePage = () => {
             <div className="flex flex-col md:flex-row md:items-end md:justify-between">
               <div>
                 <h1 className="text-3xl font-bold text-white">{userProfile?.name || 'User'}</h1>
-                <p className="text-indigo-400 mt-1">{userProfile?.email || 'No email available'}</p>
+                <p className="text-indigo-400 mt-1">{userProfile?.email || user?.email || 'No email available'}</p>
                 <p className="text-gray-400 mt-2">Member since {stats?.joinDate || 'Unknown'}</p>
               </div>
               <div className="mt-4 md:mt-0">
