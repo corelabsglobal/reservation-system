@@ -14,6 +14,56 @@ const UserProfilePage = () => {
   const [activeTab, setActiveTab] = useState('overview')
   const [stats, setStats] = useState(null)
 
+  // Generate beautiful abstract pattern avatars
+  const generateAvatar = (userId) => {
+    // Create a unique pattern based on user ID
+    const seed = userId ? [...userId].reduce((acc, char) => acc + char.charCodeAt(0), 0) : 0
+    const color1 = `hsl(${seed % 360}, 70%, 60%)`
+    const color2 = `hsl(${(seed + 120) % 360}, 70%, 60%)`
+    const color3 = `hsl(${(seed + 240) % 360}, 70%, 60%)`
+    
+    return (
+      <svg 
+        width="100%" 
+        height="100%" 
+        viewBox="0 0 200 200" 
+        fill="none" 
+        xmlns="http://www.w3.org/2000/svg"
+        className="rounded-full"
+      >
+        {/* Background gradient */}
+        <rect width="200" height="200" rx="100" fill={`url(#gradient-${userId})`} />
+        
+        {/* Gradient definition */}
+        <defs>
+          <linearGradient 
+            id={`gradient-${userId}`} 
+            x1="0" 
+            y1="0" 
+            x2="200" 
+            y2="200" 
+            gradientUnits="userSpaceOnUse"
+          >
+            <stop stopColor={color1} offset="0%" />
+            <stop stopColor={color2} offset="50%" />
+            <stop stopColor={color3} offset="100%" />
+          </linearGradient>
+        </defs>
+
+        <circle cx="50" cy="50" r="30" fill={color1} opacity="0.7" />
+        <circle cx="150" cy="150" r="40" fill={color2} opacity="0.7" />
+        <rect x="70" y="70" width="60" height="60" rx="30" fill={color3} opacity="0.7" />
+        <path 
+          d="M20,100 Q100,20 180,100 T20,100" 
+          fill="none" 
+          stroke="white" 
+          strokeWidth="4" 
+          opacity="0.5"
+        />
+      </svg>
+    )
+  }
+
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -22,20 +72,31 @@ const UserProfilePage = () => {
         if (authError) throw authError
         
         if (user) {
-          // Fetch user profile - using id from auth user to match with users table
-          const { data: profile, error: profileError } = await supabase
+          let { data: profile, error: profileError } = await supabase
             .from('users')
             .select('id, name, email, created_at, role')
-            .eq('id', user.id) // Changed from owner_id to id to match auth user
-            .single()
+            .eq('owner_id', user.id)
+            .maybeSingle()
+
+          // If no results, try with id (bigint)
+          if (!profile && profileError?.code === 'PGRST116') {
+            const { data: profileById, error: profileByIdError } = await supabase
+              .from('users')
+              .select('id, name, email, created_at, role')
+              .eq('id', user.id)
+              .maybeSingle()
+
+            profile = profileById
+            profileError = profileByIdError
+          }
 
           if (profileError) throw profileError
 
-          // Fetch user reservations - using id from auth user
+          // Fetch user reservations
           const { data: userReservations, error: resError } = await supabase
             .from('reservations')
             .select('id, date, time, people, occasion, special_request, paid, created_at')
-            .eq('user_id', user.id) // Using auth user id to match reservations
+            .eq('user_id', user.id)
             .order('date', { ascending: false })
 
           if (resError) throw resError
@@ -52,7 +113,7 @@ const UserProfilePage = () => {
 
           setUserData({
             ...profile,
-            avatar: `https://api.dicebear.com/7.x/identicon/svg?seed=${profile?.name || 'User'}&backgroundType=gradientLinear`
+            avatar: generateAvatar(user.id)
           })
           setReservations(userReservations || [])
           setStats({
@@ -167,11 +228,7 @@ const UserProfilePage = () => {
           <div className="relative h-48 bg-gradient-to-r from-indigo-900 to-purple-900">
             <div className="absolute -bottom-16 left-8">
               <div className="h-32 w-32 rounded-2xl border-4 border-gray-800 bg-gray-800 shadow-lg overflow-hidden">
-                <img 
-                  src={userData?.avatar} 
-                  alt={userData?.name} 
-                  className="h-full w-full object-cover"
-                />
+                {userData?.avatar || generateAvatar('default')}
               </div>
             </div>
           </div>
