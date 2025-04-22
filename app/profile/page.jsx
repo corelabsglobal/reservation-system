@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
 import Header from '../components/structure/header';
+import ReservationCard from '../components/structure/ReservationCard';
 import SubscriptionManager from '../components/structure/hooks/SubscriptionManager';
 import { BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie } from 'recharts';
 
@@ -20,6 +21,7 @@ const ProfilePage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [bookingCostInput, setBookingCostInput] = useState(0);
   const [lastVisit, setLastVisit] = useState(null);
+  const [activeReservationTab, setActiveReservationTab] = useState('current');
   
   // New state for table management
   const [tableTypes, setTableTypes] = useState([]);
@@ -301,6 +303,22 @@ const ProfilePage = () => {
     month,
     reservations: reservationData[month]
   }));
+
+  const currentReservations = useMemo(() => {
+    return filteredReservations.filter(res => {
+      const reservationTime = new Date(`${res.date}T${res.time}`);
+      const now = new Date();
+      const fifteenMinutesBefore = new Date(now.getTime() + 15 * 60000);
+      return reservationTime <= fifteenMinutesBefore && 
+             reservationTime >= new Date(now.getTime() - 2 * 3600000);
+    });
+  }, [filteredReservations]);
+  
+  // Filter reservations for today
+  const todaysReservations = useMemo(() => {
+    const today = new Date().toISOString().split('T')[0];
+    return filteredReservations.filter(res => res.date === today);
+  }, [filteredReservations]);
 
   return (
     <div className="relative min-h-screen bg-cover bg-center bg-fixed p-6 flex flex-col items-center" style={{ backgroundImage: "url('/images/background.jpeg')" }}>
@@ -679,7 +697,7 @@ const ProfilePage = () => {
         {/* Reservations Tab */}
         {activeTab === 'reservations' && (
           <div className="mb-6 p-6 shadow-2xl bg-gray-800/90 backdrop-blur-md rounded-xl">
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-semibold">Reservations</h2>
               <div className="flex items-center gap-2">
                 <button
@@ -694,15 +712,42 @@ const ProfilePage = () => {
               </div>
             </div>
 
+            {/* Reservation Group Tabs */}
+            <div className="flex flex-wrap gap-2 mb-6 border-b border-gray-700 pb-4">
+              {['current', 'today', 'all'].map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveReservationTab(tab)}
+                  className={`px-4 py-2 rounded-lg capitalize text-sm sm:text-base transition-all ${
+                    activeReservationTab === tab 
+                      ? 'bg-gradient-to-r from-yellow-400 to-pink-600 text-white' 
+                      : 'bg-gray-700 hover:bg-gray-600'
+                  }`}
+                >
+                  {tab === 'current' ? 'Current' : tab === 'today' ? "Today's" : 'All'} Reservations
+                  {tab === 'current' && currentReservations.length > 0 && (
+                    <span className="ml-2 bg-white text-black rounded-full px-2 py-0.5 text-xs">
+                      {currentReservations.length}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+
             {/* Enhanced Filter Controls */}
             <div className="flex flex-col sm:flex-row gap-4 mb-6">
               <div className="relative flex-1">
+                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
                 <input
                   type="text"
-                  placeholder="Search by Name"
+                  placeholder="Search by Name, Table, or Notes"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full p-3 bg-gray-700 text-white rounded-lg border border-gray-600 focus:ring-2 focus:ring-yellow-400"
+                  className="w-full pl-10 p-3 bg-gray-700 text-white rounded-lg border border-gray-600 focus:ring-2 focus:ring-yellow-400"
                 />
                 {searchQuery && (
                   <button
@@ -729,89 +774,140 @@ const ProfilePage = () => {
               </div>
             </div>
 
-            {/* New Reservations Indicator */}
-            {filteredReservations.some(res => res.is_new) && (
-              <div className="mb-4 p-3 bg-blue-900/50 border border-blue-500 rounded-lg flex items-center gap-2">
-                <span className="flex h-3 w-3 relative">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
-                </span>
-                <span className="text-blue-300">New reservations since your last visit</span>
+            {/* Current Reservations Section */}
+            {activeReservationTab === 'current' && (
+              <div className="mb-8">
+                <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                  <span className="flex h-3 w-3 relative">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                  </span>
+                  Current Reservations
+                  <span className="text-sm bg-green-900/50 text-green-400 px-2 py-1 rounded-full ml-2">
+                    {currentReservations.length} active
+                  </span>
+                </h3>
+                
+                {currentReservations.length === 0 ? (
+                  <div className="p-6 bg-gray-700/50 rounded-xl text-center text-gray-400">
+                    No current reservations at this time
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {currentReservations.map((res) => (
+                      <ReservationCard 
+                        key={res.id} 
+                        res={res} 
+                        markAsSeen={markAsSeen}
+                        cancelReservation={cancelReservation}
+                        highlightCurrent
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
-            {/* Reservations List */}
-            <div className="space-y-4">
-              {filteredReservations.length === 0 ? (
-                <div className="p-6 bg-gray-700/50 rounded-xl text-center text-gray-400">
-                  No reservations found {filterDate ? `on ${new Date(filterDate).toLocaleDateString()}` : ''}
-                </div>
-              ) : (
-                <>
-                  {filteredReservations.slice(0, showAllReservations ? filteredReservations.length : 5).map((res) => (
-                    <motion.div
-                      key={res.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.4 }}
-                      className={`p-6 rounded-xl shadow-xl relative ${res.is_new ? 'border-l-4 border-blue-500 bg-gray-700' : 'bg-white text-black'}`}
-                    >
-                      {res.is_new && (
-                        <span className="absolute -top-2 -left-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
-                          New
-                        </span>
-                      )}
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h3 className={`text-xl font-bold ${res.is_new ? 'text-white' : 'text-black'}`}>
-                            {res.name}
-                            {res.is_new && <span className="ml-2 animate-pulse">✨</span>}
-                          </h3>
-                          <p><strong className={res.is_new ? 'text-blue-300' : ''}>Date:</strong> {new Date(res.date).toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}</p>
-                          <p><strong className={res.is_new ? 'text-blue-300' : ''}>Time:</strong> {res.time}</p>
-                          <p><strong className={res.is_new ? 'text-blue-300' : ''}>Guests:</strong> {res.people}</p>
-                          {res.table_number && (
-                            <p><strong className={res.is_new ? 'text-blue-300' : ''}>Table:</strong> {res.table_number}</p>
-                          )}
-                        </div>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => markAsSeen(res.id)}
-                            className="px-3 py-1 bg-gray-600 hover:bg-gray-500 text-white rounded-md text-sm transition-all"
-                          >
-                            Mark Seen
-                          </button>
-                          <button
-                            onClick={() => cancelReservation(res.id)}
-                            className="px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded-md text-sm transition-all"
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      </div>
+            {/* Today's Reservations Section */}
+            {activeReservationTab === 'today' && (
+              <div className="mb-8">
+                <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  Today's Reservations
+                  <span className="text-sm bg-yellow-900/50 text-yellow-400 px-2 py-1 rounded-full ml-2">
+                    {todaysReservations.length} total
+                  </span>
+                </h3>
+                
+                {todaysReservations.length === 0 ? (
+                  <div className="p-6 bg-gray-700/50 rounded-xl text-center text-gray-400">
+                    No reservations for today
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {/* Timeline View for Today's Reservations */}
+                    <div className="relative">
+                      {/* Timeline line */}
+                      <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-600"></div>
                       
-                      {res.special_request && (
-                        <div className="mt-3 pt-3 border-t border-gray-600">
-                          <p><strong className={res.is_new ? 'text-blue-300' : ''}>Special Request:</strong> {res.special_request}</p>
-                        </div>
-                      )}
-                      {res.occassion && (
-                        <p><strong className={res.is_new ? 'text-blue-300' : ''}>Occasion:</strong> {res.occassion}</p>
-                      )}
-                    </motion.div>
-                  ))}
+                      {todaysReservations.map((res, index) => {
+                        const reservationTime = new Date(`${res.date}T${res.time}`);
+                        const isPast = reservationTime < new Date();
+                        
+                        return (
+                          <div key={res.id} className="relative pl-10 pb-4">
+                            {/* Timeline dot */}
+                            <div className={`absolute left-4 top-4 w-3 h-3 rounded-full ${isPast ? 'bg-gray-500' : 'bg-yellow-400'} transform -translate-x-1/2 z-10`}></div>
+                            
+                            <ReservationCard 
+                              res={res} 
+                              markAsSeen={markAsSeen}
+                              cancelReservation={cancelReservation}
+                              isPast={isPast}
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
-                  {filteredReservations.length > 5 && (
-                    <button
-                      onClick={() => setShowAllReservations(!showAllReservations)}
-                      className="mt-4 w-full bg-gradient-to-r from-yellow-400 to-pink-600 px-5 py-3 rounded-lg hover:opacity-80 transition-all font-semibold"
-                    >
-                      {showAllReservations ? 'Show Less' : `Show All (${filteredReservations.length})`}
-                    </button>
-                  )}
-                </>
-              )}
-            </div>
+            {/* All Reservations Section */}
+            {activeReservationTab === 'all' && (
+              <div>
+                <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
+                  </svg>
+                  All Reservations
+                  <span className="text-sm bg-blue-900/50 text-blue-400 px-2 py-1 rounded-full ml-2">
+                    {filteredReservations.length} total
+                  </span>
+                </h3>
+
+                {/* New Reservations Indicator */}
+                {filteredReservations.some(res => res.is_new) && (
+                  <div className="mb-4 p-3 bg-blue-900/50 border border-blue-500 rounded-lg flex items-center gap-2">
+                    <span className="flex h-3 w-3 relative">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
+                    </span>
+                    <span className="text-blue-300">New reservations since your last visit</span>
+                  </div>
+                )}
+
+                {/* Reservations List */}
+                {filteredReservations.length === 0 ? (
+                  <div className="p-6 bg-gray-700/50 rounded-xl text-center text-gray-400">
+                    No reservations found {filterDate ? `on ${new Date(filterDate).toLocaleDateString()}` : ''}
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {filteredReservations.slice(0, showAllReservations ? filteredReservations.length : 10).map((res) => (
+                      <ReservationCard 
+                        key={res.id} 
+                        res={res} 
+                        markAsSeen={markAsSeen}
+                        cancelReservation={cancelReservation}
+                      />
+                    ))}
+
+                    {filteredReservations.length > 10 && (
+                      <button
+                        onClick={() => setShowAllReservations(!showAllReservations)}
+                        className="mt-4 w-full bg-gradient-to-r from-yellow-400 to-pink-600 px-5 py-3 rounded-lg hover:opacity-80 transition-all font-semibold"
+                      >
+                        {showAllReservations ? 'Show Less' : `Show All (${filteredReservations.length})`}
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
 
