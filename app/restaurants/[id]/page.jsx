@@ -299,6 +299,28 @@ export default function RestaurantPage() {
   const saveReservation = async () => {
     const reservationToken = crypto.randomUUID();
   
+    const [
+      { data: ownerData, error: ownerError },
+      { data: restaurantData, error: restaurantError }
+    ] = await Promise.all([
+      supabase
+        .from('users')
+        .select('email')
+        .eq('owner_id', restaurant.owner_id)
+        .single(),
+      supabase
+        .from('restaurants')
+        .select('name')
+        .eq('id', id)
+        .single()
+    ]);
+  
+    if (ownerError || restaurantError) {
+      console.error('Error fetching data:', ownerError || restaurantError);
+      toast.error('Booking failed: Could not verify restaurant details');
+      return;
+    }
+  
     const reservationData = {
       restaurant_id: id,
       time: selectedSlot,
@@ -313,23 +335,44 @@ export default function RestaurantPage() {
       people: occasionDetails?.people || partySize,
       paid: bookingCost > 0,
     };
-
-    // Include table_id if not in fallback mode
+  
     if (!fallbackMode) {
       reservationData.table_id = selectedTable;
     }
   
-    const { data, error } = await supabase.from("reservations").insert([reservationData]);
+    try {
+      // 1. Save reservation to database
+      const { error } = await supabase.from("reservations").insert([reservationData]);
+      
+      if (error) {
+        throw new Error(`Database error: ${error.message}`);
+      }
   
-    if (error) {
-      toast.error(`Booking failed: ${error.message}`);
-    } else {
-      toast.success("Reservation successful!");
+      // 2. Send confirmation emails
+      const emailResponse = await fetch('/api/send-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          reservationData,
+          restaurantEmail: ownerData.email,
+          customerEmail: email,
+          restaurantName: restaurantData.name 
+        }),
+      });
+  
+      if (!emailResponse.ok) {
+        const errorData = await emailResponse.json();
+        throw new Error(`Email error: ${errorData.error || 'Unknown error'}`);
+      }
+  
+      toast.success("Reservation successful! Confirmation emails sent.");
       
       // Update state
       const updatedReservations = [...reservations, reservationData];
       setReservations(updatedReservations);
-
+  
       // Update available slots if needed
       if (!fallbackMode) {
         const bookedTablesForSlot = updatedReservations
@@ -340,13 +383,24 @@ export default function RestaurantPage() {
           setAvailableSlots(availableSlots.filter(slot => slot !== selectedSlot));
         }
       }
-
+  
       localStorage.setItem("reservationToken", reservationToken);
       localStorage.setItem("reservationEmail", email);
   
       setTimeout(() => {
         router.push(userId === "guest" ? "/guests" : "/reservations");
       }, 2200);
+  
+    } catch (error) {
+      console.error('Reservation error:', error);
+      
+      if (error.message.includes('Database error')) {
+        toast.error(`Booking failed: ${error.message.replace('Database error: ', '')}`);
+      } else if (error.message.includes('Email error')) {
+        toast.success("Reservation successful! (Email confirmations failed to send)");
+      } else {
+        toast.error("An unexpected error occurred");
+      }
     }
   };
 
