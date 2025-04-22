@@ -38,6 +38,7 @@ export default function RestaurantPage() {
   const [tableTypes, setTableTypes] = useState([]);
   const [allTables, setAllTables] = useState([]);
   const [fallbackMode, setFallbackMode] = useState(false);
+  const [paymentInitialized, setPaymentInitialized] = useState(false);
   const router = useRouter();
 
   // Fixed time slots (10 AM to 10 PM, every 2 hours)
@@ -218,11 +219,14 @@ export default function RestaurantPage() {
     setPaymentSuccess(true);
     toast.success("Payment successful! Proceeding with reservation...");
     await saveReservation();
+    setPaymentInitialized(false);
   };
   
   const onPaystackClose = () => {
     toast.error("Payment canceled or failed. Please try again.");
     setShowPaystack(false);
+    setPaymentInitialized(false);
+    setOpenDialog(true); // Reopen the dialog if payment is canceled
   };
 
   const handleOpenDialog = async (slot) => {
@@ -283,6 +287,8 @@ export default function RestaurantPage() {
     }
   
     if (bookingCost > 0) {
+      setPaymentInitialized(true);
+      setOpenDialog(false);
       setShowPaystack(true);
       return;
     }
@@ -487,6 +493,7 @@ export default function RestaurantPage() {
                           A booking fee of {bookingCost} GHS is required.
                         </p>
                         {showPaystack && (
+                          <div className="relative z-50">
                           <PaystackButton
                             {...paystackConfig}
                             text="Pay Now"
@@ -494,6 +501,7 @@ export default function RestaurantPage() {
                             onClose={onPaystackClose}
                             className="bg-gradient-to-r from-yellow-400 to-pink-600 px-4 py-2 rounded-lg hover:opacity-80 transition-all disabled:opacity-50 w-full"
                           />
+                          </div>
                         )}
                       </div>
                     )}
@@ -571,6 +579,29 @@ export default function RestaurantPage() {
           </DialogClose>
         </DialogContent>
       </Dialog>
+      {paymentInitialized && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black bg-opacity-50"></div>
+          <div className="relative z-10 bg-gray-800 p-6 rounded-lg max-w-md w-full mx-4">
+            <PaystackButton
+              {...paystackConfig}
+              text="Pay Now"
+              onSuccess={onPaystackSuccess}
+              onClose={onPaystackClose}
+              className="w-full bg-gradient-to-r from-yellow-400 to-pink-600 px-4 py-3 rounded-lg hover:opacity-80 transition-all"
+            />
+            <button 
+              onClick={() => {
+                setPaymentInitialized(false);
+                setOpenDialog(true);
+              }}
+              className="mt-4 w-full px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-md"
+            >
+              Cancel Payment
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
