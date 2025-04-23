@@ -125,7 +125,7 @@ const ProfilePage = () => {
       toast.error('Restaurant information not loaded yet');
       return;
     }
-    
+
     if (!newTableType.name || !newTableType.capacity) {
       toast.error('Please fill in all required fields');
       return;
@@ -221,16 +221,50 @@ const ProfilePage = () => {
   };
 
   const updateBookingCost = async () => {
-    const { error } = await supabase
-      .from('restaurants')
-      .update({ booking_cost: bookingCostInput })
-      .eq('id', restaurant.id);
+    try {
+      if (!restaurant?.id) {
+        toast.error('Restaurant information not loaded yet');
+        return;
+      }
   
-    if (error) {
-      toast.error('Failed to update booking cost');
-    } else {
-      toast.success('Booking cost updated successfully');
-      setRestaurant((prev) => ({ ...prev, booking_cost: bookingCostInput }));
+      // Convert input to integer (or keep as null if empty)
+      const cost = bookingCostInput === '' || bookingCostInput === null ? null : Math.floor(Number(bookingCostInput));
+      
+      // Validate input
+      if (cost !== null && (isNaN(cost) || cost < 0)) {
+        toast.error('Please enter a valid positive number');
+        return;
+      }
+  
+      // Perform a direct update without expecting a return value
+      const { error } = await supabase
+        .from('restaurants')
+        .update({ booking_cost: cost })
+        .eq('id', restaurant.id);
+  
+      if (error) throw error;
+  
+      // Manually verify the update
+      const { data } = await supabase
+        .from('restaurants')
+        .select('booking_cost')
+        .eq('id', restaurant.id)
+        .single();
+  
+      if (!data) throw new Error('Failed to verify update');
+      
+      // Update local state
+      setRestaurant(prev => ({ ...prev, booking_cost: data.booking_cost }));
+      setBookingCostInput(data.booking_cost === null ? '' : data.booking_cost);
+  
+      toast.success(
+        data.booking_cost === null 
+          ? 'Booking cost cleared' 
+          : `Booking cost set to GHS ${data.booking_cost}`
+      );
+    } catch (err) {
+      console.error('Update error:', err);
+      toast.error(err.message || 'Failed to update booking cost');
     }
   };
 
@@ -1128,29 +1162,54 @@ const ProfilePage = () => {
               <div className="bg-gray-700/50 p-6 rounded-lg shadow-lg">
                 <div className="flex items-center gap-2 mb-4">
                   <h3 className="text-xl font-bold text-yellow-400">Set Booking Cost</h3>
-                  <div className="group relative">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <div className="absolute hidden group-hover:block bottom-full mb-2 w-64 bg-gray-900 text-white text-sm p-3 rounded-lg shadow-lg">
-                      Set the cost per booking in GHS. This is the amount customers will pay when they reserve a table at your restaurant.
-                    </div>
-                  </div>
                 </div>
-                <div className="flex flex-col sm:flex-row gap-4">
+                
+                <div className="flex flex-col sm:flex-row gap-4 items-center">
                   <input
                     type="number"
-                    value={bookingCostInput}
-                    onChange={(e) => setBookingCostInput(Number(e.target.value))}
+                    value={bookingCostInput === null ? '' : bookingCostInput}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      // Allow empty string (will set to null) or valid numbers
+                      setBookingCostInput(value === '' ? null : Math.floor(Number(value)));
+                    }}
+                    min="0"
+                    step="1"
                     className="p-2 bg-gray-600 rounded-lg text-white focus:ring-2 focus:ring-yellow-400 w-full sm:w-32"
-                    placeholder="Enter amount in GHS"
+                    placeholder={restaurant?.booking_cost === null ? "Not set" : "GHS"}
                   />
+                  
                   <button
                     onClick={updateBookingCost}
                     className="bg-gradient-to-r from-yellow-400 to-pink-600 px-5 py-2 rounded-lg hover:opacity-80 transition-all text-white font-semibold"
                   >
-                    Update Cost
+                    {restaurant?.booking_cost === null ? "Set Cost" : "Update"}
                   </button>
+                  
+                  {restaurant?.booking_cost !== null && (
+                    <button
+                      onClick={() => {
+                        setBookingCostInput(null);
+                        updateBookingCost();
+                      }}
+                      className="bg-gray-500 px-3 py-2 rounded-lg hover:bg-gray-600 transition-all text-white"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+
+                <div className="mt-3 text-sm">
+                  <p className="text-gray-300">
+                    Current Booking Cost: {restaurant?.booking_cost === null ? (
+                      <span className="text-yellow-300">NULL</span>
+                    ) : (
+                      <span className="text-green-400">GHS {restaurant?.booking_cost}</span>
+                    )}
+                  </p>
+                  <p className="text-gray-400 text-xs mt-1">
+                    {restaurant?.booking_cost === null ? "No booking fee will be charged" : "This amount will be charged per booking"}
+                  </p>
                 </div>
               </div>
             </div>
