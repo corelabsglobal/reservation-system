@@ -121,6 +121,11 @@ const ProfilePage = () => {
 
   // Table Type Management Functions
   const addTableType = async () => {
+    if (!restaurant) {
+      toast.error('Restaurant information not loaded yet');
+      return;
+    }
+    
     if (!newTableType.name || !newTableType.capacity) {
       toast.error('Please fill in all required fields');
       return;
