@@ -8,6 +8,7 @@ import toast, { Toaster } from "react-hot-toast";
 import Header from "@/app/components/structure/header";
 import { useRouter } from "next/navigation";
 import OccasionDetails from "@/app/components/restaurants/OccassionDetails";
+import emailjs from '@emailjs/browser';
 import dynamic from "next/dynamic";
 
 const PaystackButton = dynamic(
@@ -39,6 +40,7 @@ export default function RestaurantPage() {
   const [allTables, setAllTables] = useState([]);
   const [fallbackMode, setFallbackMode] = useState(false);
   const [paymentInitialized, setPaymentInitialized] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
   // Fixed time slots (10 AM to 10 PM, every 2 hours)
@@ -298,92 +300,123 @@ export default function RestaurantPage() {
   
   const saveReservation = async () => {
     const reservationToken = crypto.randomUUID();
-  
-    const [
-      { data: ownerData, error: ownerError },
-      { data: restaurantData, error: restaurantError }
-    ] = await Promise.all([
-      supabase
-        .from('users')
-        .select('email')
-        .eq('owner_id', restaurant.owner_id)
-        .single(),
-      supabase
-        .from('restaurants')
-        .select('name')
-        .eq('id', id)
-        .single()
-    ]);
-  
-    if (ownerError || restaurantError) {
-      console.error('Error fetching data:', ownerError || restaurantError);
-      toast.error('Booking failed: Could not verify restaurant details');
-      return;
-    }
-  
-    const reservationData = {
-      restaurant_id: id,
-      time: selectedSlot,
-      date: selectedDate,
-      user_id: userId === "guest" ? "00000000-0000-0000-0000-000000000000" : userId,
-      email,
-      name,
-      reservation_token: reservationToken,
-      special_request: occasionDetails?.specialRequest,
-      occassion: occasionDetails?.occasion,
-      number: occasionDetails?.number,
-      people: occasionDetails?.people || partySize,
-      paid: bookingCost > 0,
-    };
-  
-    if (!fallbackMode) {
-      reservationData.table_id = selectedTable;
-    }
+    setIsLoading(true);
   
     try {
-      // 1. Save reservation to database
-      const { error } = await supabase.from("reservations").insert([reservationData]);
+      // Fetch owner email and restaurant name
+      const [
+        { data: ownerData, error: ownerError },
+        { data: restaurantData, error: restaurantError }
+      ] = await Promise.all([
+        supabase
+          .from('users')
+          .select('email')
+          .eq('owner_id', restaurant.owner_id)
+          .single(),
+        supabase
+          .from('restaurants')
+          .select('name')
+          .eq('id', id)
+          .single()
+      ]);
+  
+      if (ownerError || restaurantError) {
+        throw new Error('Could not verify restaurant details');
+      }
+  
+      // Validate emails exist
+      if (!ownerData?.email || !email) {
+        throw new Error('Missing required email addresses');
+      }
+  
+      // Prepare reservation data
+      const reservationData = {
+        restaurant_id: id,
+        time: selectedSlot,
+        date: selectedDate,
+        user_id: userId === "guest" ? "00000000-0000-0000-0000-000000000000" : userId,
+        email,
+        name,
+        reservation_token: reservationToken,
+        special_request: occasionDetails?.specialRequest || '',
+        occassion: occasionDetails?.occasion || '',
+        number: occasionDetails?.number || '',
+        people: occasionDetails?.people || partySize,
+        paid: bookingCost > 0,
+        table_id: !fallbackMode ? selectedTable : null
+      };
+  
+      // 1. Save to database
+      const { error: dbError } = await supabase.from("reservations").insert([reservationData]);
+      if (dbError) throw new Error(`Database error: ${dbError.message}`);
+  
+      // 2. Send emails with EmailJS
+      const dashboardLink = 'http://reservation-wheat.vercel.app/profile';
       
-      if (error) {
-        throw new Error(`Database error: ${error.message}`);
-      }
-  
-      // 2. Send confirmation emails
-      const emailResponse = await fetch('/api/send-email', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          reservationData,
-          restaurantEmail: ownerData.email,
-          customerEmail: email,
-          restaurantName: restaurantData.name 
+      // Restaurant email template parameters
+      const restaurantEmailParams = {
+        to_email: ownerData.email,
+        restaurant_name: restaurantData.name,
+        customer_name: name,
+        customer_email: email,
+        customer_phone: occasionDetails?.number || 'Not provided',
+        reservation_date: new Date(selectedDate).toLocaleDateString('en-US', { 
+          weekday: 'long', 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric' 
         }),
-      });
+        reservation_time: selectedSlot,
+        party_size: (occasionDetails?.people || partySize).toString(),
+        occasion: occasionDetails?.occasion || 'None specified',
+        special_request: occasionDetails?.specialRequest || 'None',
+        dashboard_link: dashboardLink,
+        current_year: new Date().getFullYear().toString()
+      };
   
-      if (!emailResponse.ok) {
-        const errorData = await emailResponse.json();
-        throw new Error(`Email error: ${errorData.error || 'Unknown error'}`);
-      }
+      // Customer email template parameters
+      const customerEmailParams = {
+        to_email: email,
+        restaurant_email: ownerData.email,
+        restaurant_name: restaurantData.name,
+        restaurant_phone: restaurant.phone || 'Not provided',
+        customer_name: name,
+        customer_email: email,
+        reservation_date: new Date(selectedDate).toLocaleDateString('en-US', { 
+          weekday: 'long', 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric' 
+        }),
+        reservation_time: selectedSlot,
+        party_size: (occasionDetails?.people || partySize).toString(),
+        occasion: occasionDetails?.occasion || 'None specified',
+        current_year: new Date().getFullYear().toString(),
+      };
   
+      console.log('Sending emails with params:', { restaurantEmailParams, customerEmailParams });
+  
+      // Send both emails in parallel
+      await Promise.all([
+        emailjs.send(
+          process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID,
+          process.env.NEXT_PUBLIC_EMAILJS_RESTAURANT_TEMPLATE_ID,
+          restaurantEmailParams,
+          process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY
+        ),
+        emailjs.send(
+          process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID,
+          process.env.NEXT_PUBLIC_EMAILJS_CUSTOMER_TEMPLATE_ID,
+          customerEmailParams,
+          process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY
+        )
+      ]);
+  
+      // Success flow
       toast.success("Reservation successful! Confirmation emails sent.");
       
-      // Update state
-      const updatedReservations = [...reservations, reservationData];
-      setReservations(updatedReservations);
-  
-      // Update available slots if needed
-      if (!fallbackMode) {
-        const bookedTablesForSlot = updatedReservations
-          .filter(r => r.time === selectedSlot && r.date === selectedDate)
-          .map(r => r.table_id);
-        
-        if (bookedTablesForSlot.length >= allTables.length) {
-          setAvailableSlots(availableSlots.filter(slot => slot !== selectedSlot));
-        }
-      }
-  
+      // Update state and local storage
+      setReservations([...reservations, reservationData]);
       localStorage.setItem("reservationToken", reservationToken);
       localStorage.setItem("reservationEmail", email);
   
@@ -393,14 +426,9 @@ export default function RestaurantPage() {
   
     } catch (error) {
       console.error('Reservation error:', error);
-      
-      if (error.message.includes('Database error')) {
-        toast.error(`Booking failed: ${error.message.replace('Database error: ', '')}`);
-      } else if (error.message.includes('Email error')) {
-        toast.success("Reservation successful! (Email confirmations failed to send)");
-      } else {
-        toast.error("An unexpected error occurred");
-      }
+      toast.error(`Booking failed: ${error.message}`);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -611,9 +639,19 @@ export default function RestaurantPage() {
                       <button
                         type="submit"
                         className="mt-5 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-black font-bold rounded-md"
-                        disabled={!fallbackMode && !selectedTable}
+                        disabled={!fallbackMode && !selectedTable || isLoading}
                       >
-                        Confirm Booking
+                        {isLoading ? (
+                          <div className="flex items-center justify-center">
+                            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Processing...
+                          </div>
+                        ) : (
+                          'Confirm Booking'
+                        )}
                       </button>
                     </form>
                   </>
