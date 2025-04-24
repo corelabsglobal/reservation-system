@@ -309,21 +309,21 @@ const ProfilePage = () => {
       console.error(error);
     }
   };
-
+  
   const updateRestaurantImage = async () => {
     if (!newImage) return;
   
     try {
       const { error } = await supabase
         .from('restaurants')
-        .update({ image: newImage })
+        .update({ restaurant_image: newImage })
         .eq('id', restaurant.id);
   
       if (error) {
         toast.error('Failed to update image in Supabase');
       } else {
         toast.success('Image updated successfully');
-        setRestaurant({ ...restaurant, image: newImage });
+        setRestaurant({ ...restaurant, restaurant_image: newImage });
         setNewImage(null);
       }
     } catch (error) {
@@ -970,7 +970,7 @@ const ProfilePage = () => {
                 </div>
                 <div className="flex flex-col sm:flex-row items-center gap-6">
                   <img
-                    src={restaurant?.image || '/images/lounge.jpeg'}
+                    src={restaurant?.restaurant_image || '/images/lounge.jpeg'}
                     alt="Restaurant"
                     className="w-32 h-32 rounded-lg object-cover shadow-md"
                   />
@@ -978,15 +978,26 @@ const ProfilePage = () => {
                     <input
                       type="file"
                       onChange={handleImageChange}
+                      accept="image/*"
                       className="w-full p-2 bg-gray-600 rounded-lg text-white focus:ring-2 focus:ring-yellow-400"
                     />
                     {newImage && (
-                      <button
-                        onClick={updateRestaurantImage}
-                        className="bg-gradient-to-r from-yellow-400 to-pink-600 px-5 py-2 rounded-lg hover:opacity-80 transition-all text-white font-semibold"
-                      >
-                        Update Image
-                      </button>
+                      <>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-gray-300">New preview:</span>
+                          <img 
+                            src={newImage} 
+                            alt="New preview" 
+                            className="w-12 h-12 rounded object-cover"
+                          />
+                        </div>
+                        <button
+                          onClick={updateRestaurantImage}
+                          className="bg-gradient-to-r from-yellow-400 to-pink-600 px-5 py-2 rounded-lg hover:opacity-80 transition-all text-white font-semibold"
+                        >
+                          Confirm Update
+                        </button>
+                      </>
                     )}
                   </div>
                 </div>
