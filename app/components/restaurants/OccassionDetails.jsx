@@ -11,18 +11,18 @@ const OccasionDetails = ({ onChange }) => {
 
   const handleOccasionChange = (e) => {
     setOccasion(e.target.value);
-    onChange({ occasion: e.target.value, people, number, specialRequest });
+    onChange({ occasion: e.target.value, number, specialRequest });
   };
 
   const handleNumberChange = (e) => {
     setNumber(e.target.value);
-    onChange({ occasion, people, number: e.target.value, specialRequest });
+    onChange({ occasion, number: e.target.value, specialRequest });
   };
 
-  const handlePeopleChange = (e) => {
+  {/*const handlePeopleChange = (e) => {
     setPeople(e.target.value);
     onChange({ occasion, people: e.target.value, number, specialRequest });
-  };
+  };*/}
 
   const handleSpecialRequestChange = (e) => {
     setSpecialRequest(e.target.value);
@@ -54,7 +54,7 @@ const OccasionDetails = ({ onChange }) => {
             />
           </div>
         </div>
-        <div className="flex flex-col mt-3">
+        {/*<div className="flex flex-col mt-3">
             <div className="relative">
             <FiUser className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <input
@@ -65,7 +65,7 @@ const OccasionDetails = ({ onChange }) => {
                 className="bg-gray-700 text-white pl-10 pr-4 py-2 rounded-md border border-gray-600 focus:ring-2 focus:ring-yellow-400 w-full"
             />
             </div>
-        </div>
+        </div>*/}
         <div className="flex flex-col mt-3">
           <Label className="mb-2">Occasion</Label>
           <input

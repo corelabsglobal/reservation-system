@@ -241,13 +241,13 @@ export default function RestaurantPage() {
     occasion: "",
     specialRequest: "",
     number: "",
-    people: partySize,
+    //people: partySize,
   });
 
   const handlePartySizeChange = (e) => {
     const size = parseInt(e.target.value);
     setPartySize(size);
-    setOccasionDetails(prev => ({ ...prev, people: size }));
+    //setOccasionDetails(prev => ({ ...prev, people: size }));
     if (selectedSlot) {
       fetchAvailableTablesForSlot(selectedSlot);
     }
@@ -341,7 +341,7 @@ export default function RestaurantPage() {
         special_request: occasionDetails?.specialRequest || '',
         occassion: occasionDetails?.occasion || '',
         number: occasionDetails?.number || '',
-        people: occasionDetails?.people || partySize,
+        people: partySize,
         paid: bookingCost > 0,
         table_id: !fallbackMode ? selectedTable : null
       };
@@ -367,7 +367,7 @@ export default function RestaurantPage() {
           day: 'numeric' 
         }),
         reservation_time: selectedSlot,
-        party_size: (occasionDetails?.people || partySize).toString(),
+        party_size: (partySize).toString(),
         occasion: occasionDetails?.occasion || 'None specified',
         special_request: occasionDetails?.specialRequest || 'None',
         dashboard_link: dashboardLink,
@@ -389,7 +389,7 @@ export default function RestaurantPage() {
           day: 'numeric' 
         }),
         reservation_time: selectedSlot,
-        party_size: (occasionDetails?.people || partySize).toString(),
+        party_size: (partySize).toString(),
         occasion: occasionDetails?.occasion || 'None specified',
         current_year: new Date().getFullYear().toString(),
       };
@@ -608,7 +608,7 @@ export default function RestaurantPage() {
                           />
                           <OccasionDetails 
                             onChange={(data) => setOccasionDetails(prev => ({ ...prev, ...data }))} 
-                            partySize={partySize}
+                            //partySize={partySize}
                           />
                         </>
                       )}
