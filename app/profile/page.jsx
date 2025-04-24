@@ -1116,7 +1116,7 @@ const ProfilePage = () => {
                       </select>
                       <input
                         type="text"
-                        placeholder="Table number/identifier"
+                        placeholder="Number of Tables"
                         value={newTable.table_number}
                         onChange={(e) => setNewTable({...newTable, table_number: e.target.value})}
                         className="w-full p-2 bg-gray-700 rounded border border-gray-600 text-white"
