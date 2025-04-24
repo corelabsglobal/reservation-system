@@ -4,6 +4,8 @@ import { useEffect, useState, useMemo } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
+import { Download } from "lucide-react";
+import { jsPDF } from "jspdf";
 import Header from '../components/structure/header';
 import ReservationCard from '../components/structure/ReservationCard';
 import SubscriptionManager from '../components/structure/hooks/SubscriptionManager';
@@ -359,6 +361,101 @@ const ProfilePage = () => {
     return filteredReservations.filter(res => res.date === today);
   }, [filteredReservations]);
 
+  const generateCustomerPDF = () => {
+    // Create a new PDF document
+    const doc = new jsPDF();
+    
+    // Add title
+    doc.setFontSize(20);
+    doc.text(`${restaurant?.name || 'Restaurant'} Customer Report`, 15, 15);
+    
+    // Add date
+    doc.setFontSize(12);
+    doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 15, 25);
+    
+    // Add summary statistics
+    doc.setFontSize(14);
+    doc.text('Summary Statistics', 15, 35);
+    
+    const uniqueCustomers = Array.from(new Set(reservations.map(res => res.email))).length;
+    const repeatCustomers = Object.values(reservations.reduce((acc, res) => {
+      acc[res.email] = (acc[res.email] || 0) + 1;
+      return acc;
+    }, {})).filter(count => count > 1).length;
+    const newThisMonth = Array.from(new Set(reservations
+      .filter(res => new Date(res.date) > new Date(new Date().setDate(new Date().getDate() - 30)))
+      .map(res => res.email)
+    )).length;
+    
+    doc.setFontSize(12);
+    doc.text(`Total Unique Customers: ${uniqueCustomers}`, 15, 45);
+    doc.text(`Repeat Customers: ${repeatCustomers}`, 15, 55);
+    doc.text(`New Customers This Month: ${newThisMonth}`, 15, 65);
+    
+    // Add customer table header
+    doc.setFontSize(14);
+    doc.text('Customer Details', 15, 80);
+    
+    // Prepare table data
+    const customerData = Object.entries(
+      reservations.reduce((acc, res) => {
+        if (!acc[res.email]) {
+          acc[res.email] = {
+            name: res.name,
+            email: res.email,
+            phone: res.number ? `0${res.number}` : 'N/A',
+            reservationCount: 0,
+            lastVisit: '',
+            reservations: []
+          };
+        }
+        acc[res.email].reservationCount++;
+        acc[res.email].reservations.push(res);
+        return acc;
+      }, {})
+    )
+    .sort(([,a], [,b]) => b.reservationCount - a.reservationCount);
+    
+    // Add table headers
+    doc.setFontSize(12);
+    doc.setFont(undefined, 'bold');
+    doc.text('Name', 15, 90);
+    doc.text('Email', 60, 90);
+    doc.text('Phone', 110, 90);
+    doc.text('Visits', 150, 90);
+    doc.text('Last Visit', 180, 90);
+    doc.setFont(undefined, 'normal');
+    
+    // Add customer rows
+    let yPosition = 100;
+    customerData.forEach(([email, customer], index) => {
+      if (yPosition > 280) {
+        doc.addPage();
+        yPosition = 20;
+      }
+      
+      const lastReservation = customer.reservations
+        .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+      
+      doc.text(customer.name, 15, yPosition);
+      doc.text(customer.email, 60, yPosition);
+      doc.text(customer.phone, 110, yPosition);
+      doc.text(customer.reservationCount.toString(), 150, yPosition);
+      
+      if (lastReservation) {
+        doc.text(
+          `${new Date(lastReservation.date).toLocaleDateString()} ${lastReservation.time}`,
+          180,
+          yPosition
+        );
+      }
+      
+      yPosition += 10;
+    });
+    
+    doc.save(`${restaurant?.name || 'restaurant'}_customers_${new Date().toISOString().split('T')[0]}.pdf`);
+  };
+
   return (
     <div className="relative min-h-screen bg-cover bg-center bg-fixed p-6 flex flex-col items-center" style={{ backgroundImage: "url('/images/background.jpeg')" }}>
       <div className="absolute inset-0 bg-black opacity-50"></div>
@@ -624,6 +721,15 @@ const ProfilePage = () => {
                 </div>
                 <div className="bg-blue-500/20 px-3 py-1 rounded-full text-blue-400 text-sm">
                   Total: {reservations.length}
+                </div>
+                <div className="bg-white-500/20 px-3 py-1 rounded-full text-yellow-400 text-sm flex items-center gap-1">
+                  <button 
+                    onClick={generateCustomerPDF}
+                    className="text-yellow-400 hover:text-yellow-300 transition-colors"
+                    title="Download customer report"
+                  >
+                    <Download size={16} />
+                  </button>
                 </div>
               </div>
             </div>
