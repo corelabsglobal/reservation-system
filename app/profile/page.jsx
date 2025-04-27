@@ -8,6 +8,7 @@ import { Download } from "lucide-react";
 import { jsPDF } from "jspdf";
 import Header from '../components/structure/header';
 import ReservationCard from '../components/structure/ReservationCard';
+import EmailMarketing from '../components/structure/EmailMarketing';
 import SubscriptionManager from '../components/structure/hooks/SubscriptionManager';
 import { BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie } from 'recharts';
 
@@ -810,7 +811,7 @@ const ProfilePage = () => {
             </div>
 
             {/* Customer Stats Summary */}
-            <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4 mb-2">
               <div className="bg-gray-700/50 p-4 rounded-lg">
                 <div className="text-gray-400 text-sm">Total Customers</div>
                 <div className="text-2xl font-bold">
@@ -836,6 +837,7 @@ const ProfilePage = () => {
                 </div>
               </div>
             </div>
+            <EmailMarketing restaurantId={restaurant?.id} />
           </div>
         )}
 
