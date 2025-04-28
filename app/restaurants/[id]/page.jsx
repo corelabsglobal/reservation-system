@@ -137,7 +137,7 @@ export default function RestaurantPage() {
           const slotTables = availableTablesForSlots.get(slot) || [];
           
           if (fallbackMode) {
-            return true; // In fallback mode, all slots are available
+            return true;
           }
           
           return slotTables.some(table => {
@@ -228,7 +228,7 @@ export default function RestaurantPage() {
     toast.error("Payment canceled or failed. Please try again.");
     setShowPaystack(false);
     setPaymentInitialized(false);
-    setOpenDialog(true); // Reopen the dialog if payment is canceled
+    setOpenDialog(true);
   };
 
   const handleOpenDialog = async (slot) => {
@@ -241,7 +241,6 @@ export default function RestaurantPage() {
     occasion: "",
     specialRequest: "",
     number: "",
-    //people: partySize,
   });
 
   const handlePartySizeChange = (e) => {
