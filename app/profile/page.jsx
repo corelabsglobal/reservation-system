@@ -149,7 +149,6 @@ const ProfilePage = () => {
   };
 
   const deleteTableType = async (typeId) => {
-    // First check if any tables use this type
     const { count } = await supabase
       .from('tables')
       .select('*', { count: 'exact' })
@@ -230,7 +229,6 @@ const ProfilePage = () => {
         return;
       }
   
-      // Convert input to integer (or keep as null if empty)
       const cost = bookingCostInput === '' || bookingCostInput === null ? null : Math.floor(Number(bookingCostInput));
       
       // Validate input
@@ -239,7 +237,6 @@ const ProfilePage = () => {
         return;
       }
   
-      // Perform a direct update without expecting a return value
       const { error } = await supabase
         .from('restaurants')
         .update({ booking_cost: cost })
@@ -247,7 +244,6 @@ const ProfilePage = () => {
   
       if (error) throw error;
   
-      // Manually verify the update
       const { data } = await supabase
         .from('restaurants')
         .select('booking_cost')
@@ -397,7 +393,6 @@ const ProfilePage = () => {
     doc.setFontSize(14);
     doc.text('Customer Details', 15, 80);
     
-    // Prepare table data
     const customerData = Object.entries(
       reservations.reduce((acc, res) => {
         if (!acc[res.email]) {
@@ -837,7 +832,7 @@ const ProfilePage = () => {
                 </div>
               </div>
             </div>
-            <EmailMarketing restaurantId={restaurant?.id} />
+            <EmailMarketing restaurantId={restaurant?.id} name={restaurant?.name} />
           </div>
         )}
 
