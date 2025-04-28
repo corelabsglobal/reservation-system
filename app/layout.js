@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Reservations",
-  description: "Software for booking reservations",
+  title: "Danloski: Real Time Reservations",
+  description: "Real Time Reservations Made Simple",
 };
 
 export default function RootLayout({ children }) {
