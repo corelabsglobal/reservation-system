@@ -63,8 +63,8 @@ export default function Home() {
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 to-pink-600 drop-shadow-lg">
             Discover & Book Luxury Dining
           </h1>
-          <p className="text-gray-300 mt-4 text-base sm:text-lg">
-            Reserve your exclusive dining experience at the finest restaurants.
+          <p className="text-gray-300 mt-4 text-base sm:text-lg italic">
+            Experience the finest tables all with Danloski
           </p>
         </motion.div>
 
