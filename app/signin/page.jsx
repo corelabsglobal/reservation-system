@@ -66,7 +66,7 @@ export default function SignIn() {
       {/* Content container */}
       <div className="relative z-10 flex items-center justify-center min-h-screen">
         <div className="absolute top-14 text-5xl font-serif italic text-white opacity-90">
-          <h1 className="text-center">SerenePath</h1>
+          <h1 className="text-center">DanLoski</h1>
         </div>
         <Card className="w-full max-w-md p-6 mx-4 sm:mx-0">
           <CardHeader>

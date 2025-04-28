@@ -244,7 +244,7 @@ export default function SignUp() {
       />
       
       <div className="relative z-10 mt-8 sm:mt-12 text-4xl sm:text-5xl font-serif italic text-white opacity-90">
-        <h1 className="text-center">SerenePath</h1>
+        <h1 className="text-center">DanLoski</h1>
       </div>
 
       <div className="relative z-10 flex justify-center w-full">
@@ -335,7 +335,7 @@ export default function SignUp() {
             <DialogTitle className="text-2xl">Account Verification</DialogTitle>
           </DialogHeader>
           <DialogDescription className="text-gray-300">
-            Thank you for signing up as a Business Owner! SerenePath needs <strong>7 business days</strong> to verify your account. Once verified, your account will become fully active, and users will be able to book reservations from you.
+            Thank you for signing up as a Business Owner! DanLoski needs <strong>7 business days</strong> to verify your account. Once verified, your account will become fully active, and users will be able to book reservations from you.
           </DialogDescription>
           <div className="flex justify-end mt-4">
             <Button
