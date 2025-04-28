@@ -32,7 +32,9 @@ const EmailMarketing = ({ restaurantId, name }) => {
     setTemplateId(process.env.NEXT_PUBLIC_EMAILJS_MARKETING_TEMPLATE_ID);
     setPublicKey(process.env.NEXT_PUBLIC_EMAILJS_MARKETING_PUBLIC_KEY);
     
-    emailjs.init(publicKey);
+    if (publicKey) {
+      emailjs.init(publicKey);
+    }
   }, [publicKey]);
 
   // Fetch customers from Supabase
@@ -54,7 +56,8 @@ const EmailMarketing = ({ restaurantId, name }) => {
         const uniqueCustomers = Array.from(new Set(data.map(c => c.email)))
           .map(email => {
             return data.find(c => c.email === email);
-          });
+          })
+          .filter(customer => customer !== undefined);
 
         setCustomers(uniqueCustomers);
       } catch (error) {
@@ -97,6 +100,71 @@ const EmailMarketing = ({ restaurantId, name }) => {
     setEmailContent({ ...emailContent, attachment: null });
   };
 
+  const uploadAttachment = async (file) => {
+    if (!file) return null;
+    
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}.${fileExt}`;
+    const filePath = `email-attachments/${fileName}`;
+
+    const { data, error } = await supabase
+      .storage
+      .from('email-attachments')
+      .upload(filePath, file);
+
+    if (error) {
+      console.error('Error uploading attachment:', error);
+      throw error;
+    }
+
+    const { data: { publicUrl } } = supabase
+      .storage
+      .from('email-attachments')
+      .getPublicUrl(filePath);
+
+    return publicUrl;
+  };
+
+  const saveCampaignToDB = async (subject, body, attachmentUrl) => {
+    const { data, error } = await supabase
+      .from('email_campaigns')
+      .insert([
+        { 
+          restaurant_id: restaurantId,
+          subject,
+          body,
+          attachment_url: attachmentUrl,
+          sent_count: selectedCustomers.length
+        }
+      ])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error saving campaign:', error);
+      throw error;
+    }
+
+    return data.id;
+  };
+
+  const saveRecipientsToDB = async (campaignId, recipients) => {
+    const recipientData = recipients.map(customer => ({
+      campaign_id: campaignId,
+      customer_email: customer.email,
+      customer_name: customer.name
+    }));
+
+    const { error } = await supabase
+      .from('campaign_recipients')
+      .insert(recipientData);
+
+    if (error) {
+      console.error('Error saving recipients:', error);
+      throw error;
+    }
+  };
+
   const sendEmails = async () => {
     if (!selectedCustomers.length) {
       toast.error('Please select at least one recipient');
@@ -111,29 +179,61 @@ const EmailMarketing = ({ restaurantId, name }) => {
     setIsSending(true);
 
     try {
-      let successfulSends = 0;
-
-      // Send emails one by one to avoid rate limiting
-      for (const customer of selectedCustomers) {
-        const templateParams = {
-          to_name: customer.name,
-          to_email: customer.email,
-          subject: emailContent.subject,
-          message: emailContent.body,
-          restaurant_name: name,
-          restaurant_id: restaurantId
-        };
-
-        await emailjs.send(serviceId, templateId, templateParams);
-
-        successfulSends++;
-        setEmailStats(prev => ({
-          ...prev,
-          sent: prev.sent + 1
-        }));
+      // Upload attachment if exists
+      let attachmentUrl = null;
+      if (emailContent.attachment) {
+        try {
+          attachmentUrl = await uploadAttachment(emailContent.attachment);
+        } catch (error) {
+          console.error('Attachment upload failed:', error);
+          toast.error('Failed to upload attachment');
+        }
       }
 
-      toast.success(`Successfully sent ${successfulSends} emails`);
+      // Save campaign to database
+      const campaignId = await saveCampaignToDB(
+        emailContent.subject,
+        emailContent.body,
+        attachmentUrl
+      );
+
+      // Save recipients to database
+      await saveRecipientsToDB(campaignId, selectedCustomers);
+
+      let successfulSends = 0;
+
+      for (const customer of selectedCustomers) {
+        try {
+          const templateParams = {
+            to_name: customer.name,
+            to_email: customer.email,
+            subject: emailContent.subject,
+            message: emailContent.body,
+            restaurant_name: name,
+            restaurant_id: restaurantId
+          };
+
+          await emailjs.send(serviceId, templateId, templateParams);
+
+          successfulSends++;
+          setEmailStats(prev => ({
+            ...prev,
+            sent: prev.sent + 1
+          }));
+
+          // Update recipient as sent in database
+          await supabase
+            .from('campaign_recipients')
+            .update({ sent_at: new Date().toISOString() })
+            .eq('campaign_id', campaignId)
+            .eq('customer_email', customer.email);
+        } catch (error) {
+          console.error(`Failed to send email to ${customer.email}:`, error);
+          // Continue with next email even if one fails
+        }
+      }
+
+      toast.success(`Successfully sent ${successfulSends} of ${selectedCustomers.length} emails`);
       
       // Reset form after successful send
       setEmailContent({
@@ -143,15 +243,15 @@ const EmailMarketing = ({ restaurantId, name }) => {
       });
       setSelectedCustomers([]);
     } catch (error) {
-      console.error('Failed to send email:', error);
-      toast.error('Failed to send some emails. Please try again.');
+      console.error('Failed to complete email campaign:', error);
+      toast.error('Failed to complete email campaign. Please try again.');
     } finally {
       setIsSending(false);
     }
   };
 
   return (
-    <div className="bg-gray-900 rounded-xl shadow-2xl overflow-hidden">
+    <div className="bg-gray-900 rounded-xl shadow-2xl overflow-hidden mt-2">
       {/* Header */}
       <div className="bg-gradient-to-r from-purple-900/70 to-blue-900/70 p-6">
         <h2 className="text-2xl font-bold text-white flex items-center gap-3">
