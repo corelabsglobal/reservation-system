@@ -409,7 +409,7 @@ const EmailMarketing = ({ restaurantId, name }) => {
             )}
           </div>
 
-          <div className="flex justify-between pt-4">
+          <div className="flex flex-col sm:flex-row justify-between gap-3 pt-4">
             <button
               onClick={() => setShowPreview(true)}
               disabled={!emailContent.body}
