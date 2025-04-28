@@ -7,7 +7,7 @@ import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
 import { Paperclip, Send, Users, ChevronDown } from 'lucide-react';
 
-const EmailMarketing = ({ restaurantId }) => {
+const EmailMarketing = ({ restaurantId, name }) => {
   const [customers, setCustomers] = useState([]);
   const [selectedCustomers, setSelectedCustomers] = useState([]);
   const [emailContent, setEmailContent] = useState({
@@ -27,9 +27,7 @@ const EmailMarketing = ({ restaurantId }) => {
     opened: 0
   });
 
-  // Initialize EmailJS
   useEffect(() => {
-    // These should ideally come from your environment variables or config
     setServiceId(process.env.NEXT_PUBLIC_EMAILJS_MARKETING_SERVICE_ID);
     setTemplateId(process.env.NEXT_PUBLIC_EMAILJS_MARKETING_TEMPLATE_ID);
     setPublicKey(process.env.NEXT_PUBLIC_EMAILJS_MARKETING_PUBLIC_KEY);
@@ -122,7 +120,8 @@ const EmailMarketing = ({ restaurantId }) => {
           to_email: customer.email,
           subject: emailContent.subject,
           message: emailContent.body,
-          restaurant_name: 'Your Restaurant' // You might want to pass this from props
+          restaurant_name: name,
+          restaurant_id: restaurantId
         };
 
         await emailjs.send(serviceId, templateId, templateParams);
