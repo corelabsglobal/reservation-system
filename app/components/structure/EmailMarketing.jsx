@@ -6,7 +6,7 @@ import emailjs from '@emailjs/browser';
 import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
 import { Paperclip, Send, Users, ChevronDown } from 'lucide-react';
-import EmailPreview from './Dashboard/EmailPreview';
+import EmailPreview from '../Dashboard/EmailPreview';
 
 const EmailMarketing = ({ restaurantId, name }) => {
   const [customers, setCustomers] = useState([]);
