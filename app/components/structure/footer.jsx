@@ -48,7 +48,7 @@ export default function Footer() {
 
         {/* Copyright */}
         <p className="text-xs opacity-80">
-          © {new Date().getFullYear()} SerenePath. All Rights Reserved.
+          © {new Date().getFullYear()} DanLoski. All Rights Reserved.
         </p>
       </div>
     </footer>
