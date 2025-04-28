@@ -806,7 +806,7 @@ const ProfilePage = () => {
             </div>
 
             {/* Customer Stats Summary */}
-            <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4 mb-2">
+            <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4 mb-3">
               <div className="bg-gray-700/50 p-4 rounded-lg">
                 <div className="text-gray-400 text-sm">Total Customers</div>
                 <div className="text-2xl font-bold">
