@@ -6,6 +6,7 @@ import emailjs from '@emailjs/browser';
 import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
 import { Paperclip, Send, Users, ChevronDown } from 'lucide-react';
+import EmailPreview from './Dashboard/EmailPreview';
 
 const EmailMarketing = ({ restaurantId, name }) => {
   const [customers, setCustomers] = useState([]);
@@ -21,6 +22,7 @@ const EmailMarketing = ({ restaurantId, name }) => {
   const [serviceId, setServiceId] = useState('');
   const [publicKey, setPublicKey] = useState('');
   const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
   const [emailStats, setEmailStats] = useState({
     sent: 0,
     delivered: 0,
@@ -407,8 +409,19 @@ const EmailMarketing = ({ restaurantId, name }) => {
             )}
           </div>
 
-          {/* Send Button */}
-          <div className="flex justify-end pt-4">
+          <div className="flex justify-between pt-4">
+            <button
+              onClick={() => setShowPreview(true)}
+              disabled={!emailContent.body}
+              className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                !emailContent.body
+                  ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
+                  : 'bg-gray-800 text-white hover:bg-gray-700 border border-gray-600'
+              }`}
+            >
+              Preview Email
+            </button>
+
             <button
               onClick={sendEmails}
               disabled={isSending || !selectedCustomers.length}
@@ -455,6 +468,14 @@ const EmailMarketing = ({ restaurantId, name }) => {
           </div>
         </div>
       </div>
+      {showPreview && (
+        <EmailPreview
+          emailContent={emailContent}
+          restaurantName={name}
+          restaurantId={restaurantId}
+          onClose={() => setShowPreview(false)}
+        />
+      )}
     </div>
   );
 };
