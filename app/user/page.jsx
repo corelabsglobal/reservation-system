@@ -254,7 +254,7 @@ const UserProfilePage = () => {
                 <h1 className="text-3xl font-bold text-white">{restaurants?.name || userProfile?.name || 'User'}</h1>
                 <p className="text-indigo-400 mt-1">{userProfile?.email || user?.email || 'No email available'}</p>
                 {restaurants?.url && (
-                  <p className="text-indigo-300 mb-2">{restaurants?.url}</p>
+                  <p className="text-indigo-400 mb-2 cursor-pointer">https://www.danloski.com/{restaurants?.url}</p>
                 )}
                 <p className="text-gray-400 mt-2">Member since {stats?.joinDate || 'Unknown'}</p>
               </div>
