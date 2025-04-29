@@ -67,21 +67,34 @@ export default function RestaurantPage() {
 
     const fetchRestaurantData = async () => {
       try {
-        // Fetch restaurant data
-        const { data: restaurantData, error: restaurantError } = await supabase
+        // First try to fetch by ID (numeric ID case)
+        let { data: restaurantData, error: restaurantError } = await supabase
           .from("restaurants")
           .select("*")
           .eq("id", id)
           .single();
 
-        if (restaurantError) throw restaurantError;
+        // If not found by ID, try to fetch by URL (slug case)
+        if (restaurantError || !restaurantData) {
+          ({ data: restaurantData, error: restaurantError } = await supabase
+            .from("restaurants")
+            .select("*")
+            .eq("url", id)
+            .single());
+        }
+
+        if (restaurantError || !restaurantData) {
+          throw new Error("Restaurant not found");
+        }
+
         setRestaurant(restaurantData);
+        const actualRestaurantId = restaurantData.id; // This is the real ID regardless of how we fetched
 
         if (restaurantData.booking_cost) {
           setBookingCost(restaurantData.booking_cost);
         }
 
-        // Fetch table types and their tables
+        // Fetch table types and their tables using the actual restaurant ID
         const { data: tableData, error: tableError } = await supabase
           .from("table_types")
           .select(`
@@ -93,7 +106,7 @@ export default function RestaurantPage() {
               position_description
             )
           `)
-          .eq("restaurant_id", id);
+          .eq("restaurant_id", actualRestaurantId);
 
         if (tableError) throw tableError;
         
@@ -111,11 +124,11 @@ export default function RestaurantPage() {
           });
         }
 
-        // Fetch reservations for the selected date
+        // Fetch reservations for the selected date using actual restaurant ID
         const { data: reservationsData, error: reservationsError } = await supabase
           .from("reservations")
           .select("time, date, user_id, table_id, people")
-          .eq("restaurant_id", id)
+          .eq("restaurant_id", actualRestaurantId)
           .eq("date", selectedDate);
 
         if (reservationsError) throw reservationsError;
@@ -165,11 +178,11 @@ export default function RestaurantPage() {
         return;
       }
 
-      // Get reservations for this time slot
+      // Get reservations for this time slot using the actual restaurant ID from state
       const { data: reservationsForSlot, error } = await supabase
         .from("reservations")
         .select("table_id")
-        .eq("restaurant_id", id)
+        .eq("restaurant_id", restaurant?.id)
         .eq("date", selectedDate)
         .eq("time", timeSlot);
 
@@ -212,7 +225,7 @@ export default function RestaurantPage() {
     publicKey: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
     currency: "GHS",
     metadata: {
-      restaurant_id: id,
+      restaurant_id: restaurant?.id, // Use the actual restaurant ID from state
       user_id: userId,
     },
   };
@@ -246,7 +259,6 @@ export default function RestaurantPage() {
   const handlePartySizeChange = (e) => {
     const size = parseInt(e.target.value);
     setPartySize(size);
-    //setOccasionDetails(prev => ({ ...prev, people: size }));
     if (selectedSlot) {
       fetchAvailableTablesForSlot(selectedSlot);
     }
@@ -315,7 +327,7 @@ export default function RestaurantPage() {
         supabase
           .from('restaurants')
           .select('name')
-          .eq('id', id)
+          .eq('id', restaurant.id) // Use the actual restaurant ID from state
           .single()
       ]);
   
@@ -330,7 +342,7 @@ export default function RestaurantPage() {
   
       // Prepare reservation data
       const reservationData = {
-        restaurant_id: id,
+        restaurant_id: restaurant.id, // Use the actual restaurant ID from state
         time: selectedSlot,
         date: selectedDate,
         user_id: userId === "guest" ? "00000000-0000-0000-0000-000000000000" : userId,
@@ -607,7 +619,6 @@ export default function RestaurantPage() {
                           />
                           <OccasionDetails 
                             onChange={(data) => setOccasionDetails(prev => ({ ...prev, ...data }))} 
-                            //partySize={partySize}
                           />
                         </>
                       )}
