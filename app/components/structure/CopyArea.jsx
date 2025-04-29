@@ -2,7 +2,7 @@ import React from "react";
 import toast from "react-hot-toast";
 
 export default function CopyArea({ restaurantUrl }) {
-  const fullUrl = `https://www.danloski.com/${restaurantUrl}`;
+  const fullUrl = `https://www.danloski.com/restaurants/${restaurantUrl}`;
   
   const handleCopy = () => {
     navigator.clipboard.writeText(fullUrl);
