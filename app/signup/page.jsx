@@ -27,19 +27,21 @@ const signUpSchema = z.object({
   role: z.enum(["Customer", "Business Owner"], { message: "Please select an account type" }),
   businessName: z.string().optional(),
   location: z.string().optional(),
+  phone: z.string().optional(),
 }).refine((data) => {
   if (data.role === "Business Owner") {
-    return !!data.businessName && !!data.location;
+    return !!data.businessName && !!data.location && !!data.phone;
   }
   return true;
 }, {
-  message: "Business Name and Location are required for Business Owners",
-  path: ["businessName", "location"],
+  message: "Business Name, Location, and Phone are required for Business Owners",
+  path: ["businessName", "location", "phone"],
 });
 
 export default function SignUp() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [existingUserCheckDone, setExistingUserCheckDone] = useState(false);
   const { register, handleSubmit, formState: { errors }, watch } = useForm({
     resolver: zodResolver(signUpSchema),
   });
@@ -49,13 +51,21 @@ export default function SignUp() {
   const [imagePreview, setImagePreview] = useState(null);
   const [showVerificationModal, setShowVerificationModal] = useState(false);
 
+  const generateRestaurantUrl = (name) => {
+    const cleanedName = name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+    const randomNumbers = Math.floor(10 + Math.random() * 90); // Generates 10-99
+    return `${cleanedName}-${randomNumbers}`;
+  };
+
   const handleFileChange = (e) => {
-    //setImage(e.target.files[0]);
     const file = e.target.files[0];
     if (file) {
       setImage(file);
       setImagePreview(URL.createObjectURL(file));
-    };
+    }
   };
 
   const removeImage = () => {
@@ -153,7 +163,21 @@ export default function SignUp() {
   const onSubmit = async (data) => {
     setLoading(true);
 
-    const { name, email, password, role, businessName, location } = data;
+    const { name, email, password, role, businessName, location, phone } = data;
+
+    // Check if user already exists in auth and users table
+    const { data: { user: existingAuthUser }, error: authCheckError } = await supabase.auth.getUser();
+    const { data: existingDbUser } = await supabase
+      .from('users')
+      .select('id')
+      .eq('email', email)
+      .single();
+
+    if (existingAuthUser || existingDbUser) {
+      setLoading(false);
+      toast.error('An account with this email already exists');
+      return;
+    }
 
     if (role === "Business Owner" && !image) {
       toast.error("Business Image is required");
@@ -192,18 +216,35 @@ export default function SignUp() {
     }
 
     try {
-      const { error: userInsertError } = await supabase.from("users").insert([
-        { name, email, role, owner_id: userId },
-      ]);
-      //role === "Business Owner" ? userId : null
+      // Insert user data with phone number if business owner
+      const userData = { 
+        name, 
+        email, 
+        role, 
+        owner_id: userId 
+      };
+      
+      if (role === "Business Owner") {
+        userData.phone = phone;
+      }
+
+      const { error: userInsertError } = await supabase.from("users").insert([userData]);
 
       if (userInsertError) {
         throw userInsertError;
       }
 
       if (role === "Business Owner") {
+        const restaurantUrl = generateRestaurantUrl(businessName);
         const { error: restaurantInsertError } = await supabase.from("restaurants").insert([
-          { name: businessName, location, restaurant_image: imageUrl, owner_id: userId },
+          { 
+            name: businessName, 
+            location, 
+            restaurant_image: imageUrl, 
+            owner_id: userId,
+            url: restaurantUrl,
+            phone 
+          },
         ]);
 
         if (restaurantInsertError) {
@@ -229,10 +270,19 @@ export default function SignUp() {
       if (data?.user) {
         router.push("/");
       }
+      setExistingUserCheckDone(true);
     };
 
     checkUser();
   }, []);
+
+  if (!existingUserCheckDone) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <Loader2 className="animate-spin h-12 w-12" />
+      </div>
+    );
+  }
 
   return (
     <div className="relative min-h-screen flex flex-col justify-center items-center bg-gray-900 text-white">
@@ -253,7 +303,7 @@ export default function SignUp() {
             <CardTitle className="text-2xl">Sign Up</CardTitle>
           </CardHeader>
           <CardContent>
-            <GoogleSignInButton  onClick={handleGoogleSignIn} />
+            <GoogleSignInButton onClick={handleGoogleSignIn} />
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div>
                 <Input {...register("name")} type="text" placeholder="Full Name" className="w-full text-sm sm:text-base py-2 sm:py-3 px-3 sm:px-4" />
@@ -281,14 +331,18 @@ export default function SignUp() {
               </div>
 
               {selectedRole === "Business Owner" && (
-                <div className="transition-all duration-300 ease-in-out">
-                  <div className="mb-3">
+                <div className="transition-all duration-300 ease-in-out space-y-4">
+                  <div>
                     <Input {...register("businessName")} type="text" placeholder="Business Name" className="w-full text-sm sm:text-base py-2 sm:py-3 px-3 sm:px-4" />
                     {errors.businessName && <p className="text-red-500 text-xs">{errors.businessName.message}</p>}
                   </div>
-                  <div className="mb-2">
+                  <div>
                     <Input {...register("location")} type="text" placeholder="Location" className="w-full text-sm sm:text-base py-2 sm:py-3 px-3 sm:px-4" />
                     {errors.location && <p className="text-red-500 text-xs">{errors.location.message}</p>}
+                  </div>
+                  <div>
+                    <Input {...register("phone")} type="tel" placeholder="Phone Number" className="w-full text-sm sm:text-base py-2 sm:py-3 px-3 sm:px-4" />
+                    {errors.phone && <p className="text-red-500 text-xs">{errors.phone.message}</p>}
                   </div>
 
                   <div>
