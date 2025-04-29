@@ -10,6 +10,7 @@ import Header from '../components/structure/header';
 import ReservationCard from '../components/structure/ReservationCard';
 import EmailMarketing from '../components/structure/EmailMarketing';
 import SubscriptionManager from '../components/structure/hooks/SubscriptionManager';
+import CopyArea from '../components/structure/CopyArea';
 import { BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie } from 'recharts';
 
 const ProfilePage = () => {
@@ -482,6 +483,9 @@ const ProfilePage = () => {
         {activeTab === 'overview' && (
           <div className="mb-6 p-6 shadow-2xl bg-gray-800/90 backdrop-blur-md rounded-xl">
             <h2 className="text-2xl font-semibold mb-6 text-gray-100">Reservation Overview</h2>
+            {restaurant?.url && (
+              <CopyArea restaurantUrl={restaurant?.url}/>
+            )}
 
             {/* Circle Charts Container */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
