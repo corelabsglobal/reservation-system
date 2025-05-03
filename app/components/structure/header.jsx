@@ -23,7 +23,7 @@ const getUserInitials = (name) => {
 
 export default function Header() {
   const [user, setUser] = useState(null);
-  const [isOwner, setIsOwner] = useState(false); // New state to check if user is an owner
+  const [isOwner, setIsOwner] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const router = useRouter();
 
@@ -41,9 +41,9 @@ export default function Header() {
           .single();
 
         if (restaurant && !error) {
-          setIsOwner(true); // User is an owner
+          setIsOwner(true);
         } else {
-          setIsOwner(false); // User is not an owner
+          setIsOwner(false);
         }
       }
     };
@@ -102,7 +102,7 @@ export default function Header() {
               transition={{ duration: 0.3, ease: "easeInOut" }}
               className="absolute top-full right-0 w-52 bg-white/10 backdrop-blur-lg rounded-xl shadow-2xl border border-white/20 overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible group-hover:pointer-events-auto transition-opacity duration-300 pointer-events-none"
             >
-              {isOwner && (
+              {isOwner && user && (
                 <Link
                   href="/user"
                   className="flex items-center gap-2 px-5 py-4 text-white hover:bg-white/20 transition"

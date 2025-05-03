@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabaseClient'
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import Header from '../components/structure/header'
+import LoginPrompt from '../components/login/page'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts'
 import { FiCalendar, FiClock, FiUsers, FiStar, FiDollarSign, FiAward } from 'react-icons/fi'
 
@@ -221,6 +222,15 @@ const UserProfilePage = () => {
   const timeData = processTimeData()
 
   const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6', '#14b8a6']
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-900">
+        <Header />
+        <LoginPrompt />
+      </div>
+    )
+  }
 
   if (loading) {
     return (
