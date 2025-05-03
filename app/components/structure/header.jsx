@@ -102,7 +102,6 @@ export default function Header() {
               transition={{ duration: 0.3, ease: "easeInOut" }}
               className="absolute top-full right-0 w-52 bg-white/10 backdrop-blur-lg rounded-xl shadow-2xl border border-white/20 overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible group-hover:pointer-events-auto transition-opacity duration-300 pointer-events-none"
             >
-              {isOwner && user && (
                 <Link
                   href="/user"
                   className="flex items-center gap-2 px-5 py-4 text-white hover:bg-white/20 transition"
@@ -110,7 +109,6 @@ export default function Header() {
                   <FiUser size={18} />
                   <span>Profile</span>
                 </Link>
-              )}
               <button
                 onClick={handleSignOut}
                 className="flex items-center gap-2 w-full text-left px-5 py-4 text-red-400 hover:bg-red-400/20 transition"
