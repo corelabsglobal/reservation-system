@@ -284,9 +284,15 @@ const ProfilePage = () => {
   };
 
   const cancelReservation = async (id) => {
-    const { error } = await supabase.from('reservations').delete().eq('id', id);
+    const { error } = await supabase
+      .from('reservations')
+      .update({ cancelled: true })
+      .eq('id', id);
+    
     if (!error) {
-      setReservations(reservations.filter(res => res.id !== id));
+      setReservations(reservations.map(res => 
+        res.id === id ? { ...res, cancelled: true } : res
+      ));
       toast.success('Reservation cancelled');
     } else {
       toast.error('Failed to cancel reservation');
