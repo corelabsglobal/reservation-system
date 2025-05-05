@@ -87,7 +87,7 @@ export default function RestaurantPage() {
         }
 
         setRestaurant(restaurantData);
-        const actualRestaurantId = restaurantData.id; // This is the real ID regardless of how we fetched
+        const actualRestaurantId = restaurantData.id;
 
         if (restaurantData.booking_cost) {
           setBookingCost(restaurantData.booking_cost);
@@ -145,7 +145,7 @@ export default function RestaurantPage() {
         });
 
         // Filter time slots with available tables that can accommodate party size
-        const filteredSlots = timeSlots.filter(slot => {
+        {/*const filteredSlots = timeSlots.filter(slot => {
           const slotTables = availableTablesForSlots.get(slot) || [];
           
           if (fallbackMode) {
@@ -156,6 +156,23 @@ export default function RestaurantPage() {
             const tableType = tableData.find(t => t.id === table.table_type_id);
             return tableType?.capacity >= partySize;
           });
+        });*/}
+
+        const filteredSlots = timeSlots.filter(slot => {
+          const slotTables = availableTablesForSlots.get(slot) || [];
+          
+          if (fallbackMode) return true;
+          
+          // Group available tables by type
+          const availableTypes = new Set();
+          slotTables.forEach(table => {
+            const tableType = tableData.find(t => t.id === table.table_type_id);
+            if (tableType?.capacity >= partySize) {
+              availableTypes.add(table.table_type_id);
+            }
+          });
+          
+          return availableTypes.size > 0;
         });
 
         setAvailableSlots(filteredSlots);
@@ -167,7 +184,7 @@ export default function RestaurantPage() {
     };
 
     fetchRestaurantData();
-  }, [id, selectedDate, partySize]);
+  }, [id, selectedDate, partySize, reservations]);
 
   const fetchAvailableTablesForSlot = async (timeSlot) => {
     try {
