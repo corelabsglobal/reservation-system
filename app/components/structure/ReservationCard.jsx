@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { Check, Eye, EyeOff, X } from 'lucide-react';
 
 const ReservationCard = ({ res, markAsSeen, cancelReservation, highlightCurrent = false, isPast = false }) => {
     const reservationTime = new Date(`${res.date}T${res.time}`);
@@ -20,17 +21,26 @@ const ReservationCard = ({ res, markAsSeen, cancelReservation, highlightCurrent 
       timeStatus = 'Now';
     }
 
-    // Base background classes
-    let baseClasses = `p-6 rounded-xl shadow-xl relative overflow-hidden ${
-      res.cancelled ? 'bg-gray-800/50 border-l-4 border-red-500' :
-      res.is_new ? 'border-l-4 border-blue-500 bg-gray-700' : 
-      highlightCurrent ? 'bg-gradient-to-r from-green-900/50 to-gray-700 border-l-4 border-green-500' :
-      isPast ? 'bg-gray-700/30' : 'bg-gray-700'
+    // Status indicator colors
+    const statusColors = {
+      new: 'bg-blue-500 text-white',
+      current: 'bg-green-500 text-white',
+      past: 'bg-gray-500 text-white',
+      cancelled: 'bg-red-500 text-white',
+      seen: 'bg-purple-500 text-white'
+    };
+
+    // Base card classes
+    const cardClasses = `p-6 rounded-xl shadow-xl relative overflow-hidden transition-all duration-300 ${
+      res.cancelled ? 'bg-gray-800/40 border-l-4 border-red-500/80' :
+      !res.seen ? 'border-l-4 border-blue-500 bg-gray-700' : 
+      highlightCurrent ? 'bg-gradient-to-r from-green-900/30 to-gray-700 border-l-4 border-green-500' :
+      isPast ? 'bg-gray-700/40' : 'bg-gray-700'
     }`;
 
     // Text color based on status
     const textColor = res.cancelled ? 'text-gray-400' : 
-                     res.is_new ? 'text-white' : 
+                     !res.seen ? 'text-white' : 
                      highlightCurrent ? 'text-white' : 
                      isPast ? 'text-gray-400' : 'text-white';
 
@@ -38,26 +48,32 @@ const ReservationCard = ({ res, markAsSeen, cancelReservation, highlightCurrent 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className={baseClasses}
+        transition={{ duration: 0.3 }}
+        className={cardClasses}
       >
-        {/* Status badges */}
+        {/* Status badges - top right */}
         <div className="absolute top-2 right-2 flex gap-2">
-          {res.is_new && !res.cancelled && (
-            <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
-              New
+          {!res.seen && !res.cancelled && (
+            <span className={`flex items-center gap-1 ${statusColors.new} text-xs px-2 py-1 rounded-full`}>
+              <Eye className="h-3 w-3" /> New
             </span>
           )}
           
-          {highlightCurrent && !res.cancelled && (
-            <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full">
-              {timeStatus}
+          {res.seen && !res.cancelled && (
+            <span className={`flex items-center gap-1 ${statusColors.seen} text-xs px-2 py-1 rounded-full`}>
+              <Check className="h-3 w-3" /> Viewed
             </span>
           )}
 
           {res.cancelled && (
-            <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
-              Cancelled
+            <span className={`flex items-center gap-1 ${statusColors.cancelled} text-xs px-2 py-1 rounded-full`}>
+              <X className="h-3 w-3" /> Cancelled
+            </span>
+          )}
+
+          {highlightCurrent && !res.cancelled && (
+            <span className={`${statusColors.current} text-xs px-2 py-1 rounded-full`}>
+              {timeStatus}
             </span>
           )}
         </div>
@@ -67,7 +83,7 @@ const ReservationCard = ({ res, markAsSeen, cancelReservation, highlightCurrent 
             <div className="flex items-center gap-2 mb-2">
               <h3 className={`text-xl font-bold ${textColor} ${res.cancelled ? 'line-through' : ''}`}>
                 {res.name}
-                {res.is_new && !res.cancelled && <span className="ml-2 animate-pulse">✨</span>}
+                {!res.seen && !res.cancelled && <span className="ml-1 animate-pulse">✨</span>}
               </h3>
               
               {!highlightCurrent && !res.cancelled && (
@@ -79,7 +95,7 @@ const ReservationCard = ({ res, markAsSeen, cancelReservation, highlightCurrent 
               )}
             </div>
             
-            <div className={`grid grid-cols-2 gap-2 mt-2 ${res.cancelled ? 'opacity-75' : ''}`}>
+            <div className={`grid grid-cols-2 gap-2 mt-2 ${res.cancelled ? 'opacity-80' : ''}`}>
               <div>
                 <p className="text-sm text-gray-400">Date</p>
                 <p className={textColor}>
@@ -121,27 +137,40 @@ const ReservationCard = ({ res, markAsSeen, cancelReservation, highlightCurrent 
             )}
           </div>
           
-          {/* Action buttons - only show if not cancelled */}
-          {!res.cancelled && (
-            <div className="flex flex-col gap-2">
-              <button
-                onClick={() => markAsSeen(res.id)}
-                className="px-3 py-1 bg-gray-600 hover:bg-gray-500 text-white rounded-md text-sm transition-all whitespace-nowrap"
-              >
-                Mark Seen
-              </button>
-              <button
-                onClick={() => cancelReservation(res.id)}
-                className="px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded-md text-sm transition-all"
-              >
-                Cancel
-              </button>
-            </div>
-          )}
+          <div className="flex flex-col gap-2 min-w-[100px]">
+            {!res.cancelled && (
+              <>
+                <button
+                  onClick={() => markAsSeen(res.id)}
+                  className={`flex items-center justify-center gap-1 px-3 py-1 rounded-md text-sm transition-all whitespace-nowrap ${
+                    res.seen 
+                      ? 'bg-purple-600/50 hover:bg-purple-600/70 text-purple-100'
+                      : 'bg-blue-600 hover:bg-blue-700 text-white'
+                  }`}
+                >
+                  {res.seen ? (
+                    <>
+                      <EyeOff className="h-4 w-4" /> Unmark
+                    </>
+                  ) : (
+                    <>
+                      <Eye className="h-4 w-4" /> Seen
+                    </>
+                  )}
+                </button>
+                <button
+                  onClick={() => cancelReservation(res.id)}
+                  className="flex items-center justify-center gap-1 px-3 py-1 bg-red-500/90 hover:bg-red-600 text-white rounded-md text-sm transition-all"
+                >
+                  <X className="h-4 w-4" /> Cancel
+                </button>
+              </>
+            )}
+          </div>
         </div>
 
         {res.cancelled && (
-          <div className="absolute inset-0 bg-gradient-to-br from-transparent to-gray-900/70 rounded-xl pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-br from-transparent to-gray-900/50 rounded-xl pointer-events-none" />
         )}
       </motion.div>
     );

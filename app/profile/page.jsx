@@ -61,15 +61,22 @@ const ProfilePage = () => {
   }, []);
 
   const markAsSeen = async (reservationId) => {
+    // Toggle the seen status
+    const currentReservation = reservations.find(res => res.id === reservationId);
+    const newSeenStatus = !currentReservation?.seen;
+  
     const { error } = await supabase
       .from('reservations')
-      .update({ is_new: false })
+      .update({ seen: newSeenStatus })
       .eq('id', reservationId);
     
     if (!error) {
       setReservations(reservations.map(res => 
-        res.id === reservationId ? { ...res, is_new: false } : res
+        res.id === reservationId ? { ...res, seen: newSeenStatus } : res
       ));
+      toast.success(newSeenStatus ? 'Reservation marked as seen' : 'Reservation unmarked');
+    } else {
+      toast.error('Failed to update reservation status');
     }
   };
   
