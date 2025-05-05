@@ -210,16 +210,31 @@ const ProfilePage = () => {
   };
 
   const deleteTable = async (tableId) => {
-    const { error } = await supabase
-      .from('tables')
-      .delete()
-      .eq('id', tableId);
-    
-    if (error) {
-      toast.error('Failed to delete table');
-    } else {
+    try {
+      const { count: reservationCount, error: reservationError } = await supabase
+        .from('reservations')
+        .select('*', { count: 'exact', head: true })
+        .eq('table_id', tableId);
+  
+      if (reservationError) throw reservationError;
+  
+      if (reservationCount > 0) {
+        toast.error('Cannot delete table - It has existing reservations');
+        return;
+      }
+  
+      const { error } = await supabase
+        .from('tables')
+        .delete()
+        .eq('id', tableId);
+      
+      if (error) throw error;
+  
       toast.success('Table deleted successfully');
       setTables(tables.filter(table => table.id !== tableId));
+    } catch (error) {
+      console.error('Error deleting table:', error);
+      toast.error('Failed to delete table');
     }
   };
 
