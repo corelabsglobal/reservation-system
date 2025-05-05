@@ -61,7 +61,6 @@ const ProfilePage = () => {
   }, []);
 
   const markAsSeen = async (reservationId) => {
-    // Toggle the seen status
     const currentReservation = reservations.find(res => res.id === reservationId);
     const newSeenStatus = !currentReservation?.seen;
   
