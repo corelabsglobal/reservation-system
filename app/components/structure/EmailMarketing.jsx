@@ -39,7 +39,6 @@ const EmailMarketing = ({ restaurantId, name }) => {
     }
   }, [publicKey]);
 
-  // Fetch customers from Supabase
   useEffect(() => {
     if (!restaurantId) return;
 
