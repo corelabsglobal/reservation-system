@@ -72,6 +72,62 @@ const EmailMarketing = ({ restaurantId, name }) => {
     fetchCustomers();
   }, [restaurantId]);
 
+  useEffect(() => {
+    if (!restaurantId) return;
+  
+    const fetchEmailStats = async () => {
+      try {
+        // Get all campaigns for restaurant
+        const { data: campaigns, error: campaignsError } = await supabase
+          .from('email_campaigns')
+          .select('id, sent_count')
+          .eq('restaurant_id', restaurantId);
+  
+        if (campaignsError) throw campaignsError;
+  
+        if (!campaigns || campaigns.length === 0) {
+          setEmailStats({
+            sent: 0,
+            delivered: 0,
+            opened: 0
+          });
+          return;
+        }
+  
+        // Get campaign IDs for the restaurant
+        const campaignIds = campaigns.map(c => c.id);
+  
+        // Get all recipients for these campaigns
+        const { data: recipients, error: recipientsError } = await supabase
+          .from('campaign_recipients')
+          .select('delivered, opened')
+          .in('campaign_id', campaignIds);
+  
+        if (recipientsError) throw recipientsError;
+  
+        // Calculate statistics
+        const totalSent = campaigns.reduce((sum, campaign) => sum + campaign.sent_count, 0);
+        const totalDelivered = recipients.filter(r => r.delivered).length;
+        const totalOpened = recipients.filter(r => r.opened).length;
+  
+        setEmailStats({
+          sent: totalSent,
+          delivered: totalDelivered,
+          opened: totalOpened
+        });
+      } catch (error) {
+        console.error('Error fetching email stats:', error);
+        setEmailStats({
+          sent: 0,
+          delivered: 0,
+          opened: 0
+        });
+      }
+    };
+  
+    fetchEmailStats();
+  }, [restaurantId]);
+
   const handleCustomerSelect = (customer) => {
     if (selectedCustomers.some(c => c.email === customer.email)) {
       setSelectedCustomers(selectedCustomers.filter(c => c.email !== customer.email));
@@ -202,6 +258,7 @@ const EmailMarketing = ({ restaurantId, name }) => {
       await saveRecipientsToDB(campaignId, selectedCustomers);
 
       let successfulSends = 0;
+      let successfulDeliveries = 0;
 
       for (const customer of selectedCustomers) {
         try {
@@ -214,35 +271,58 @@ const EmailMarketing = ({ restaurantId, name }) => {
             restaurant_id: restaurantId
           };
 
+          // Send email
           await emailjs.send(serviceId, templateId, templateParams);
-
           successfulSends++;
-          setEmailStats(prev => ({
-            ...prev,
-            sent: prev.sent + 1
-          }));
 
-          // Update recipient as sent in database
+          // Mark as sent in database
           await supabase
             .from('campaign_recipients')
-            .update({ sent_at: new Date().toISOString() })
+            .update({ 
+              sent_at: new Date().toISOString(),
+              delivered: true
+            })
             .eq('campaign_id', campaignId)
             .eq('customer_email', customer.email);
+
+          successfulDeliveries++;
+
+          // Update stats in real-time
+          setEmailStats(prev => ({
+            ...prev,
+            sent: prev.sent + 1,
+            delivered: prev.delivered + 1
+          }));
+
         } catch (error) {
           console.error(`Failed to send email to ${customer.email}:`, error);
-          // Continue with next email even if one fails
+          await supabase
+            .from('campaign_recipients')
+            .update({ 
+              sent_at: new Date().toISOString(),
+              delivered: false 
+            })
+            .eq('campaign_id', campaignId)
+            .eq('customer_email', customer.email);
         }
       }
 
+      await supabase
+        .from('email_campaigns')
+        .update({ 
+          sent_count: successfulSends 
+        })
+        .eq('id', campaignId);
+
       toast.success(`Successfully sent ${successfulSends} of ${selectedCustomers.length} emails`);
       
-      // Reset form after successful send
       setEmailContent({
         subject: '',
         body: '',
         attachment: null
       });
       setSelectedCustomers([]);
+
     } catch (error) {
       console.error('Failed to complete email campaign:', error);
       toast.error('Failed to complete email campaign. Please try again.');
