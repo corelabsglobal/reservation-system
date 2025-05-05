@@ -43,7 +43,6 @@ export default function RestaurantPage() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
-  // Fixed time slots (10 AM to 10 PM, every 2 hours)
   const timeSlots = ["10:00", "12:00", "14:00", "16:00", "18:00", "20:00", "22:00"];
 
   useEffect(() => {
@@ -440,6 +439,12 @@ export default function RestaurantPage() {
       toast.error(`Booking failed: ${error.message}`);
     } finally {
       setIsLoading(false);
+      const { data: newReservations } = await supabase
+        .from("reservations")
+        .select("time, date, user_id, table_id, people")
+        .eq("restaurant_id", restaurant.id)
+        .eq("date", selectedDate);
+      setReservations(newReservations);
     }
   };
 
@@ -685,12 +690,15 @@ export default function RestaurantPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black bg-opacity-50"></div>
           <div className="relative z-10 bg-gray-800 p-6 rounded-lg max-w-md w-full mx-4">
+            <p className="mb-2">
+              A reservation cost of {bookingCost} GHS is required.
+            </p>
             <PaystackButton
               {...paystackConfig}
               text="Pay Now"
               onSuccess={onPaystackSuccess}
               onClose={onPaystackClose}
-              className="w-full bg-gradient-to-r from-yellow-400 to-pink-600 px-4 py-3 rounded-lg hover:opacity-80 transition-all"
+              className="w-full bg-gradient-to-r from-yellow-400 to-pink-600 px-4 py-3 rounded-lg hover:opacity-80 transition-all mt-2"
             />
             <button 
               onClick={() => {
