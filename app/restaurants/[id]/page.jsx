@@ -144,35 +144,16 @@ export default function RestaurantPage() {
           availableTablesForSlots.set(slot, availableTablesForSlot);
         });
 
-        // Filter time slots with available tables that can accommodate party size
-        {/*const filteredSlots = timeSlots.filter(slot => {
-          const slotTables = availableTablesForSlots.get(slot) || [];
-          
-          if (fallbackMode) {
-            return true;
-          }
-          
-          return slotTables.some(table => {
-            const tableType = tableData.find(t => t.id === table.table_type_id);
-            return tableType?.capacity >= partySize;
-          });
-        });*/}
-
         const filteredSlots = timeSlots.filter(slot => {
-          const slotTables = availableTablesForSlots.get(slot) || [];
+          const reservationsForSlot = reservations.filter(r => r.time === slot);
+          const bookedTablesForSlot = new Set(reservationsForSlot.map(r => r.table_id));
           
           if (fallbackMode) return true;
           
-          // Group available tables by type
-          const availableTypes = new Set();
-          slotTables.forEach(table => {
-            const tableType = tableData.find(t => t.id === table.table_type_id);
-            if (tableType?.capacity >= partySize) {
-              availableTypes.add(table.table_type_id);
-            }
+          return allTables.some(table => {
+            const tableType = tableTypes.find(t => t.id === table.table_type_id);
+            return !bookedTablesForSlot.has(table.id) && tableType?.capacity >= partySize;
           });
-          
-          return availableTypes.size > 0;
         });
 
         setAvailableSlots(filteredSlots);
@@ -343,7 +324,7 @@ export default function RestaurantPage() {
         supabase
           .from('restaurants')
           .select('name')
-          .eq('id', restaurant.id) // Use the actual restaurant ID from state
+          .eq('id', restaurant.id)
           .single()
       ]);
   
@@ -358,7 +339,7 @@ export default function RestaurantPage() {
   
       // Prepare reservation data
       const reservationData = {
-        restaurant_id: restaurant.id, // Use the actual restaurant ID from state
+        restaurant_id: restaurant.id,
         time: selectedSlot,
         date: selectedDate,
         user_id: userId === "guest" ? "00000000-0000-0000-0000-000000000000" : userId,
@@ -441,6 +422,29 @@ export default function RestaurantPage() {
   
       // Success flow
       toast.success("Reservation successful! Confirmation emails sent.");
+
+      const { data: newReservations } = await supabase
+        .from("reservations")
+        .select("time, date, user_id, table_id, people")
+        .eq("restaurant_id", restaurant.id)
+        .eq("date", selectedDate);
+
+      setReservations(newReservations);
+
+      // Recalculate all available slots
+      const updatedAvailableSlots = timeSlots.filter(slot => {
+        const reservationsForSlot = newReservations.filter(r => r.time === slot);
+        const bookedTablesForSlot = new Set(reservationsForSlot.map(r => r.table_id));
+        
+        if (fallbackMode) return true;
+        
+        return allTables.some(table => {
+          const tableType = tableTypes.find(t => t.id === table.table_type_id);
+          return !bookedTablesForSlot.has(table.id) && tableType?.capacity >= partySize;
+        });
+      });
+
+      setAvailableSlots(updatedAvailableSlots);
       
       // Update state and local storage
       setReservations([...reservations, reservationData]);
@@ -456,12 +460,6 @@ export default function RestaurantPage() {
       toast.error(`Booking failed: ${error.message}`);
     } finally {
       setIsLoading(false);
-      const { data: newReservations } = await supabase
-        .from("reservations")
-        .select("time, date, user_id, table_id, people")
-        .eq("restaurant_id", restaurant.id)
-        .eq("date", selectedDate);
-      setReservations(newReservations);
     }
   };
 
