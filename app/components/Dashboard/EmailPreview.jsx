@@ -27,7 +27,6 @@ const EmailPreview = ({ emailContent, restaurantName, restaurantId, onClose }) =
         {/* Email Preview Content */}
         <div className="email-preview-container">
           <div className="email-container" style={{ maxWidth: '600px', margin: '0 auto', backgroundColor: '#ffffff' }}>
-            {/* Luxury Header */}
             <div className="header" style={{
               background: 'linear-gradient(135deg, #1a1a1a 0%, #3a3a3a 100%)',
               padding: '40px 30px',
@@ -84,7 +83,7 @@ const EmailPreview = ({ emailContent, restaurantName, restaurantId, onClose }) =
                   marginTop: '0',
                   marginBottom: '15px'
                 }}>An Exclusive Experience Awaits</h2>
-                <p>We've curated an exceptional evening of gastronomic excellence to delight your senses and create unforgettable memories.</p>
+                <p  style={{ color: 'black' }}>We've curated an exceptional evening of gastronomic excellence to delight your senses and create unforgettable memories.</p>
               </div>
               
               {/* CTA Button */}
