@@ -37,7 +37,6 @@ export default function Home() {
     fetchRestaurants();
   }, []);
 
-  // Filter restaurants based on search term
   const filteredRestaurants = useMemo(() => {
     if (!search) return restaurants;
     
@@ -95,7 +94,7 @@ export default function Home() {
           <input
             type="text"
             placeholder="Search restaurants by name or location..."
-            className="bg-transparent outline-none px-3 text-white w-full placeholder-gray-500"
+            className="bg-transparent outline-none px-3 py-1 text-white w-full placeholder-gray-500"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             onKeyDown={(e) => {

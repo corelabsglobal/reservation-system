@@ -211,8 +211,120 @@
     ]
   },
   {
+    "name": "Guinea",
+    "code": "GN"
+  },
+  {
+    "name": "Guinea-Bissau",
+    "code": "GW"
+  },
+  {
+    "name": "Kenya",
+    "code": "KE"
+  },
+  {
+    "name": "Lesotho",
+    "code": "LS"
+  },
+  {
+    "name": "Liberia",
+    "code": "LR"
+  },
+  {
+    "name": "Libya",
+    "code": "LY"
+  },
+  {
+    "name": "Madagascar",
+    "code": "MG"
+  },
+  {
+    "name": "Malawi",
+    "code": "MW"
+  },
+  {
+    "name": "Mali",
+    "code": "ML"
+  },
+  {
+    "name": "Mauritania",
+    "code": "MR"
+  },
+  {
+    "name": "Mauritius",
+    "code": "MU"
+  },
+  {
+    "name": "Morocco",
+    "code": "MA"
+  },
+  {
+    "name": "Mozambique",
+    "code": "MZ"
+  },
+  {
+    "name": "Namibia",
+    "code": "NA"
+  },
+  {
+    "name": "Niger",
+    "code": "NE"
+  },
+  {
     "name": "Nigeria",
     "code": "NG"
+  },
+  {
+    "name": "Rwanda",
+    "code": "RW"
+  },
+  {
+    "name": "São Tomé and Príncipe",
+    "code": "ST"
+  },
+  {
+    "name": "Senegal",
+    "code": "SN"
+  },
+  {
+    "name": "Seychelles",
+    "code": "SC"
+  },
+  {
+    "name": "Sierra Leone",
+    "code": "SL"
+  },
+  {
+    "name": "Somalia",
+    "code": "SO"
+  },
+  {
+    "name": "South Africa",
+    "code": "ZA"
+  },
+  {
+    "name": "South Sudan",
+    "code": "SS"
+  },
+  {
+    "name": "Sudan",
+    "code": "SD"
+  },
+  {
+    "name": "Tanzania",
+    "code": "TZ"
+  },
+  {
+    "name": "Togo",
+    "code": "TG"
+  },
+  {
+    "name": "Tunisia",
+    "code": "TN"
+  },
+  {
+    "name": "Uganda",
+    "code": "UG"
   },
   {
     "name": "United States",
