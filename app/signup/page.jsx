@@ -19,6 +19,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { LocationSearch } from "../components/structure/LocationSearch";
 
 const signUpSchema = z.object({
   name: z.string().min(1, { message: "Name is required" }),
@@ -26,7 +27,7 @@ const signUpSchema = z.object({
   password: z.string().min(6, { message: "Password must be at least 6 characters" }),
   role: z.enum(["Customer", "Business Owner"], { message: "Please select an account type" }),
   businessName: z.string().optional(),
-  location: z.string().optional(),
+  location: z.string().min(1, { message: "Location is required" }).optional(),
   phone: z.string().optional(),
 }).refine((data) => {
   if (data.role === "Business Owner") {
@@ -338,6 +339,14 @@ export default function SignUp() {
                   </div>
                   <div>
                     <Input {...register("location")} type="text" placeholder="Location" className="w-full text-sm sm:text-base py-2 sm:py-3 px-3 sm:px-4" />
+                    {errors.location && <p className="text-red-500 text-xs">{errors.location.message}</p>}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-800 pb-1">Business Location</label>
+                    <LocationSearch
+                      value={watch("location")}
+                      onChange={(value) => setValue("location", value, { shouldValidate: true })}
+                    />
                     {errors.location && <p className="text-red-500 text-xs">{errors.location.message}</p>}
                   </div>
                   <div>
