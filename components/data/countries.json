@@ -92,6 +92,28 @@
     "code": "BR"
   },
   {
+    "name": "Germany",
+    "code": "DE",
+    "states": [
+      "Baden-Württemberg",
+      "Bavaria",
+      "Berlin",
+      "Brandenburg",
+      "Bremen",
+      "Hamburg",
+      "Hesse",
+      "Lower Saxony",
+      "Mecklenburg-Vorpommern",
+      "North Rhine-Westphalia",
+      "Rhineland-Palatinate",
+      "Saarland",
+      "Saxony",
+      "Saxony-Anhalt",
+      "Schleswig-Holstein",
+      "Thuringia"
+    ]
+  },
+  {
     "name": "Ghana",
     "code": "GH",
     "regions": [
@@ -137,7 +159,8 @@
         "locations": [
           "Accra", "Tema", "Madina", "Adenta", "Ashaiman", "Teshie", "Nungua", "La", 
           "Labadi", "Spintex", "Dansoman", "Ablekuma", "Weija", "Kasoa", "Prampram", 
-          "Dodowa", "Sege", "Ada Foah", "Kpone", "Oyibi"
+          "Dodowa", "Sege", "Ada Foah", "Kpone", "Oyibi", "Legon", "Achimota",
+          "Airport Residential Area", "Sakumono", "Abosseyokai", "Nima", "Accra New Town"
         ]
       },
       {
@@ -188,7 +211,64 @@
     ]
   },
   {
+    "name": "Nigeria",
+    "code": "NG"
+  },
+  {
     "name": "United States",
-    "code": "US"
+    "code": "US",
+    "states": [
+      "Alabama",
+      "Alaska",
+      "Arizona",
+      "Arkansas",
+      "California",
+      "Colorado",
+      "Connecticut",
+      "Delaware",
+      "Florida",
+      "Georgia",
+      "Hawaii",
+      "Idaho",
+      "Illinois",
+      "Indiana",
+      "Iowa",
+      "Kansas",
+      "Kentucky",
+      "Louisiana",
+      "Maine",
+      "Maryland",
+      "Massachusetts",
+      "Michigan",
+      "Minnesota",
+      "Mississippi",
+      "Missouri",
+      "Montana",
+      "Nebraska",
+      "Nevada",
+      "New Hampshire",
+      "New Jersey",
+      "New Mexico",
+      "New York",
+      "North Carolina",
+      "North Dakota",
+      "Ohio",
+      "Oklahoma",
+      "Oregon",
+      "Pennsylvania",
+      "Rhode Island",
+      "South Carolina",
+      "South Dakota",
+      "Tennessee",
+      "Texas",
+      "Utah",
+      "Vermont",
+      "Virginia",
+      "Washington",
+      "West Virginia",
+      "Wisconsin",
+      "Wyoming",
+      "District of Columbia"
+    ]
   }
 ]
