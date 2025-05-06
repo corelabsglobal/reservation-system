@@ -43,7 +43,7 @@ export default function SignUp() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [existingUserCheckDone, setExistingUserCheckDone] = useState(false);
-  const { register, handleSubmit, formState: { errors }, watch } = useForm({
+  const { register, handleSubmit, formState: { errors }, watch, setValue } = useForm({
     resolver: zodResolver(signUpSchema),
   });
 
@@ -338,16 +338,13 @@ export default function SignUp() {
                     {errors.businessName && <p className="text-red-500 text-xs">{errors.businessName.message}</p>}
                   </div>
                   <div>
-                    <Input {...register("location")} type="text" placeholder="Location" className="w-full text-sm sm:text-base py-2 sm:py-3 px-3 sm:px-4" />
-                    {errors.location && <p className="text-red-500 text-xs">{errors.location.message}</p>}
-                  </div>
-                  <div>
                     <label className="block text-sm font-medium text-gray-800 pb-1">Business Location</label>
                     <LocationSearch
                       value={watch("location")}
                       onChange={(value) => setValue("location", value, { shouldValidate: true })}
+                      register={register}
+                      errors={errors}
                     />
-                    {errors.location && <p className="text-red-500 text-xs">{errors.location.message}</p>}
                   </div>
                   <div>
                     <Input {...register("phone")} type="tel" placeholder="Phone Number" className="w-full text-sm sm:text-base py-2 sm:py-3 px-3 sm:px-4" />
