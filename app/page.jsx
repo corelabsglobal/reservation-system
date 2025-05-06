@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import Header from "./components/structure/header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Search, User } from "lucide-react";
+import { NearbyRestaurants } from "./components/HomePage/NearbyRestaurants";
 
 export default function Home() {
   const [search, setSearch] = useState("");
@@ -55,7 +56,6 @@ export default function Home() {
 
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-gray-900 to-black text-white px-6 py-10 overflow-hidden">
-      {/* Background and effects remain the same */}
       <div
         className="absolute inset-0 bg-cover bg-center bg-fixed opacity-50"
         style={{ backgroundImage: "url('/images/background.jpeg')" }}
@@ -84,7 +84,8 @@ export default function Home() {
           </p>
         </motion.div>
 
-        {/* Enhanced Search Bar */}
+        <NearbyRestaurants />
+
         <motion.div
           className="flex items-center bg-gray-800 p-3 rounded-xl mb-8 shadow-lg backdrop-blur-md"
           whileHover={{ scale: 1.01 }}
