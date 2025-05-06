@@ -117,10 +117,12 @@ export default function RestaurantPage() {
 
         // Check if we need fallback mode (no tables defined)
         if (tableData.length === 0 || tables.length === 0) {
-          setFallbackMode(true);
-          toast("This restaurant hasn't set up tables yet. Using basic reservation system.", {
-            icon: 'ℹ️',
-          });
+          if (!fallbackMode) {
+            setFallbackMode(true);
+            toast("This restaurant hasn't set up tables yet. Using basic reservation system.", {
+              icon: 'ℹ️',
+            });
+          }
         }
 
         // Fetch reservations for the selected date using actual restaurant ID
@@ -165,7 +167,7 @@ export default function RestaurantPage() {
     };
 
     fetchRestaurantData();
-  }, [id, selectedDate, partySize, reservations]);
+  }, [id, selectedDate, partySize, reservations, fallbackMode]);
 
   const fetchAvailableTablesForSlot = async (timeSlot) => {
     try {
