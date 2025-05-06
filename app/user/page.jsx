@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import Header from '../components/structure/header'
 import LoginPrompt from '../components/login/page'
+import DeleteAccountButton from '../components/structure/DeleteAccountButton'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts'
 import { FiCalendar, FiClock, FiUsers, FiStar, FiDollarSign, FiAward } from 'react-icons/fi'
 
@@ -258,20 +259,37 @@ const UserProfilePage = () => {
               </div>
             </div>
           </div>
-          <div className="pt-20 px-8 pb-8">
-            <div className="flex flex-col md:flex-row md:items-end md:justify-between">
-              <div>
-                <h1 className="text-3xl font-bold text-white">{restaurants?.name || userProfile?.name || 'User'}</h1>
-                <p className="text-indigo-400 mt-1">{userProfile?.email || user?.email || 'No email available'}</p>
+          <div className="pt-20 px-4 sm:px-8 pb-6 sm:pb-8">
+            <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+              <div className="flex-1 min-w-0">
+                <h1 className="text-2xl sm:text-3xl font-bold text-white truncate">
+                  {restaurants?.name || userProfile?.name || 'User'}
+                </h1>
+                <p className="text-indigo-400 mt-1 truncate">
+                  {userProfile?.email || user?.email || 'No email available'}
+                </p>
                 {restaurants?.url && (
-                  <p className="text-indigo-400 mb-2 cursor-pointer">https://www.danloski.com/restaurants/{restaurants?.url}</p>
+                  <p className="text-indigo-400 mt-1 mb-2 text-sm sm:text-base truncate hover:text-indigo-300 transition-colors">
+                    https://www.danloski.com/restaurants/{restaurants?.url}
+                  </p>
                 )}
-                <p className="text-gray-400 mt-2">Member since {stats?.joinDate || 'Unknown'}</p>
+                <p className="text-gray-400 mt-2 text-sm sm:text-base">
+                  Member since {stats?.joinDate || 'Unknown'}
+                </p>
               </div>
-              <div className="mt-4 md:mt-0">
-                <span className="inline-block bg-indigo-900 text-indigo-200 text-sm font-medium px-3 py-1 rounded-full">
+
+              <div className="flex flex-col sm:flex-row md:flex-col items-start sm:items-end md:items-end gap-3">
+                <span className="inline-block bg-indigo-900 text-indigo-200 text-sm font-medium px-3 py-1 rounded-full w-fit">
                   {userProfile?.role || 'Member'}
                 </span>
+
+                <div className="w-full sm:w-auto">
+                  <DeleteAccountButton 
+                    userId={user?.id} 
+                    userRole={userProfile?.role} 
+                    className="w-full sm:w-auto"
+                  />
+                </div>
               </div>
             </div>
           </div>

@@ -115,7 +115,6 @@ export default function RestaurantPage() {
         );
         setAllTables(tables);
 
-        // Check if we need fallback mode (no tables defined)
         if (tableData.length === 0 || tables.length === 0) {
           if (!fallbackMode) {
             setFallbackMode(true);
