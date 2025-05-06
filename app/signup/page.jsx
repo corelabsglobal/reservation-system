@@ -56,7 +56,7 @@ export default function SignUp() {
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '');
-    const randomNumbers = Math.floor(10 + Math.random() * 90); // Generates 10-99
+    const randomNumbers = Math.floor(10 + Math.random() * 90);
     return `${cleanedName}-${randomNumbers}`;
   };
 
