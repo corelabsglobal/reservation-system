@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { supabase } from "@/lib/supabaseClient";
 import { ChevronLeft, ChevronRight, MapPin } from "lucide-react";
 
@@ -12,6 +11,7 @@ export const NearbyRestaurants = () => {
   const [nearbyRestaurants, setNearbyRestaurants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [autoSlide, setAutoSlide] = useState(true);
 
   useEffect(() => {
     const getLocation = () => {
@@ -76,16 +76,34 @@ export const NearbyRestaurants = () => {
     fetchNearbyRestaurants();
   }, [userLocation]);
 
-  const nextSlide = () => {
+  const nextSlide = useCallback(() => {
     setCurrentSlide((prev) => 
       prev === nearbyRestaurants.length - 1 ? 0 : prev + 1
     );
-  };
+  }, [nearbyRestaurants.length]);
 
-  const prevSlide = () => {
+  const prevSlide = useCallback(() => {
     setCurrentSlide((prev) => 
       prev === 0 ? nearbyRestaurants.length - 1 : prev - 1
     );
+  }, [nearbyRestaurants.length]);
+
+  // Auto-slide functionality
+  useEffect(() => {
+    if (!autoSlide || nearbyRestaurants.length <= 1) return;
+
+    const slideInterval = setInterval(() => {
+      nextSlide();
+    }, 5000);
+
+    return () => clearInterval(slideInterval);
+  }, [autoSlide, nearbyRestaurants.length, nextSlide]);
+
+  // Pause auto-slide when user interacts
+  const handleSlideInteraction = (slideFn) => {
+    setAutoSlide(false);
+    slideFn();
+    setTimeout(() => setAutoSlide(true), 10000);
   };
 
   if (loading || !userLocation || nearbyRestaurants.length === 0) return null;
@@ -101,16 +119,18 @@ export const NearbyRestaurants = () => {
           <Button 
             variant="outline" 
             size="icon" 
-            onClick={prevSlide}
+            onClick={() => handleSlideInteraction(prevSlide)}
             className="text-yellow-400 border-yellow-400 hover:bg-yellow-400/10"
+            aria-label="Previous restaurant"
           >
             <ChevronLeft className="h-5 w-5" />
           </Button>
           <Button 
             variant="outline" 
             size="icon" 
-            onClick={nextSlide}
+            onClick={() => handleSlideInteraction(nextSlide)}
             className="text-yellow-400 border-yellow-400 hover:bg-yellow-400/10"
+            aria-label="Next restaurant"
           >
             <ChevronRight className="h-5 w-5" />
           </Button>
@@ -124,7 +144,12 @@ export const NearbyRestaurants = () => {
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
         >
           {nearbyRestaurants.map((restaurant, index) => (
-            <div key={restaurant.id} className="w-full flex-shrink-0 px-2">
+            <div 
+              key={restaurant.id} 
+              className="w-full flex-shrink-0 px-2"
+              onMouseEnter={() => setAutoSlide(false)}
+              onMouseLeave={() => setAutoSlide(true)}
+            >
               <motion.div
                 className="relative h-full bg-gray-800 rounded-xl overflow-hidden shadow-2xl backdrop-blur-md"
                 whileHover={{ scale: 1.02 }}
@@ -134,6 +159,7 @@ export const NearbyRestaurants = () => {
                   src={restaurant.restaurant_image || "/images/golden-lounge.jpeg"}
                   alt={restaurant.name}
                   className="w-full h-full object-cover"
+                  loading="lazy"
                 />
                 <div className="absolute bottom-0 left-0 right-0 p-6 z-20">
                   <h3 className="text-2xl font-bold text-white">{restaurant.name}</h3>
@@ -155,10 +181,15 @@ export const NearbyRestaurants = () => {
         {nearbyRestaurants.map((_, index) => (
           <button
             key={index}
-            onClick={() => setCurrentSlide(index)}
+            onClick={() => {
+              setAutoSlide(false);
+              setCurrentSlide(index);
+              setTimeout(() => setAutoSlide(true), 10000);
+            }}
             className={`h-2 w-2 rounded-full transition-all ${
               index === currentSlide ? "bg-yellow-400 w-6" : "bg-gray-600"
             }`}
+            aria-label={`Go to slide ${index + 1}`}
           />
         ))}
       </div>
