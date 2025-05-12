@@ -142,7 +142,7 @@ export default function Home() {
                   layout // Add layout animation
                 >
                   <motion.img
-                    src={restaurant.restaurant_image || "/images/golden-lounge.jpeg"}
+                    src={restaurant.restaurant_image || "/images/placeholder.jpg"}
                     alt={restaurant.name}
                     className="w-full h-56 object-cover"
                     initial={{ opacity: 0 }}
