@@ -156,7 +156,7 @@ export const NearbyRestaurants = () => {
               >
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent z-10" />
                 <img
-                  src={restaurant.restaurant_image || "/images/golden-lounge.jpeg"}
+                  src={restaurant.restaurant_image || "/images/placeholder.jpg"}
                   alt={restaurant.name}
                   className="w-full h-full object-cover"
                   loading="lazy"
