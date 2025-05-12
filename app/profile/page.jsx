@@ -12,7 +12,6 @@ import EmailMarketing from '../components/structure/EmailMarketing';
 import SubscriptionManager from '../components/structure/hooks/SubscriptionManager';
 import LuxuryAnalyticsDashboard from '../components/Dashboard/Analytics';
 import CopyArea from '../components/structure/CopyArea';
-import { BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie } from 'recharts';
 
 const ProfilePage = () => {
   const [restaurant, setRestaurant] = useState(null);
@@ -200,7 +199,6 @@ const ProfilePage = () => {
       toast.error('Failed to add table');
     } else {
       toast.success('Table added successfully');
-      // Fetch the table with its type information
       const { data: fullTableData } = await supabase
         .from('tables')
         .select('*, table_types(*)')
@@ -885,7 +883,7 @@ const ProfilePage = () => {
                 </div>
                 <div className="flex flex-col sm:flex-row items-center gap-6">
                   <img
-                    src={restaurant?.restaurant_image || '/images/lounge.jpeg'}
+                    src={restaurant?.restaurant_image || '/images/placeholder.jpg'}
                     alt="Restaurant"
                     className="w-32 h-32 rounded-lg object-cover shadow-md"
                   />
