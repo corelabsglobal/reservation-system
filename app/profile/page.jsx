@@ -515,8 +515,6 @@ const ProfilePage = () => {
               <CopyArea restaurantUrl={restaurant?.url}/>
             )}
             <LuxuryAnalyticsDashboard restaurant={restaurant} reservations={reservations}/>
-
-            
           </div>
         )}
 

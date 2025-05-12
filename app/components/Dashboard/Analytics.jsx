@@ -111,16 +111,14 @@ const LuxuryAnalyticsDashboard = ({ restaurant, reservations }) => {
     doc.text(`Total Revenue: GHS ${totalRevenue.toLocaleString()}`, 20, 70);
     doc.text(`Repeat Customers: ${repeatCustomers}`, 20, 80);
     doc.text(`Peak Hour: ${peakHour}`, 20, 90);
-    
-    // Charts would be more complex to add to PDF, but you could add them as images
-    
+        
     doc.save(`${restaurant?.name || 'luxury'}_analytics_${new Date().toISOString().split('T')[0]}.pdf`);
   };
 
   return (
     <div className="space-y-6">
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-2">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
