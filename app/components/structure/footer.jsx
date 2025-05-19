@@ -11,7 +11,7 @@ export const LuxuryFooter = () => {
         {/* Signature Container */}
         <div className="flex flex-col items-center">
           {/* Logo with refined presentation */}
-          <motion.div
+          {/*<motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
@@ -28,7 +28,7 @@ export const LuxuryFooter = () => {
                 quality={100}
               />
             </div>
-          </motion.div>
+          </motion.div>*/}
 
           <motion.div
             initial={{ opacity: 0 }}
@@ -39,10 +39,15 @@ export const LuxuryFooter = () => {
             <div className="text-xs text-gray-600 tracking-widest mb-1">
               © {new Date().getFullYear()}
             </div>
-            <div className="text-xs text-gray-500 tracking-widest">
+            <a
+              href="https://corelabsglobal.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-gray-500 tracking-widest cursor-pointer"
+            >
               <span className="opacity-70">Powered by</span>{' '}
               <span className="text-amber-400/90">CoreLabs Global</span>
-            </div>
+            </a>
           </motion.div>
         </div>
       </div>

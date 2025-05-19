@@ -28,7 +28,7 @@ const LuxuryAnalyticsDashboard = ({ restaurant, reservations }) => {
       monthlyData[month] = (monthlyData[month] || 0) + 1;
 
       // Daily data (for selected month)
-      if (new Date(res.date).getMonth() === date.getMonth()) {
+      if (new Date(res.date).getMonth() === date?.getMonth()) {
         const day = new Date(res.date).getDate();
         dailyData[day] = (dailyData[day] || 0) + 1;
       }
