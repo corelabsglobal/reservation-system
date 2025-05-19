@@ -3,7 +3,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import toast from 'react-hot-toast';
-import { motion } from 'framer-motion';
 import { Download } from "lucide-react";
 import { jsPDF } from "jspdf";
 import Header from '../components/structure/header';
@@ -76,6 +75,25 @@ const ProfilePage = () => {
       toast.success(newSeenStatus ? 'Reservation marked as seen' : 'Reservation unmarked');
     } else {
       toast.error('Failed to update reservation status');
+    }
+  };
+
+  const markAsAttended = async (reservationId) => {
+    const currentReservation = reservations.find(res => res.id === reservationId);
+    const newAttendedStatus = !currentReservation?.attended;
+
+    const { error } = await supabase
+      .from('reservations')
+      .update({ attended: newAttendedStatus })
+      .eq('id', reservationId);
+
+    if (!error) {
+      setReservations(reservations.map(res =>
+        res.id === reservationId ? { ...res, attended: newAttendedStatus } : res
+      ));
+      toast.success(newAttendedStatus ? 'Marked as attended' : 'Unmarked as attended');
+    } else {
+      toast.error('Failed to update attendance status');
     }
   };
   
@@ -751,6 +769,7 @@ const ProfilePage = () => {
                         key={res.id} 
                         res={res} 
                         markAsSeen={markAsSeen}
+                        markAsAttended={markAsAttended}
                         cancelReservation={cancelReservation}
                         highlightCurrent
                       />
