@@ -79,21 +79,39 @@ const ProfilePage = () => {
   };
 
   const markAsAttended = async (reservationId) => {
-    const currentReservation = reservations.find(res => res.id === reservationId);
-    const newAttendedStatus = !currentReservation?.attended;
+    try {
+      // Find the current reservation
+      const currentReservation = reservations.find(res => res.id === reservationId);
+      
+      // Check if the reservation exists
+      if (!currentReservation) {
+        console.error('Reservation not found for ID:', reservationId);
+        toast.error('Reservation not found');
+        return;
+      }
 
-    const { error } = await supabase
-      .from('reservations')
-      .update({ attended: newAttendedStatus })
-      .eq('id', reservationId);
+      const newAttendedStatus = !currentReservation.attended;
 
-    if (!error) {
+      // Perform the Supabase update
+      const { error } = await supabase
+        .from('reservations')
+        .update({ attended: newAttendedStatus })
+        .eq('id', reservationId);
+
+      if (error) {
+        console.error('Supabase update error:', error);
+        throw new Error(error.message || 'Failed to update attendance status in Supabase');
+      }
+
+      // Update local state
       setReservations(reservations.map(res =>
         res.id === reservationId ? { ...res, attended: newAttendedStatus } : res
       ));
       toast.success(newAttendedStatus ? 'Marked as attended' : 'Unmarked as attended');
-    } else {
-      toast.error('Failed to update attendance status');
+    } catch (error) {
+      console.error('Error in markAsAttended:', error);
+      toast.error(error.message || 'Failed to update attendance status');
+      throw error; 
     }
   };
   
@@ -815,6 +833,7 @@ const ProfilePage = () => {
                             <ReservationCard 
                               res={res} 
                               markAsSeen={markAsSeen}
+                              markAsAttended={markAsAttended}
                               cancelReservation={cancelReservation}
                               isPast={isPast}
                             />
@@ -863,6 +882,7 @@ const ProfilePage = () => {
                         key={res.id} 
                         res={res} 
                         markAsSeen={markAsSeen}
+                        markAsAttended={markAsAttended}
                         cancelReservation={cancelReservation}
                       />
                     ))}

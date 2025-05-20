@@ -44,7 +44,8 @@ const ReservationCard = ({ res, markAsSeen, cancelReservation, markAsAttended, h
     try {
       await markAsAttended(res.id);
     } catch (error) {
-      toast.error('Failed to update attendance status');
+      console.error('Error in handleMarkAsAttended:', error);
+      toast.error(error.message || 'Failed to update attendance status');
     }
   };
 
