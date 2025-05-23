@@ -2,8 +2,7 @@
   "crons": [
     {
       "path": "/api/send-thank-you-emails",
-      "schedule": "35 15 * * *",
-      "method": "GET"
+      "schedule": "45 15 * * *"
     }
   ]
 }

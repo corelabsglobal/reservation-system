@@ -20,6 +20,8 @@ const transporter = nodemailer.createTransport({
 });
 
 export default async function handler(req, res) {
+  console.log('Request method:', req.method);
+  
   if (!['GET', 'POST'].includes(req.method)) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
