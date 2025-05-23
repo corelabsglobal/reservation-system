@@ -18,7 +18,7 @@ const transporter = nodemailer.createTransport({
 });
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
+  if (!['GET', 'POST'].includes(req.method)) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
@@ -44,6 +44,11 @@ export default async function handler(req, res) {
     if (error) {
       console.error('Supabase error:', error);
       return res.status(500).json({ error: 'Failed to fetch reservations' });
+    }
+
+    if (!reservations || reservations.length === 0) {
+      console.log('No reservations found for yesterday');
+      return res.status(200).json({ message: 'No reservations to process' });
     }
 
     // Send emails using Nodemailer
