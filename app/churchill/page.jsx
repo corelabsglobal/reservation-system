@@ -33,22 +33,44 @@ function LoadingAnimation() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen">
       <div className="relative w-32 h-32 mb-8">
-        {/* Churchill crown logo animation */}
+        {/* Circular border animation */}
         <div className="absolute inset-0 border-4 border-gold-500 rounded-full animate-pulse"></div>
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
           <svg 
-            className="w-20 h-20 text-gold-500 animate-spin" 
-            viewBox="0 0 24 24" 
+            className="w-20 h-20 text-gold-500 animate-[spin_3s_linear_infinite]" 
+            viewBox="0 0 100 100" 
             fill="none" 
             xmlns="http://www.w3.org/2000/svg"
           >
+            {/* Stylized H */}
             <path 
-              d="M12 2L15 8L21 9L17 14L18 20L12 17L6 20L7 14L3 9L9 8L12 2Z" 
+              d="M30 20 H40 V50 H60 V20 H70 V80 H60 V60 H40 V80 H30 V20 Z" 
               stroke="currentColor" 
-              strokeWidth="2" 
-              strokeLinecap="round" 
-              strokeLinejoin="round"
+              strokeWidth="4" 
+              strokeLinecap="square" 
+              strokeLinejoin="miter"
             />
+            {/* Left diamond */}
+            <path 
+              d="M15 40 L20 35 L25 40 L20 45 Z" 
+              fill="currentColor"
+            />
+            {/* Right diamond */}
+            <path 
+              d="M75 40 L80 35 L85 40 L80 45 Z" 
+              fill="currentColor"
+            />
+            {/* ESTD. 2024 text */}
+            <text 
+              x="50" 
+              y="95" 
+              fontSize="12" 
+              fontFamily="serif" 
+              textAnchor="middle" 
+              fill="currentColor"
+            >
+              ESTD. 2024
+            </text>
           </svg>
         </div>
       </div>
@@ -77,7 +99,42 @@ function PlaceholderScreen() {
             <p className="text-sm text-gray-400 tracking-widest">LOUNGE & BAR</p>
           </div>
           <div className="w-12 h-12 rounded-full bg-gradient-to-br from-gold-500 to-gold-700 flex items-center justify-center">
-            <span className="text-xl font-serif">C</span>
+            <svg 
+              className="w-8 h-8 text-white" 
+              viewBox="0 0 100 100" 
+              fill="none" 
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              {/* Stylized H */}
+              <path 
+                d="M30 20 H40 V50 H60 V20 H70 V80 H60 V60 H40 V80 H30 V20 Z" 
+                stroke="currentColor" 
+                strokeWidth="4" 
+                strokeLinecap="square" 
+                strokeLinejoin="miter"
+              />
+              {/* Left diamond */}
+              <path 
+                d="M15 40 L20 35 L25 40 L20 45 Z" 
+                fill="currentColor"
+              />
+              {/* Right diamond */}
+              <path 
+                d="M75 40 L80 35 L85 40 L80 45 Z" 
+                fill="currentColor"
+              />
+              {/* ESTD. 2024 text */}
+              <text 
+                x="50" 
+                y="95" 
+                fontSize="12" 
+                fontFamily="serif" 
+                textAnchor="middle" 
+                fill="currentColor"
+              >
+                ESTD. 2024
+              </text>
+            </svg>
           </div>
         </div>
       </header>
