@@ -2,7 +2,7 @@ name: Send Thank You Emails
 
 on:
   schedule:
-    - cron: "32 12 * * *"
+    - cron: "35 12 * * *"
   workflow_dispatch:
 
 jobs:
