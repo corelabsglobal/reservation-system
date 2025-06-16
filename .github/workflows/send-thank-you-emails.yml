@@ -12,4 +12,4 @@ jobs:
     steps:
       - name: Call Vercel API endpoint
         run: |
-          curl -L -v -X POST https://danloski.com/api/send-thank-you-emails
+          curl -L -v -X GET https://danloski.com/api/send-thank-you-emails

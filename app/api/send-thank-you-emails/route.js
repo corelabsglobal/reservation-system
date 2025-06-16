@@ -6,62 +6,47 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-// Create reusable transporter object using SMTP transport
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
-  port: process.env.SMTP_PORT,
-  secure: true, // true for 465, false for other ports
+  port: parseInt(process.env.SMTP_PORT),
+  secure: true,
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASSWORD,
   },
 });
 
-export default async function handler(req, res) {
-  // Vercel Cron uses HEAD for the initial check, then GET for execution
-  if (!['HEAD', 'GET', 'POST'].includes(req.method)) {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
-
-  // For HEAD requests (Vercel's cron check), return 200 immediately
-  if (req.method === 'HEAD') {
-    return res.status(200).end();
-  }
-
+export async function GET(request) {
   try {
-    // Get yesterday's date
     const yesterday = format(new Date(new Date().setDate(new Date().getDate() - 1)), 'yyyy-MM-dd');
     console.log(`Processing thank-you emails for ${yesterday}`);
 
-    // Fetch attended reservations from yesterday
     const { data: reservations, error } = await supabase
       .from('reservations')
-      .select(
-        `*,
+      .select(`
+        *,
         restaurants (
           name,
           owner:owner_id (
             email
           )
-        )`
-      )
+        )
+      `)
       .eq('attended', true)
       .eq('date', yesterday);
 
     if (error) {
       console.error('Supabase error:', error);
-      return res.status(500).json({ error: 'Failed to fetch reservations' });
+      return Response.json({ error: 'Failed to fetch reservations' }, { status: 500 });
     }
 
     if (!reservations || reservations.length === 0) {
       console.log('No reservations found for yesterday');
-      return res.status(200).json({ message: 'No reservations to process' });
+      return Response.json({ message: 'No reservations to process' }, { status: 200 });
     }
 
-    console.log(`Found ${reservations.length} reservations to process`);
-
-    // Send emails using Nodemailer
     const emailResults = [];
+
     for (const reservation of reservations) {
       const emailHtml = `
         <!DOCTYPE html>
@@ -235,7 +220,6 @@ export default async function handler(req, res) {
         </body>
         </html>
       `;
-
       const mailOptions = {
         from: `"${reservation.restaurants.name}" <${process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER}>`,
         to: reservation.email,
@@ -254,15 +238,12 @@ export default async function handler(req, res) {
       }
     }
 
-    res.status(200).json({ 
+    return Response.json({
       message: `Processed ${reservations.length} reservations`,
-      results: emailResults
+      results: emailResults,
     });
   } catch (error) {
     console.error('Error sending emails:', error);
-    res.status(500).json({ 
-      error: 'Failed to send emails',
-      details: error.message 
-    });
+    return Response.json({ error: 'Failed to send emails', details: error.message }, { status: 500 });
   }
 }
