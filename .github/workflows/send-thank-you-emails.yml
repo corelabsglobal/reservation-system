@@ -1,0 +1,15 @@
+name: Send Thank You Emails
+
+on:
+  schedule:
+    - cron: "35 12 * * *"
+  workflow_dispatch:
+
+jobs:
+  send_emails:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Call Vercel API endpoint
+        run: |
+          curl -X GET https://danloski.com/api/send-thank-you-emails
