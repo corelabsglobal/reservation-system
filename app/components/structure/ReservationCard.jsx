@@ -1,11 +1,12 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, Eye, EyeOff, X, AlertTriangle, UserCheck } from 'lucide-react';
+import { Check, Eye, EyeOff, X, AlertTriangle, UserCheck, Clock, Calendar, Users, Table } from 'lucide-react';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
 
 const ReservationCard = ({ res, markAsSeen, cancelReservation, markAsAttended, highlightCurrent = false, isPast = false }) => {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [expanded, setExpanded] = useState(false);
 
   const reservationTime = new Date(`${res.date}T${res.time}`);
   const now = new Date();
@@ -19,9 +20,9 @@ const ReservationCard = ({ res, markAsSeen, cancelReservation, markAsAttended, h
   } else if (reservationTime < now) {
     timeStatus = 'Past';
   } else if (hoursDiff > 0) {
-    timeStatus = `In ${hoursDiff}h ${minutesDiff}m`;
+    timeStatus = `${hoursDiff}h ${minutesDiff}m`;
   } else if (minutesDiff > 0) {
-    timeStatus = `In ${minutesDiff}m`;
+    timeStatus = `${minutesDiff}m`;
   } else {
     timeStatus = 'Now';
   }
@@ -49,6 +50,10 @@ const ReservationCard = ({ res, markAsSeen, cancelReservation, markAsAttended, h
     }
   };
 
+  const toggleExpand = () => {
+    setExpanded(!expanded);
+  };
+
   // Status indicator colors
   const statusColors = {
     new: 'bg-blue-500 text-white',
@@ -60,30 +65,30 @@ const ReservationCard = ({ res, markAsSeen, cancelReservation, markAsAttended, h
   };
 
   // Base card classes
-  const cardClasses = `p-6 rounded-xl shadow-xl relative overflow-hidden transition-all duration-300 ${
+  const cardClasses = `p-4 rounded-xl shadow-sm relative overflow-hidden transition-all duration-200 ${
     res.cancelled
-      ? 'bg-gray-800/40 border-l-4 border-red-500/80'
+      ? 'bg-gray-100 border-l-4 border-red-400'
       : !res.seen
-      ? 'border-l-4 border-blue-500 bg-gray-700'
+      ? 'border-l-4 border-blue-400 bg-white'
       : res.attended
-      ? 'border-l-4 border-teal-500 bg-gray-700'
+      ? 'border-l-4 border-teal-400 bg-white'
       : highlightCurrent
-      ? 'bg-gradient-to-r from-green-900/30 to-gray-700 border-l-4 border-green-500'
+      ? 'bg-gradient-to-r from-green-50 to-white border-l-4 border-green-400'
       : isPast
-      ? 'bg-gray-700/40'
-      : 'bg-gray-700'
+      ? 'bg-gray-50'
+      : 'bg-white'
   }`;
 
   // Text color based on status
   const textColor = res.cancelled
-    ? 'text-gray-400'
+    ? 'text-gray-500'
     : !res.seen
-    ? 'text-white'
+    ? 'text-gray-800'
     : highlightCurrent
-    ? 'text-white'
+    ? 'text-gray-800'
     : isPast
-    ? 'text-gray-400'
-    : 'text-white';
+    ? 'text-gray-500'
+    : 'text-gray-800';
 
   return (
     <>
@@ -93,155 +98,207 @@ const ReservationCard = ({ res, markAsSeen, cancelReservation, markAsAttended, h
         transition={{ duration: 0.3 }}
         className={cardClasses}
       >
-        {/* Status badges - top right */}
-        <div className="absolute top-2 right-2 flex flex-wrap gap-2">
-          {!res.seen && !res.cancelled && (
-            <span className={`flex items-center gap-1 ${statusColors.new} text-xs px-2 py-1 rounded-full`}>
-              <Eye className="h-3 w-3" /> New
-            </span>
-          )}
-
-          {res.seen && !res.cancelled && (
-            <span className={`flex items-center gap-1 ${statusColors.seen} text-xs px-2 py-1 rounded-full`}>
-              <Check className="h-3 w-3" /> Viewed
-            </span>
-          )}
-
-          {res.attended && !res.cancelled && (
-            <span className={`flex items-center gap-1 ${statusColors.attended} text-xs px-2 py-1 rounded-full`}>
-              <UserCheck className="h-3 w-3" /> Attended
-            </span>
-          )}
-
-          {res.cancelled && (
-            <span className={`flex items-center gap-1 ${statusColors.cancelled} text-xs px-2 py-1 rounded-full`}>
-              <X className="h-3 w-3" /> Cancelled
-            </span>
-          )}
-
-          {highlightCurrent && !res.cancelled && (
-            <span className={`${statusColors.current} text-xs px-2 py-1 rounded-full`}>{timeStatus}</span>
-          )}
-        </div>
-
-        <div className="flex justify-between items-start gap-4">
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-2">
-              <h3
-                className={`text-xl font-bold ${textColor} ${res.cancelled ? 'line-through' : ''}`}
-              >
-                {res.name}
-                {!res.seen && !res.cancelled && <span className="ml-1 animate-pulse">✨</span>}
-              </h3>
-
-              {!highlightCurrent && !res.cancelled && (
-                <span
-                  className={`text-xs px-2 py-1 rounded-full ${
-                    isPast ? 'bg-gray-700 text-gray-400' : 'bg-yellow-500/20 text-yellow-400'
+        {/* Main content area */}
+        <div className="flex flex-col">
+          {/* Header section */}
+          <div className="flex justify-between items-start gap-2">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <h3
+                  className={`text-lg font-semibold truncate ${textColor} ${
+                    res.cancelled ? 'line-through' : ''
                   }`}
                 >
-                  {timeStatus}
+                  {res.name}
+                  {!res.seen && !res.cancelled && (
+                    <span className="ml-1 text-blue-500 animate-pulse">•</span>
+                  )}
+                </h3>
+              </div>
+              
+              {/* Time status badge */}
+              <div className="mt-1 flex items-center gap-2">
+                {!res.cancelled && (
+                  <span
+                    className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full ${
+                      isPast
+                        ? 'bg-gray-200 text-gray-600'
+                        : highlightCurrent
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-blue-100 text-blue-800'
+                    }`}
+                  >
+                    <Clock className="h-3 w-3" />
+                    {timeStatus}
+                  </span>
+                )}
+                
+                {res.cancelled && (
+                  <span className="inline-flex items-center gap-1 bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">
+                    <X className="h-3 w-3" /> Cancelled
+                  </span>
+                )}
+              </div>
+            </div>
+            
+            {/* Status badges - top right */}
+            <div className="flex flex-col items-end gap-1">
+              {!res.seen && !res.cancelled && (
+                <span className={`inline-flex items-center gap-1 ${statusColors.new} text-xs px-2 py-1 rounded-full`}>
+                  <Eye className="h-3 w-3" /> New
+                </span>
+              )}
+
+              {res.seen && !res.attended && !res.cancelled && (
+                <span className={`inline-flex items-center gap-1 ${statusColors.seen} text-xs px-2 py-1 rounded-full`}>
+                  <Check className="h-3 w-3" /> Viewed
+                </span>
+              )}
+
+              {res.attended && !res.cancelled && (
+                <span className={`inline-flex items-center gap-1 ${statusColors.attended} text-xs px-2 py-1 rounded-full`}>
+                  <UserCheck className="h-3 w-3" /> Attended
                 </span>
               )}
             </div>
+          </div>
 
-            <div className={`grid grid-cols-2 gap-2 mt-2 ${res.cancelled ? 'opacity-80' : ''}`}>
-              <div>
-                <p className="text-sm text-gray-400">Date</p>
-                <p className={textColor}>
-                  {new Date(res.date).toLocaleDateString('en-US', {
-                    weekday: 'short',
-                    month: 'short',
-                    day: 'numeric',
-                  })}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-400">Time</p>
-                <p className={textColor}>{res.time}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-400">Guests</p>
-                <p className={textColor}>{res.people}</p>
-              </div>
-              {res.table_number && (
+          {/* Details section */}
+          <div className={`mt-3 ${res.cancelled ? 'opacity-80' : ''}`}>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="flex items-start gap-2">
+                <Calendar className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
                 <div>
-                  <p className="text-sm text-gray-400">Table</p>
-                  <p className={textColor}>{res.table_number}</p>
+                  <p className="text-xs text-gray-500">Date</p>
+                  <p className={`text-sm ${textColor}`}>
+                    {new Date(res.date).toLocaleDateString('en-US', {
+                      weekday: 'short',
+                      month: 'short',
+                      day: 'numeric',
+                    })}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-start gap-2">
+                <Clock className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="text-xs text-gray-500">Time</p>
+                  <p className={`text-sm ${textColor}`}>{res.time}</p>
+                </div>
+              </div>
+              
+              <div className="flex items-start gap-2">
+                <Users className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="text-xs text-gray-500">Guests</p>
+                  <p className={`text-sm ${textColor}`}>{res.people}</p>
+                </div>
+              </div>
+              
+              {res.table_number && (
+                <div className="flex items-start gap-2">
+                  <Table className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-xs text-gray-500">Table</p>
+                    <p className={`text-sm ${textColor}`}>{res.table_number}</p>
+                  </div>
                 </div>
               )}
             </div>
 
-            {res.special_request && (
-              <div
-                className={`mt-3 pt-3 border-t ${res.cancelled ? 'border-gray-700' : 'border-gray-600'}`}
+            {(res.special_request || res.occassion) && (
+              <button 
+                onClick={toggleExpand}
+                className="mt-3 text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center"
               >
-                <p className="text-sm text-gray-400">Special Request</p>
-                <p className={textColor}>{res.special_request}</p>
-              </div>
+                {expanded ? 'Show less' : 'Show more details'}
+                <motion.span
+                  animate={{ rotate: expanded ? 180 : 0 }}
+                  className="ml-1"
+                >
+                  ▼
+                </motion.span>
+              </button>
             )}
 
-            {res.occassion && (
-              <div className="mt-2">
-                <p className="text-sm text-gray-400">Occasion</p>
-                <p className={textColor}>{res.occassion}</p>
-              </div>
-            )}
+            <AnimatePresence>
+              {expanded && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="overflow-hidden"
+                >
+                  {res.special_request && (
+                    <div className={`mt-3 pt-3 border-t border-gray-200`}>
+                      <p className="text-xs text-gray-500">Special Request</p>
+                      <p className={`text-sm ${textColor} mt-1`}>{res.special_request}</p>
+                    </div>
+                  )}
+
+                  {res.occassion && (
+                    <div className="mt-3">
+                      <p className="text-xs text-gray-500">Occasion</p>
+                      <p className={`text-sm ${textColor} mt-1`}>{res.occassion}</p>
+                    </div>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
-          <div className="flex flex-col gap-2 min-w-[100px]">
-            {!res.cancelled && (
-              <>
-                <button
-                  onClick={() => markAsSeen(res.id)}
-                  className={`flex items-center justify-center gap-1 px-3 py-1 rounded-md text-sm transition-all whitespace-nowrap ${
-                    res.seen
-                      ? 'bg-purple-600/50 hover:bg-purple-600/70 text-purple-100'
-                      : 'bg-blue-600 hover:bg-blue-700 text-white'
-                  }`}
-                >
-                  {res.seen ? (
-                    <>
-                      <EyeOff className="h-4 w-4" /> Unmark
-                    </>
-                  ) : (
-                    <>
-                      <Eye className="h-4 w-4" /> Seen
-                    </>
-                  )}
-                </button>
-                <button
-                  onClick={handleMarkAsAttended}
-                  className={`flex items-center justify-center gap-1 px-3 py-1 rounded-md text-sm transition-all whitespace-nowrap ${
-                    res.attended
-                      ? 'bg-teal-600/50 hover:bg-teal-600/70 text-teal-100'
-                      : 'bg-teal-600 hover:bg-teal-700 text-white'
-                  }`}
-                >
-                  {res.attended ? (
-                    <>
-                      <UserCheck className="h-4 w-4" /> Unmark
-                    </>
-                  ) : (
-                    <>
-                      <UserCheck className="h-4 w-4" /> Attended
-                    </>
-                  )}
-                </button>
-                <button
-                  onClick={handleCancelClick}
-                  className="flex items-center justify-center gap-1 px-3 py-1 bg-red-500/90 hover:bg-red-600 text-white rounded-md text-sm transition-all"
-                >
-                  <X className="h-4 w-4" /> Cancel
-                </button>
-              </>
-            )}
-          </div>
+          {/* Action buttons */}
+          {!res.cancelled && (
+            <div className="mt-4 flex flex-wrap gap-2">
+              <button
+                onClick={() => markAsSeen(res.id)}
+                className={`flex-1 min-w-[120px] flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-sm transition-all ${
+                  res.seen
+                    ? 'bg-purple-100 hover:bg-purple-200 text-purple-800'
+                    : 'bg-blue-100 hover:bg-blue-200 text-blue-800'
+                }`}
+              >
+                {res.seen ? (
+                  <>
+                    <EyeOff className="h-4 w-4" /> Unmark
+                  </>
+                ) : (
+                  <>
+                    <Eye className="h-4 w-4" /> Seen
+                  </>
+                )}
+              </button>
+              
+              <button
+                onClick={handleMarkAsAttended}
+                className={`flex-1 min-w-[120px] flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-sm transition-all ${
+                  res.attended
+                    ? 'bg-teal-100 hover:bg-teal-200 text-teal-800'
+                    : 'bg-teal-100 hover:bg-teal-200 text-teal-800'
+                }`}
+              >
+                {res.attended ? (
+                  <>
+                    <UserCheck className="h-4 w-4" /> Unmark
+                  </>
+                ) : (
+                  <>
+                    <UserCheck className="h-4 w-4" /> Attended
+                  </>
+                )}
+              </button>
+              
+              <button
+                onClick={handleCancelClick}
+                className="flex-1 min-w-[120px] flex items-center justify-center gap-1 px-3 py-2 bg-red-100 hover:bg-red-200 text-red-800 rounded-lg text-sm transition-all"
+              >
+                <X className="h-4 w-4" /> Cancel
+              </button>
+            </div>
+          )}
         </div>
-
-        {res.cancelled && (
-          <div className="absolute inset-0 bg-gradient-to-br from-transparent to-gray-900/50 rounded-xl pointer-events-none" />
-        )}
       </motion.div>
 
       {/* Confirmation Modal */}
@@ -251,23 +308,23 @@ const ReservationCard = ({ res, markAsSeen, cancelReservation, markAsAttended, h
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+            className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4 z-50"
             onClick={() => setShowConfirmModal(false)}
           >
             <motion.div
-              initial={{ scale: 0.9, y: 20 }}
+              initial={{ scale: 0.95, y: 10 }}
               animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.9, y: 20 }}
-              className="bg-gray-800 rounded-xl p-6 max-w-md w-full shadow-2xl border border-gray-700"
+              exit={{ scale: 0.95, y: 10 }}
+              className="bg-white rounded-xl p-6 max-w-md w-full shadow-lg border border-gray-200"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-start gap-3 mb-4">
-                <div className="p-2 bg-red-500/20 rounded-full">
-                  <AlertTriangle className="h-6 w-6 text-red-400" />
+                <div className="p-2 bg-red-100 rounded-full">
+                  <AlertTriangle className="h-5 w-5 text-red-500" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-white">Confirm Cancellation</h3>
-                  <p className="text-gray-400 mt-1">
+                  <h3 className="text-lg font-semibold text-gray-800">Confirm Cancellation</h3>
+                  <p className="text-gray-600 mt-1 text-sm">
                     Are you sure you want to cancel this reservation for {res.name}?
                   </p>
                 </div>
@@ -275,14 +332,21 @@ const ReservationCard = ({ res, markAsSeen, cancelReservation, markAsAttended, h
 
               <div className="flex flex-col sm:flex-row gap-3 mt-6">
                 <button
+                  onClick={() => setShowConfirmModal(false)}
+                  disabled={isCancelling}
+                  className="flex-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg transition-colors text-sm font-medium"
+                >
+                  Go Back
+                </button>
+                <button
                   onClick={handleConfirmCancel}
                   disabled={isCancelling}
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors disabled:opacity-70"
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors disabled:opacity-70 text-sm font-medium"
                 >
                   {isCancelling ? (
                     <>
                       <svg
-                        className="animate-spin h-5 w-5 text-white"
+                        className="animate-spin h-4 w-4 text-white"
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
                         viewBox="0 0 24 24"
@@ -305,16 +369,9 @@ const ReservationCard = ({ res, markAsSeen, cancelReservation, markAsAttended, h
                     </>
                   ) : (
                     <>
-                      <X className="h-5 w-5" /> Yes, Cancel
+                      <X className="h-4 w-4" /> Cancel Reservation
                     </>
                   )}
-                </button>
-                <button
-                  onClick={() => setShowConfirmModal(false)}
-                  disabled={isCancelling}
-                  className="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
-                >
-                  Go Back
                 </button>
               </div>
             </motion.div>
