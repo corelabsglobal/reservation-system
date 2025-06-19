@@ -9,12 +9,14 @@ import Header from "./components/structure/header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Search, User } from "lucide-react";
 import { NearbyRestaurants } from "./components/HomePage/NearbyRestaurants";
+import { usePreviousDayReservationCheck, RatingModal } from "./components/HomePage/RatingModal";
 
 export default function Home() {
   const [search, setSearch] = useState("");
   const [restaurants, setRestaurants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const ratingModal = usePreviousDayReservationCheck();
   const router = useRouter();
 
   useEffect(() => {
@@ -186,6 +188,15 @@ export default function Home() {
               </motion.div>
             )}
           </div>
+        )}
+
+        {ratingModal.showRatingModal && (
+          <RatingModal
+            reservation={ratingModal.reservationToRate}
+            restaurant={ratingModal.restaurant}
+            onClose={ratingModal.onClose}
+            onSubmit={ratingModal.onSubmitRating}
+          />
         )}
 
         {showModal && (
