@@ -10,6 +10,7 @@ import ReservationCard from '../components/structure/ReservationCard';
 import EmailMarketing from '../components/structure/EmailMarketing';
 import SubscriptionManager from '../components/structure/hooks/SubscriptionManager';
 import LuxuryAnalyticsDashboard from '../components/Dashboard/Analytics';
+import CustomerSpendAnalytics from '../components/Dashboard/CustomerSpendAnalytics';
 import CopyArea from '../components/structure/CopyArea';
 
 const ProfilePage = () => {
@@ -528,7 +529,7 @@ const ProfilePage = () => {
       <div className="relative z-10 w-full max-w-5xl text-white">
         {/* Navbar */}
         <nav className="flex flex-wrap justify-center gap-2 mb-8">
-          {['overview', 'customers', 'reservations', 'manage'].map((tab) => (
+          {['overview', 'customers', 'insights', 'reservations', 'manage'].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -679,6 +680,14 @@ const ProfilePage = () => {
               </div>
             </div>
             <EmailMarketing restaurantId={restaurant?.id} name={restaurant?.name} />
+          </div>
+        )}
+
+        {/* Insights Tab */}
+        {activeTab === 'insights' && (
+          <div className="mb-6 p-6 shadow-2xl bg-gray-800/90 backdrop-blur-md rounded-xl">
+            <h2 className="text-2xl font-semibold mb-6 text-gray-100">Customer Spend Analytics</h2>
+            <CustomerSpendAnalytics restaurant={restaurant} reservations={reservations} />
           </div>
         )}
 
