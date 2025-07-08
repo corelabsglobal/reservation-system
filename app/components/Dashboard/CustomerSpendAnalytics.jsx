@@ -1,11 +1,9 @@
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
-import { supabase } from '@/lib/supabaseClient';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { Download } from "lucide-react";
+import { Download, Search } from "lucide-react";
 import { jsPDF } from "jspdf";
-import toast from 'react-hot-toast';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D'];
 
@@ -14,6 +12,9 @@ const CustomerSpendAnalytics = ({ restaurant, reservations }) => {
   const [timeFrame, setTimeFrame] = useState('month');
   const [customerDetails, setCustomerDetails] = useState(null);
   const [spendData, setSpendData] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const rowsPerPage = 5;
 
   // Process reservations to get spend analytics
   useEffect(() => {
@@ -100,6 +101,23 @@ const CustomerSpendAnalytics = ({ restaurant, reservations }) => {
 
     setLoading(false);
   }, [reservations, restaurant]);
+
+  // Filter customers based on search query
+  const filteredCustomers = useMemo(() => {
+    if (!customerDetails) return [];
+    return customerDetails.filter(customer => 
+      customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      customer.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      customer.phone.includes(searchQuery)
+    )
+  }, [customerDetails, searchQuery]);
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredCustomers.length / rowsPerPage);
+  const paginatedCustomers = useMemo(() => {
+    const startIndex = (currentPage - 1) * rowsPerPage;
+    return filteredCustomers.slice(startIndex, startIndex + rowsPerPage);
+  }, [filteredCustomers, currentPage]);
 
   const generateSpendReport = () => {
     if (!customerDetails || !restaurant) return;
@@ -317,9 +335,43 @@ const CustomerSpendAnalytics = ({ restaurant, reservations }) => {
         </div>
       </div>
 
-      {/* Customer Spend Details */}
+      {/* Customer Spend Details with Search and Pagination */}
       <div className="bg-gray-700/50 p-4 rounded-lg">
-        <h3 className="text-lg font-semibold mb-4">Customer Spend Details</h3>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
+          <h3 className="text-lg font-semibold">Customer Spend Details</h3>
+          
+          {/* Search Input */}
+          <div className="relative w-full sm:w-64">
+            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+              <Search className="h-5 w-5 text-gray-400" />
+            </div>
+            <input
+              type="text"
+              placeholder="Search customers..."
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1); // Reset to first page when searching
+              }}
+              className="w-full pl-10 pr-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 text-white"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-white"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Results Count */}
+        <div className="text-sm text-gray-400 mb-4">
+          Showing {paginatedCustomers.length} of {filteredCustomers.length} customers
+        </div>
+
+        {/* Customer Table */}
         <div className="overflow-x-auto">
           <table className="w-full min-w-[800px]">
             <thead>
@@ -333,26 +385,59 @@ const CustomerSpendAnalytics = ({ restaurant, reservations }) => {
               </tr>
             </thead>
             <tbody>
-              {customerDetails.map((customer) => (
-                <tr key={customer.email} className="border-b border-gray-700 hover:bg-gray-700/50">
-                  <td className="px-4 py-3">
-                    <div className="font-medium">{customer.name}</div>
-                    <div className="text-xs text-gray-400">{customer.email}</div>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div>{customer.phone}</div>
-                  </td>
-                  <td className="px-4 py-3">{customer.visits}</td>
-                  <td className="px-4 py-3 text-yellow-400">GHS {customer.totalSpend.toFixed(2)}</td>
-                  <td className="px-4 py-3">GHS {(customer.totalSpend / customer.visits).toFixed(2)}</td>
-                  <td className="px-4 py-3">
-                    {customer.lastVisit && new Date(customer.lastVisit).toLocaleDateString()}
+              {paginatedCustomers.length > 0 ? (
+                paginatedCustomers.map((customer) => (
+                  <tr key={customer.email} className="border-b border-gray-700 hover:bg-gray-700/50">
+                    <td className="px-4 py-3">
+                      <div className="font-medium">{customer.name}</div>
+                      <div className="text-xs text-gray-400">{customer.email}</div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div>{customer.phone}</div>
+                    </td>
+                    <td className="px-4 py-3">{customer.visits}</td>
+                    <td className="px-4 py-3 text-yellow-400">GHS {customer.totalSpend.toFixed(2)}</td>
+                    <td className="px-4 py-3">GHS {(customer.totalSpend / customer.visits).toFixed(2)}</td>
+                    <td className="px-4 py-3">
+                      {customer.lastVisit && new Date(customer.lastVisit).toLocaleDateString()}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="6" className="px-4 py-6 text-center text-gray-400">
+                    No customers found matching your search
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>
+
+        {/* Pagination Controls */}
+        {filteredCustomers.length > rowsPerPage && (
+          <div className="flex flex-col sm:flex-row justify-between items-center mt-4 gap-4">
+            <div className="text-sm text-gray-400">
+              Page {currentPage} of {totalPages}
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className={`px-4 py-2 rounded-md ${currentPage === 1 ? 'bg-gray-700 text-gray-500 cursor-not-allowed' : 'bg-gray-700 hover:bg-gray-600'}`}
+              >
+                Previous
+              </button>
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className={`px-4 py-2 rounded-md ${currentPage === totalPages ? 'bg-gray-700 text-gray-500 cursor-not-allowed' : 'bg-gray-700 hover:bg-gray-600'}`}
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
