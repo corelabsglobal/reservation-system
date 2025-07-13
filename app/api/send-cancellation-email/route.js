@@ -178,7 +178,7 @@ export async function POST(request) {
     `;
 
     const mailOptions = {
-      from: `Danloski Reservations <${process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER}>`,
+      from: `"${reservation.restaurants?.name || 'Restaurant'}" <${process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER}>`,
       to: reservation.user_email,
       subject: `Cancellation: Reservation at ${reservation.restaurants?.name || ''}`,
       html: emailHtml,
