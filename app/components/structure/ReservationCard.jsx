@@ -28,7 +28,14 @@ const ReservationCard = ({ res, markAsSeen, cancelReservation, markAsAttended, h
   }
 
   const handleCancelClick = () => {
-    setShowConfirmModal(true);
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+
+    setTimeout(() => {
+      setShowConfirmModal(true);
+    }, 300);
   };
 
   const handleConfirmCancel = async () => {
