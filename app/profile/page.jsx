@@ -326,18 +326,70 @@ const ProfilePage = () => {
   };
 
   const cancelReservation = async (id) => {
-    const { error } = await supabase
-      .from('reservations')
-      .update({ cancelled: true })
-      .eq('id', id);
-    
-    if (!error) {
+    try {
+      const { data: reservation, error: fetchError } = await supabase
+        .from('reservations')
+        .select(`
+          *,
+          restaurants (
+            name,
+            email,
+            phone,
+            address
+          ),
+          users (
+            name,
+            email
+          )
+        `)
+        .eq('id', id)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      // Now cancel the reservation
+      const { error } = await supabase
+        .from('reservations')
+        .update({ cancelled: true })
+        .eq('id', id);
+      
+      if (error) throw error;
+
+      // Send cancellation email
+      try {
+        const response = await fetch('/api/send-cancellation-email', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            reservation: {
+              ...reservation,
+              user_name: reservation.users?.name || reservation.name,
+              user_email: reservation.users?.email || reservation.email,
+              restaurant_name: reservation.restaurants?.name,
+              restaurant_email: reservation.restaurants?.email,
+              restaurant_phone: reservation.restaurants?.phone,
+              restaurant_address: reservation.restaurants?.address
+            }
+          }),
+        });
+
+        if (!response.ok) {
+          console.error('Failed to send cancellation email');
+        }
+      } catch (emailError) {
+        console.error('Error sending cancellation email:', emailError);
+      }
+
+      // Update local state
       setReservations(reservations.map(res => 
         res.id === id ? { ...res, cancelled: true } : res
       ));
       toast.success('Reservation cancelled');
-    } else {
-      toast.error('Failed to cancel reservation');
+    } catch (error) {
+      console.error('Failed to cancel reservation:', error);
+      toast.error(error.message || 'Failed to cancel reservation');
     }
   };
 
