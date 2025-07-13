@@ -336,9 +336,12 @@ const ProfilePage = () => {
           *,
           restaurants (
             name,
-            email,
             phone,
-            address
+            address,
+            owner:owner_id (
+              email,
+              name
+            )
           ),
           users (
             name,
@@ -373,7 +376,7 @@ const ProfilePage = () => {
           user_name: reservation.users?.name || reservation.name,
           user_email: reservation.users?.email || reservation.email,
           restaurant_name: reservation.restaurants?.name,
-          restaurant_email: reservation.restaurants?.email,
+          restaurant_email: reservation.restaurants?.owner?.email,
           restaurant_phone: reservation.restaurants?.phone,
           restaurant_address: reservation.restaurants?.address
         }
