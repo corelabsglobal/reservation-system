@@ -28,14 +28,7 @@ const ReservationCard = ({ res, markAsSeen, cancelReservation, markAsAttended, h
   }
 
   const handleCancelClick = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth'
-    });
-
-    setTimeout(() => {
-      setShowConfirmModal(true);
-    }, 300);
+    setShowConfirmModal(true);
   };
 
   const handleConfirmCancel = async () => {
@@ -315,14 +308,22 @@ const ReservationCard = ({ res, markAsSeen, cancelReservation, markAsAttended, h
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+            className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto"
             onClick={() => setShowConfirmModal(false)}
           >
             <motion.div
-              initial={{ scale: 0.95, y: 10 }}
+              initial={{ scale: 0.95, y: 20 }}
               animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.95, y: 10 }}
-              className="bg-white rounded-xl p-6 max-w-md w-full shadow-lg border border-gray-200"
+              exit={{ scale: 0.95, y: 20 }}
+              className="bg-white rounded-xl p-6 max-w-md w-full shadow-lg border border-gray-200 mx-auto my-8"
+              style={{
+                position: 'fixed',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                maxHeight: '90vh',
+                overflowY: 'auto'
+              }}
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-start gap-3 mb-4">
