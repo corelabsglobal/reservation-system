@@ -2,6 +2,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Check, Eye, EyeOff, X, AlertTriangle, UserCheck, Clock, Calendar, Users, Table } from 'lucide-react';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 const ReservationCard = ({ res, markAsSeen, cancelReservation, markAsAttended, highlightCurrent = false, isPast = false }) => {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -28,14 +36,7 @@ const ReservationCard = ({ res, markAsSeen, cancelReservation, markAsAttended, h
   }
 
   const handleCancelClick = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth'
-    });
-
-    setTimeout(() => {
-      setShowConfirmModal(true);
-    }, 300);
+    setShowConfirmModal(true);
   };
 
   const handleConfirmCancel = async () => {
@@ -308,83 +309,67 @@ const ReservationCard = ({ res, markAsSeen, cancelReservation, markAsAttended, h
         </div>
       </motion.div>
 
-      {/* Confirmation Modal */}
-      <AnimatePresence>
-        {showConfirmModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4 z-50"
-            onClick={() => setShowConfirmModal(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.95, y: 10 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.95, y: 10 }}
-              className="bg-white rounded-xl p-6 max-w-md w-full shadow-lg border border-gray-200"
-              onClick={(e) => e.stopPropagation()}
+      <Dialog open={showConfirmModal} onOpenChange={setShowConfirmModal}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <div className="flex items-start gap-3">
+              <div className="p-2 bg-red-100 rounded-full">
+                <AlertTriangle className="h-5 w-5 text-red-500" />
+              </div>
+              <div>
+                <DialogTitle>Confirm Cancellation</DialogTitle>
+                <DialogDescription>
+                  Are you sure you want to cancel this reservation for {res.name}?
+                </DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
+          <div className="flex flex-col sm:flex-row gap-3 mt-6">
+            <Button
+              variant="outline"
+              onClick={() => setShowConfirmModal(false)}
+              disabled={isCancelling}
             >
-              <div className="flex items-start gap-3 mb-4">
-                <div className="p-2 bg-red-100 rounded-full">
-                  <AlertTriangle className="h-5 w-5 text-red-500" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-800">Confirm Cancellation</h3>
-                  <p className="text-gray-600 mt-1 text-sm">
-                    Are you sure you want to cancel this reservation for {res.name}?
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-3 mt-6">
-                <button
-                  onClick={() => setShowConfirmModal(false)}
-                  disabled={isCancelling}
-                  className="flex-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg transition-colors text-sm font-medium"
-                >
-                  Go Back
-                </button>
-                <button
-                  onClick={handleConfirmCancel}
-                  disabled={isCancelling}
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors disabled:opacity-70 text-sm font-medium"
-                >
-                  {isCancelling ? (
-                    <>
-                      <svg
-                        className="animate-spin h-4 w-4 text-white"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        ></circle>
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
-                      </svg>
-                      Cancelling...
-                    </>
-                  ) : (
-                    <>
-                      <X className="h-4 w-4" /> Cancel Reservation
-                    </>
-                  )}
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+              Go Back
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleConfirmCancel}
+              disabled={isCancelling}
+            >
+              {isCancelling ? (
+                <>
+                  <svg
+                    className="animate-spin h-4 w-4 text-white mr-2"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  Cancelling...
+                </>
+              ) : (
+                <>
+                  <X className="h-4 w-4 mr-2" /> Cancel Reservation
+                </>
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
