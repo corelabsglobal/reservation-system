@@ -337,7 +337,6 @@ const ProfilePage = () => {
           restaurants (
             name,
             phone,
-            address,
             owner:owner_id (
               email,
               name

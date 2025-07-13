@@ -163,7 +163,6 @@ export async function POST(request) {
             
             <div class="restaurant-info">
               <p><strong>${reservation.restaurants?.name || ''}</strong></p>
-              ${reservation.restaurants?.address ? `<p>${reservation.restaurants.address}</p>` : ''}
               ${reservation.restaurants?.phone ? `<p>Phone: ${reservation.restaurants.phone}</p>` : ''}
               ${reservation.restaurants?.email ? `<p>Email: ${reservation.restaurants.email}</p>` : ''}
             </div>
