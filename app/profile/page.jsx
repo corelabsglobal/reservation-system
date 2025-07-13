@@ -372,8 +372,8 @@ const ProfilePage = () => {
       const emailData = {
         reservation: {
           ...reservation,
-          user_name: reservation.users?.name || reservation.name,
-          user_email: reservation.users?.email || reservation.email,
+          user_name: reservation.name,
+          user_email: reservation.email,
           restaurant_name: reservation.restaurants?.name,
           restaurant_email: reservation.restaurants?.owner?.email,
           restaurant_phone: reservation.restaurants?.phone,
