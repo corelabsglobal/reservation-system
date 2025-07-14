@@ -1,12 +1,11 @@
 'use client';
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose } from "@/components/ui/dialog";
 import toast, { Toaster } from "react-hot-toast";
 import Header from "@/app/components/structure/header";
-import { useRouter } from "next/navigation";
 import OccasionDetails from "@/app/components/restaurants/OccassionDetails";
 import emailjs from '@emailjs/browser';
 import dynamic from "next/dynamic";
@@ -26,7 +25,7 @@ export default function RestaurantPage() {
   const [availableTables, setAvailableTables] = useState([]);
   const [selectedTable, setSelectedTable] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0]);
+  //const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0]);
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [userId, setUserId] = useState(null);
@@ -42,6 +41,18 @@ export default function RestaurantPage() {
   const [paymentInitialized, setPaymentInitialized] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const [selectedDate, setSelectedDate] = useState(() => {
+    const urlDate = searchParams.get('date');
+    if (urlDate) {
+      // Validate the date format (YYYY-MM-DD)
+      if (/^\d{4}-\d{2}-\d{2}$/.test(urlDate)) {
+        return urlDate;
+      }
+    }
+    // Fall back to current date if no valid date in URL
+    return new Date().toISOString().split("T")[0];
+  });
 
   const timeSlots = ["10:00", "12:00", "14:00", "16:00", "18:00", "20:00", "22:00"];
 
