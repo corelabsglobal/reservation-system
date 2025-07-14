@@ -23,6 +23,7 @@ const EmailMarketing = ({ restaurantId, name }) => {
   const [publicKey, setPublicKey] = useState('');
   const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [selectedDate, setSelectedDate] = useState('');
   const [emailStats, setEmailStats] = useState({
     sent: 0,
     delivered: 0,
@@ -233,6 +234,11 @@ const EmailMarketing = ({ restaurantId, name }) => {
       return;
     }
 
+    if (!selectedDate) {
+      toast.error('Please select a reservation date');
+      return;
+    }
+
     setIsSending(true);
 
     try {
@@ -268,7 +274,8 @@ const EmailMarketing = ({ restaurantId, name }) => {
             subject: emailContent.subject,
             message: emailContent.body,
             restaurant_name: name,
-            restaurant_id: restaurantId
+            restaurant_id: restaurantId,
+            reservation_date: selectedDate 
           };
 
           // Send email
@@ -435,6 +442,22 @@ const EmailMarketing = ({ restaurantId, name }) => {
               onChange={(e) => setEmailContent({ ...emailContent, subject: e.target.value })}
               className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
               placeholder="Announcing our new seasonal menu!"
+            />
+          </div>
+
+          {/* Date Selection */}
+          <div>
+            <label htmlFor="reservationDate" className="block text-sm font-medium text-gray-300 mb-1">
+              Reservation Date *
+            </label>
+            <input
+              type="date"
+              id="reservationDate"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              min={new Date().toISOString().split('T')[0]}
+              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              required
             />
           </div>
 
