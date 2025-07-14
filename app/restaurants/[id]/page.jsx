@@ -56,6 +56,19 @@ export default function RestaurantPage() {
 
   const timeSlots = ["10:00", "12:00", "14:00", "16:00", "18:00", "20:00", "22:00"];
 
+  const isTimeSlotPassed = (slot, date) => {
+    if (date !== new Date().toISOString().split("T")[0]) {
+      return false;
+    }
+    
+    const now = new Date();
+    const [hours, minutes] = slot.split(':').map(Number);
+    const slotTime = new Date();
+    slotTime.setHours(hours, minutes, 0, 0);
+    
+    return now > slotTime;
+  };
+
   useEffect(() => {
     async function fetchUser() {
       try {
@@ -157,6 +170,9 @@ export default function RestaurantPage() {
         });
 
         const filteredSlots = timeSlots.filter(slot => {
+          if (isTimeSlotPassed(slot, selectedDate)) {
+            return false;
+          }
           const reservationsForSlot = reservations.filter(r => r.time === slot);
           const bookedTablesForSlot = new Set(reservationsForSlot.map(r => r.table_id));
           
