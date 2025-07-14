@@ -387,7 +387,7 @@ export default function RestaurantPage() {
       if (dbError) throw new Error(`Database error: ${dbError.message}`);
   
       // 2. Send emails with EmailJS
-      const dashboardLink = 'http://reservation-wheat.vercel.app/profile';
+      const dashboardLink = 'https://danloski.com/profile';
       
       // Restaurant email template parameters
       const restaurantEmailParams = {

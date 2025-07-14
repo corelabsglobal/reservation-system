@@ -6,7 +6,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 export async function POST(request) {
   try {
     const { reservationData, restaurantEmail, customerEmail, restaurantName } = await request.json();
-    const dashboardLink = `http://reservation-wheat.vercel.app/profile`;
+    const dashboardLink = `https://danloski.com/profile`;
 
     // Email to restaurant
     await resend.emails.send({
