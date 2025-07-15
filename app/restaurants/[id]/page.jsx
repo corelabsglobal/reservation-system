@@ -364,6 +364,18 @@ export default function RestaurantPage() {
       if (!ownerData?.email || !email) {
         throw new Error('Missing required email addresses');
       }
+
+      let tableTypeName = "Not specified";
+      if (!fallbackMode && selectedTable) {
+        // Find the selected table
+        const table = allTables.find(t => t.id === selectedTable);
+        if (table) {
+          const tableType = tableTypes.find(t => t.id === table.table_type_id);
+          if (tableType) {
+            tableTypeName = tableType.name;
+          }
+        }
+      }
   
       // Prepare reservation data
       const reservationData = {
@@ -407,7 +419,8 @@ export default function RestaurantPage() {
         occasion: occasionDetails?.occasion || 'None specified',
         special_request: occasionDetails?.specialRequest || 'None',
         dashboard_link: dashboardLink,
-        current_year: new Date().getFullYear().toString()
+        current_year: new Date().getFullYear().toString(),
+        table_type: tableTypeName
       };
   
       // Customer email template parameters
@@ -428,6 +441,7 @@ export default function RestaurantPage() {
         party_size: (partySize).toString(),
         occasion: occasionDetails?.occasion || 'None specified',
         current_year: new Date().getFullYear().toString(),
+        table_type: tableTypeName
       };
   
       console.log('Sending emails with params:', { restaurantEmailParams, customerEmailParams });
