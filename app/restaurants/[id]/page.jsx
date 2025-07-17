@@ -25,7 +25,6 @@ export default function RestaurantPage() {
   const [availableTables, setAvailableTables] = useState([]);
   const [selectedTable, setSelectedTable] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
-  //const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0]);
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [userId, setUserId] = useState(null);
@@ -42,6 +41,7 @@ export default function RestaurantPage() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [bookingCostTiers, setBookingCostTiers] = useState([]);
   const [selectedDate, setSelectedDate] = useState(() => {
     const urlDate = searchParams.get('date');
     if (urlDate) {
@@ -113,9 +113,7 @@ export default function RestaurantPage() {
         setRestaurant(restaurantData);
         const actualRestaurantId = restaurantData.id;
 
-        if (restaurantData.booking_cost) {
-          setBookingCost(restaurantData.booking_cost);
-        }
+        setBookingCost(getBookingCost(partySize));
 
         // Fetch table types and their tables using the actual restaurant ID
         const { data: tableData, error: tableError } = await supabase
@@ -243,6 +241,37 @@ export default function RestaurantPage() {
     }
   };
 
+  useEffect(() => {
+    const fetchBookingCostTiers = async () => {
+      if (!restaurant) return;
+      
+      const { data, error } = await supabase
+        .from('booking_cost_tiers')
+        .select('*')
+        .eq('restaurant_id', restaurant.id)
+        .order('min_people', { ascending: true });
+      
+      if (!error) setBookingCostTiers(data);
+    };
+    
+    if (restaurant) fetchBookingCostTiers();
+  }, [restaurant]);
+
+  // Function to determine booking cost based on party size
+  const getBookingCost = (people) => {
+    // If no tiers exist, fall back to the restaurant's booking_cost
+    if (bookingCostTiers.length === 0) {
+      return restaurant?.booking_cost || 0;
+    }
+
+    // Find the first tier where min_people <= partySize <= max_people
+    const matchingTier = bookingCostTiers.find(tier => 
+      people >= tier.min_people && people <= tier.max_people
+    );
+
+    return matchingTier?.cost || 0;
+  };
+
   const paystackConfig = {
     reference: new Date().getTime().toString(),
     email: email || "kbtechnologies2@gmail.com",
@@ -250,7 +279,7 @@ export default function RestaurantPage() {
     publicKey: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
     currency: "GHS",
     metadata: {
-      restaurant_id: restaurant?.id, // Use the actual restaurant ID from state
+      restaurant_id: restaurant?.id,
       user_id: userId,
     },
   };
@@ -284,6 +313,7 @@ export default function RestaurantPage() {
   const handlePartySizeChange = (e) => {
     const size = parseInt(e.target.value);
     setPartySize(size);
+    setBookingCost(getBookingCost(size));
     if (selectedSlot) {
       fetchAvailableTablesForSlot(selectedSlot);
     }
@@ -391,6 +421,7 @@ export default function RestaurantPage() {
         number: occasionDetails?.number || '',
         people: partySize,
         paid: bookingCost > 0,
+        booking_cost: bookingCost,
         table_id: !fallbackMode ? selectedTable : null
       };
   
@@ -645,7 +676,12 @@ export default function RestaurantPage() {
                     {bookingCost > 0 && !paymentSuccess && (
                       <div>
                         <p className="text-yellow-400 mb-2">
-                          A booking fee of {bookingCost} GHS is required.
+                          Booking fee: <span className="font-bold">{bookingCost} GHS</span> 
+                          {bookingCostTiers.length > 0 && (
+                            <span className="text-sm text-gray-400 ml-2">
+                              (for {partySize} {partySize === 1 ? 'person' : 'people'})
+                            </span>
+                          )}
                         </p>
                         {showPaystack && (
                           <div className="relative z-50">
