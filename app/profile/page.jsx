@@ -12,6 +12,7 @@ import SubscriptionManager from '../components/structure/hooks/SubscriptionManag
 import LuxuryAnalyticsDashboard from '../components/Dashboard/Analytics';
 import CustomerSpendAnalytics from '../components/Dashboard/CustomerSpendAnalytics';
 import CopyArea from '../components/structure/CopyArea';
+import ClosureDaysManager from '../components/structure/ClosureDaysManager';
 
 const ProfilePage = () => {
   const [restaurant, setRestaurant] = useState(null);
@@ -1286,6 +1287,8 @@ const ProfilePage = () => {
                   </div>
                 </div>
               </div>
+
+              <ClosureDaysManager restaurant={restaurant} />
 
               {/* Set Booking Cost Section */}
               <div className="bg-gray-700/50 p-6 rounded-lg shadow-lg">
