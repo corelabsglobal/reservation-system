@@ -42,6 +42,7 @@ export default function RestaurantPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [bookingCostTiers, setBookingCostTiers] = useState([]);
+  const [closureDays, setClosureDays] = useState([]);
   const [selectedDate, setSelectedDate] = useState(() => {
     const urlDate = searchParams.get('date');
     if (urlDate) {
@@ -242,6 +243,63 @@ export default function RestaurantPage() {
   };
 
   useEffect(() => {
+    const fetchClosureDays = async () => {
+      if (!restaurant?.id) return;
+      
+      const { data, error } = await supabase
+        .from('restaurant_closures')
+        .select('*')
+        .eq('restaurant_id', restaurant.id);
+
+      if (!error) {
+        setClosureDays(data);
+      }
+    };
+
+    fetchClosureDays();
+  }, [restaurant]);
+
+  const isDateClosed = (date) => {
+    const dateObj = new Date(date);
+    const dayOfWeek = dateObj.getDay();
+    
+    return closureDays.some(closure => {
+      // Check for specific date closures
+      if (!closure.is_recurring && closure.date === date) {
+        return true;
+      }
+      // Check for recurring day closures
+      if (closure.is_recurring && closure.day_of_week === dayOfWeek) {
+        return true;
+      }
+      return false;
+    });
+  };
+
+  useEffect(() => {
+    if (selectedDate && isDateClosed(selectedDate)) {
+      toast.error("The restaurant is closed on this day");
+      // Find the next available date
+      let nextDate = new Date(selectedDate);
+      let attempts = 0;
+      const maxAttempts = 30; // Prevent infinite loops
+      
+      while (attempts < maxAttempts) {
+        nextDate.setDate(nextDate.getDate() + 1);
+        const nextDateStr = nextDate.toISOString().split("T")[0];
+        if (!isDateClosed(nextDateStr)) {
+          setSelectedDate(nextDateStr);
+          return;
+        }
+        attempts++;
+      }
+      
+      // If no available date found in the next 30 days, just keep the selected date
+      toast.error("Could not find an available date in the next 30 days");
+    }
+  }, [selectedDate, closureDays]);
+
+  useEffect(() => {
     const fetchBookingCostTiers = async () => {
       if (!restaurant) return;
       
@@ -323,6 +381,11 @@ export default function RestaurantPage() {
     e.preventDefault();
     setBookingError(null);
     setBookingSuccess(null);
+
+    if (isDateClosed(selectedDate)) {
+      setBookingError("The restaurant is closed on this day");
+      return;
+    }
   
     if (!userId) {
       setBookingError("You must sign in or continue as a guest.");
@@ -577,12 +640,26 @@ export default function RestaurantPage() {
           </p>
           <div className="mt-4">
             <label className="text-yellow-400 font-semibold">Select Date:</label>
+            {isDateClosed(selectedDate) && (
+              <div className="text-red-400 text-sm mb-1">
+                The restaurant is closed on this day
+              </div>
+            )}
             <input
               type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
               className="bg-gray-700 text-white px-4 py-2 rounded-md border border-gray-600 focus:ring-2 focus:ring-yellow-400 w-full mt-2"
               min={new Date().toISOString().split("T")[0]}
+              onFocus={(e) => {
+                e.target.showPicker();
+              }}
+              onInput={(e) => {
+                if (isDateClosed(e.target.value)) {
+                  toast.error("The restaurant is closed on this day");
+                  e.target.value = selectedDate;
+                }
+              }}
             />
           </div>
 
