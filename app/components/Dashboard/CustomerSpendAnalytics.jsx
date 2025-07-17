@@ -36,8 +36,12 @@ const CustomerSpendAnalytics = ({ restaurant, reservations }) => {
         };
       }
       
-      // Calculate spend (using booking cost or any other metric)
-      const spend = restaurant.booking_cost || 0;
+      // Calculate spend - prioritize reservation.booking_cost, fallback to restaurant.booking_cost
+      const spend = typeof res.booking_cost === 'number' 
+        ? res.booking_cost 
+        : typeof restaurant.booking_cost === 'number' 
+          ? restaurant.booking_cost 
+          : 0;
       
       acc[res.email].totalSpend += spend;
       acc[res.email].visits++;
@@ -46,7 +50,6 @@ const CustomerSpendAnalytics = ({ restaurant, reservations }) => {
       
       return acc;
     }, {});
-
     // Convert to array and sort by spend
     const sortedCustomers = Object.values(customerSpend)
       .sort((a, b) => b.totalSpend - a.totalSpend);
@@ -62,7 +65,9 @@ const CustomerSpendAnalytics = ({ restaurant, reservations }) => {
 
     reservations.forEach(res => {
       const month = new Date(res.date).getMonth();
-      const spend = restaurant.booking_cost || 0;
+      const spend = res.booking_cost !== null && res.booking_cost !== undefined 
+        ? res.booking_cost 
+        : restaurant.booking_cost || 0;
       monthlyData[month].revenue += spend;
     });
 
@@ -89,7 +94,9 @@ const CustomerSpendAnalytics = ({ restaurant, reservations }) => {
       .forEach(res => {
         const day = new Date(res.date).getDate();
         const weekIndex = Math.floor((day - 1) / 7);
-        const spend = restaurant.booking_cost || 0;
+        const spend = res.booking_cost !== null && res.booking_cost !== undefined 
+          ? res.booking_cost 
+          : restaurant.booking_cost || 0;
         weeklyData[weekIndex].revenue += spend;
       });
 
@@ -194,7 +201,7 @@ const CustomerSpendAnalytics = ({ restaurant, reservations }) => {
         <div className="bg-gray-700/50 p-4 rounded-lg">
           <div className="text-gray-400 text-sm">Total Revenue</div>
           <div className="text-2xl font-bold">
-            GHS {customerDetails.reduce((sum, customer) => sum + customer.totalSpend, 0).toFixed(2)}
+            GHS {customerDetails ? customerDetails.reduce((sum, customer) => sum + (customer.totalSpend || 0), 0).toFixed(2) : '0.00'}
           </div>
         </div>
         <div className="bg-gray-700/50 p-4 rounded-lg">
