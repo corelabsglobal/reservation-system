@@ -26,6 +26,12 @@ const ProfilePage = () => {
   const [bookingCostInput, setBookingCostInput] = useState(0);
   const [lastVisit, setLastVisit] = useState(null);
   const [activeReservationTab, setActiveReservationTab] = useState('current');
+  const [bookingCostTiers, setBookingCostTiers] = useState([]);
+  const [newCostTier, setNewCostTier] = useState({
+    min_people: 1,
+    max_people: 1,
+    cost: 0
+  });
   
   // New state for table management
   const [tableTypes, setTableTypes] = useState([]);
@@ -280,45 +286,119 @@ const ProfilePage = () => {
     }
   };
 
+  useEffect(() => {
+    const fetchBookingCostTiers = async () => {
+      if (!restaurant) return;
+      
+      const { data, error } = await supabase
+        .from('booking_cost_tiers')
+        .select('*')
+        .eq('restaurant_id', restaurant.id)
+        .order('min_people', { ascending: true });
+      
+      if (!error) setBookingCostTiers(data);
+    };
+    
+    if (restaurant) fetchBookingCostTiers();
+  }, [restaurant]);
+
+  const addBookingCostTier = async () => {
+    if (!restaurant) {
+      toast.error('Restaurant information not loaded yet');
+      return;
+    }
+
+    if (!newCostTier.min_people || !newCostTier.max_people || !newCostTier.cost) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    // Validate that min_people <= max_people
+    if (newCostTier.min_people > newCostTier.max_people) {
+      toast.error('Minimum people cannot be greater than maximum people');
+      return;
+    }
+
+    // Check for overlapping ranges
+    const hasOverlap = bookingCostTiers.some(tier => 
+      (newCostTier.min_people <= tier.max_people && newCostTier.max_people >= tier.min_people)
+    );
+
+    if (hasOverlap) {
+      toast.error('This range overlaps with an existing tier');
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from('booking_cost_tiers')
+      .insert([{ 
+        ...newCostTier, 
+        restaurant_id: restaurant.id 
+      }])
+      .select();
+    
+    if (error) {
+      toast.error('Failed to add booking cost tier');
+    } else {
+      toast.success('Booking cost tier added successfully');
+      setBookingCostTiers([...bookingCostTiers, data[0]]);
+      setNewCostTier({ min_people: 1, max_people: 1, cost: 0 });
+    }
+  };
+
+  const deleteBookingCostTier = async (tierId) => {
+    const { error } = await supabase
+      .from('booking_cost_tiers')
+      .delete()
+      .eq('id', tierId);
+    
+    if (error) {
+      toast.error('Failed to delete booking cost tier');
+    } else {
+      toast.success('Booking cost tier deleted successfully');
+      setBookingCostTiers(bookingCostTiers.filter(tier => tier.id !== tierId));
+    }
+  };
+
   const updateBookingCost = async () => {
     try {
       if (!restaurant?.id) {
         toast.error('Restaurant information not loaded yet');
         return;
       }
-  
-      const cost = bookingCostInput === '' || bookingCostInput === null ? null : Math.floor(Number(bookingCostInput));
-      
-      // Validate input
-      if (cost !== null && (isNaN(cost) || cost < 0)) {
-        toast.error('Please enter a valid positive number');
-        return;
+
+      if (bookingCostTiers.length === 0) {
+        const cost = bookingCostInput === '' || bookingCostInput === null ? null : Math.floor(Number(bookingCostInput));
+        
+        if (cost !== null && (isNaN(cost) || cost < 0)) {
+          toast.error('Please enter a valid positive number');
+          return;
+        }
+
+        const { error } = await supabase
+          .from('restaurants')
+          .update({ booking_cost: cost })
+          .eq('id', restaurant.id);
+
+        if (error) throw error;
+
+        const { data } = await supabase
+          .from('restaurants')
+          .select('booking_cost')
+          .eq('id', restaurant.id)
+          .single();
+
+        if (!data) throw new Error('Failed to verify update');
+        
+        setRestaurant(prev => ({ ...prev, booking_cost: data.booking_cost }));
+        setBookingCostInput(data.booking_cost === null ? '' : data.booking_cost);
+
+        toast.success(
+          data.booking_cost === null 
+            ? 'Booking cost cleared' 
+            : `Booking cost set to GHS ${data.booking_cost}`
+        );
       }
-  
-      const { error } = await supabase
-        .from('restaurants')
-        .update({ booking_cost: cost })
-        .eq('id', restaurant.id);
-  
-      if (error) throw error;
-  
-      const { data } = await supabase
-        .from('restaurants')
-        .select('booking_cost')
-        .eq('id', restaurant.id)
-        .single();
-  
-      if (!data) throw new Error('Failed to verify update');
-      
-      // Update local state
-      setRestaurant(prev => ({ ...prev, booking_cost: data.booking_cost }));
-      setBookingCostInput(data.booking_cost === null ? '' : data.booking_cost);
-  
-      toast.success(
-        data.booking_cost === null 
-          ? 'Booking cost cleared' 
-          : `Booking cost set to GHS ${data.booking_cost}`
-      );
     } catch (err) {
       console.error('Update error:', err);
       toast.error(err.message || 'Failed to update booking cost');
@@ -1210,54 +1290,132 @@ const ProfilePage = () => {
               {/* Set Booking Cost Section */}
               <div className="bg-gray-700/50 p-6 rounded-lg shadow-lg">
                 <div className="flex items-center gap-2 mb-4">
-                  <h3 className="text-xl font-bold text-yellow-400">Set Booking Cost</h3>
+                  <h3 className="text-xl font-bold text-yellow-400">Booking Pricing</h3>
                 </div>
                 
-                <div className="flex flex-col sm:flex-row gap-4 items-center">
-                  <input
-                    type="number"
-                    value={bookingCostInput === null ? '' : bookingCostInput}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      // Allow empty string (will set to null) or valid numbers
-                      setBookingCostInput(value === '' ? null : Math.floor(Number(value)));
-                    }}
-                    min="0"
-                    step="1"
-                    className="p-2 bg-gray-600 rounded-lg text-white focus:ring-2 focus:ring-yellow-400 w-full sm:w-32"
-                    placeholder={restaurant?.booking_cost === null ? "Not set" : "GHS"}
-                  />
-                  
-                  <button
-                    onClick={updateBookingCost}
-                    className="bg-gradient-to-r from-yellow-400 to-pink-600 px-5 py-2 rounded-lg hover:opacity-80 transition-all text-white font-semibold"
-                  >
-                    {restaurant?.booking_cost === null ? "Set Cost" : "Update"}
-                  </button>
-                  
-                  {restaurant?.booking_cost !== null && (
-                    <button
-                      onClick={() => {
-                        setBookingCostInput(null);
-                        updateBookingCost();
+                {/* Single Booking Cost Option */}
+                <div className="mb-6">
+                  <h4 className="font-semibold mb-3 text-gray-300">Single Booking Cost</h4>
+                  <div className="flex flex-col sm:flex-row gap-4 items-center">
+                    <input
+                      type="number"
+                      value={bookingCostInput === null ? '' : bookingCostInput}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setBookingCostInput(value === '' ? null : Math.floor(Number(value)));
                       }}
-                      className="bg-gray-500 px-3 py-2 rounded-lg hover:bg-gray-600 transition-all text-white"
+                      min="0"
+                      step="1"
+                      className="p-2 bg-gray-600 rounded-lg text-white focus:ring-2 focus:ring-yellow-400 w-full sm:w-32"
+                      placeholder={restaurant?.booking_cost === null ? "Not set" : "GHS"}
+                      disabled={bookingCostTiers.length > 0}
+                    />
+                    
+                    <button
+                      onClick={updateBookingCost}
+                      className="bg-gradient-to-r from-yellow-400 to-pink-600 px-5 py-2 rounded-lg hover:opacity-80 transition-all text-white font-semibold"
+                      disabled={bookingCostTiers.length > 0}
                     >
-                      Clear
+                      {restaurant?.booking_cost === null ? "Set Cost" : "Update"}
                     </button>
-                  )}
+                    
+                    {restaurant?.booking_cost !== null && (
+                      <button
+                        onClick={() => {
+                          setBookingCostInput(null);
+                          updateBookingCost();
+                        }}
+                        className="bg-gray-500 px-3 py-2 rounded-lg hover:bg-gray-600 transition-all text-white"
+                        disabled={bookingCostTiers.length > 0}
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
+                  <div className="mt-3 text-sm">
+                    <p className="text-gray-300">
+                      Current Booking Cost: {restaurant?.booking_cost === null ? (
+                        <span className="text-yellow-300">NULL</span>
+                      ) : (
+                        <span className="text-green-400">GHS {restaurant?.booking_cost}</span>
+                      )}
+                    </p>
+                    <p className="text-gray-400 text-xs mt-1">
+                      {restaurant?.booking_cost === null ? "No booking fee will be charged" : "This amount will be charged per booking"}
+                    </p>
+                  </div>
                 </div>
 
-                <div className="mt-3 text-sm">
-                  <p className="text-gray-300">
-                    Current Booking Cost: {restaurant?.booking_cost === null ? (
-                      <span className="text-yellow-300">NULL</span>
-                    ) : (
-                      <span className="text-green-400">GHS {restaurant?.booking_cost}</span>
-                    )}
-                  </p>
-                  <p className="text-gray-400 text-xs mt-1">
-                    {restaurant?.booking_cost === null ? "No booking fee will be charged" : "This amount will be charged per booking"}
+                {/* Tiered Pricing Option */}
+                <div>
+                  <h4 className="font-semibold mb-3 text-gray-300">Tiered Pricing</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Add New Tier Form */}
+                    <div className="bg-gray-800 p-4 rounded-lg">
+                      <h5 className="font-semibold mb-3 text-gray-300">Add New Pricing Tier</h5>
+                      <div className="space-y-3">
+                        <div className="flex gap-2">
+                          <input
+                            type="number"
+                            placeholder="Min people"
+                            min="1"
+                            value={newCostTier.min_people}
+                            onChange={(e) => setNewCostTier({...newCostTier, min_people: parseInt(e.target.value)})}
+                            className="w-full p-2 bg-gray-700 rounded border border-gray-600 text-white"
+                          />
+                          <input
+                            type="number"
+                            placeholder="Max people"
+                            min="1"
+                            value={newCostTier.max_people}
+                            onChange={(e) => setNewCostTier({...newCostTier, max_people: parseInt(e.target.value)})}
+                            className="w-full p-2 bg-gray-700 rounded border border-gray-600 text-white"
+                          />
+                        </div>
+                        <input
+                          type="number"
+                          placeholder="Cost (GHS)"
+                          min="0"
+                          value={newCostTier.cost}
+                          onChange={(e) => setNewCostTier({...newCostTier, cost: parseInt(e.target.value)})}
+                          className="w-full p-2 bg-gray-700 rounded border border-gray-600 text-white"
+                        />
+                        <button
+                          onClick={addBookingCostTier}
+                          className="bg-gradient-to-r from-yellow-400 to-pink-600 px-4 py-2 rounded hover:opacity-90 transition-all text-white font-medium"
+                        >
+                          Add Pricing Tier
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Existing Tiers List */}
+                    <div className="bg-gray-800 p-4 rounded-lg">
+                      <h5 className="font-semibold mb-3 text-gray-300">Current Pricing Tiers</h5>
+                      {bookingCostTiers.length === 0 ? (
+                        <p className="text-gray-400">No pricing tiers defined</p>
+                      ) : (
+                        <div className="space-y-2">
+                          {bookingCostTiers.map(tier => (
+                            <div key={tier.id} className="flex justify-between items-center bg-gray-700/50 p-3 rounded">
+                              <div>
+                                <span className="font-medium">{tier.min_people}-{tier.max_people} people</span> 
+                                <span className="text-sm text-gray-400 ml-2">(GHS {tier.cost})</span>
+                              </div>
+                              <button
+                                onClick={() => deleteBookingCostTier(tier.id)}
+                                className="text-red-400 hover:text-red-300 text-sm"
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <p className="text-gray-400 text-xs mt-3">
+                    When tiered pricing is set, it will override the single booking cost.
                   </p>
                 </div>
               </div>
