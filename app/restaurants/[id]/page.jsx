@@ -648,7 +648,23 @@ export default function RestaurantPage() {
             <input
               type="date"
               value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
+              onChange={(e) => {
+                const selected = e.target.value;
+                const today = new Date().toISOString().split("T")[0];
+                
+                if (selected < today) {
+                  toast.error("Cannot select a date in the past");
+                  // Reset to today's date or keep previous valid date
+                  setSelectedDate(today);
+                } else {
+                  setSelectedDate(selected);
+                }
+                
+                // Additional closure check
+                if (isDateClosed(selected)) {
+                  toast.error("The restaurant is closed on this day");
+                }
+              }}
               className="bg-gray-700 text-white px-4 py-2 rounded-md border border-gray-600 focus:ring-2 focus:ring-yellow-400 w-full mt-2"
               min={new Date().toISOString().split("T")[0]}
               onFocus={(e) => {
