@@ -79,7 +79,7 @@ const SubscriptionManager = ({ restaurant }) => {
     email: restaurant?.owner_email || "kbtechnologies2@gmail.com",
     amount: 15000, // Amount in kobo (15000 kobo = 150 GHS)
     publicKey: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
-    plan: "PLN_uafopm4zrehnsyb",
+    plan: "PLN_tvgsiiiw4mt1g8y",
     metadata: {
       restaurant_id: restaurant.id,
     },
