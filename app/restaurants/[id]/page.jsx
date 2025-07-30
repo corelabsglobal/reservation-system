@@ -185,7 +185,7 @@ export default function RestaurantPage() {
 
         setAvailableSlots(filteredSlots);
       } catch (err) {
-        console.error("Error fetching data: , err.message);
+        console.error("Error fetching data: ", err.message);
       } finally {
         setLoading(false);
       }
