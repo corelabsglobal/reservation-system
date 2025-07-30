@@ -753,7 +753,7 @@ export default function RestaurantPage() {
                     {bookingCost > 0 && !paymentSuccess && (
                       <div>
                         <p className="text-yellow-400 mb-2">
-                          Booking fee: <span className="font-bold">{bookingCost} GHS</span> 
+                          Deposit: <span className="font-bold">{bookingCost} GHS</span> 
                           {bookingCostTiers.length > 0 && (
                             <span className="text-sm text-gray-400 ml-2">
                               (for {partySize} {partySize === 1 ? 'person' : 'people'})
