@@ -8,6 +8,7 @@ import toast, { Toaster } from "react-hot-toast";
 import Header from "@/app/components/structure/header";
 import OccasionDetails from "@/app/components/restaurants/OccassionDetails";
 import emailjs from '@emailjs/browser';
+import { generateTimeSlots } from "@/utils/timeSlots";
 import dynamic from "next/dynamic";
 
 const PaystackButton = dynamic(
@@ -55,7 +56,26 @@ export default function RestaurantPage() {
     return new Date().toISOString().split("T")[0];
   });
 
-  const timeSlots = ["10:00", "12:00", "14:00", "16:00", "18:00", "20:00", "22:00"];
+  {/*const timeSlots = ["10:00", "12:00", "14:00", "16:00", "18:00", "20:00", "22:00"];
+
+  const isTimeSlotPassed = (slot, date) => {
+    if (date !== new Date().toISOString().split("T")[0]) {
+      return false;
+    }
+    
+    const now = new Date();
+    const [hours, minutes] = slot.split(':').map(Number);
+    const slotTime = new Date();
+    slotTime.setHours(hours, minutes, 0, 0);
+    
+    return now > slotTime;
+  };*/}
+
+  const timeSlots = restaurant ? generateTimeSlots(
+    restaurant.reservation_start_time?.slice(0, 5) || '12:00',
+    restaurant.reservation_end_time?.slice(0, 5) || '22:00',
+    restaurant.reservation_duration_minutes || 120
+  ) : [];
 
   const isTimeSlotPassed = (slot, date) => {
     if (date !== new Date().toISOString().split("T")[0]) {
