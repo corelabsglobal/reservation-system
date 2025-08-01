@@ -13,6 +13,7 @@ import LuxuryAnalyticsDashboard from '../components/Dashboard/Analytics';
 import CustomerSpendAnalytics from '../components/Dashboard/CustomerSpendAnalytics';
 import CopyArea from '../components/structure/CopyArea';
 import ClosureDaysManager from '../components/structure/ClosureDaysManager';
+import ReservationTimingManager from '../components/Dashboard/ReservationTimingManager';
 
 const ProfilePage = () => {
   const [restaurant, setRestaurant] = useState(null);
@@ -1288,6 +1289,8 @@ const ProfilePage = () => {
                 </div>
               </div>
 
+              <ClosureDaysManager restaurant={restaurant} />
+              <ReservationTimingManager restaurant={restaurant} setRestaurant={setRestaurant} />
               <ClosureDaysManager restaurant={restaurant} />
 
               {/* Set Booking Cost Section */}
