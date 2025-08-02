@@ -44,12 +44,28 @@ export default function RestaurantPage() {
   const [closureDays, setClosureDays] = useState([]);
   const [selectedDate, setSelectedDate] = useState(() => {
     const urlDate = searchParams.get('date');
-    if (urlDate) {
-      if (/^\d{4}-\d{2}-\d{2}$/.test(urlDate)) {
-        return urlDate;
+    let initialDate = new Date().toISOString().split("T")[0];
+    
+    if (urlDate && /^\d{4}-\d{2}-\d{2}$/.test(urlDate)) {
+      initialDate = urlDate;
+    }
+
+    if (isDateClosed(initialDate)) {
+      let nextDate = new Date(initialDate);
+      let attempts = 0;
+      const maxAttempts = 30;
+      
+      while (attempts < maxAttempts) {
+        nextDate.setDate(nextDate.getDate() + 1);
+        const nextDateStr = nextDate.toISOString().split("T")[0];
+        if (!isDateClosed(nextDateStr)) {
+          return nextDateStr;
+        }
+        attempts++;
       }
     }
-    return new Date().toISOString().split("T")[0];
+    
+    return initialDate;
   });
 
   const timeSlots = restaurant ? generateTimeSlots(
@@ -156,6 +172,7 @@ export default function RestaurantPage() {
             setFallbackMode(true);
             toast("This restaurant hasn't set up tables yet. Using basic reservation system.", {
               icon: 'ℹ️',
+              id: 'fallback-notice'
             });
           }
         }
@@ -288,9 +305,8 @@ export default function RestaurantPage() {
   }, [restaurant]);
 
   useEffect(() => {
-    if (selectedDate && isDateClosed(selectedDate)) {
-      toast.error("The restaurant is closed on this day");
-      let nextDate = new Date(selectedDate);
+    const findNextOpenDate = (currentDate) => {
+      let nextDate = new Date(currentDate);
       let attempts = 0;
       const maxAttempts = 30;
       
@@ -298,15 +314,28 @@ export default function RestaurantPage() {
         nextDate.setDate(nextDate.getDate() + 1);
         const nextDateStr = nextDate.toISOString().split("T")[0];
         if (!isDateClosed(nextDateStr)) {
-          setSelectedDate(nextDateStr);
-          return;
+          return nextDateStr;
         }
         attempts++;
       }
-      
-      toast.error("Could not find an available date in the next 30 days");
+      return null;
+    };
+
+    // Check if initial date is closed
+    if (selectedDate && isDateClosed(selectedDate)) {
+      const nextOpenDate = findNextOpenDate(selectedDate);
+      if (nextOpenDate) {
+        setSelectedDate(nextOpenDate);
+        toast.error(`Restaurant is closed on ${selectedDate}. Showing next available date: ${nextOpenDate}`,{
+          id: 'closed-notice'
+        });
+      } else {
+        toast.error("Could not find an available date in the next 30 days",{
+          id: 'unavailable-notice'
+        });
+      }
     }
-  }, [selectedDate, closureDays]);
+  }, [closureDays]);
 
   useEffect(() => {
     const fetchBookingCostTiers = async () => {
@@ -350,13 +379,17 @@ export default function RestaurantPage() {
   
   const onPaystackSuccess = async (response) => {
     setPaymentSuccess(true);
-    toast.success("Payment successful! Proceeding with reservation...");
+    toast.success("Payment successful! Proceeding with reservation...",{
+      id: 'payment-success'
+    });
     await saveReservation();
     setPaymentInitialized(false);
   };
   
   const onPaystackClose = () => {
-    toast.error("Payment canceled or failed. Please try again.");
+    toast.error("Payment canceled or failed. Please try again.",{
+      id: 'payment-failed'
+    });
     setShowPaystack(false);
     setPaymentInitialized(false);
     setOpenDialog(true);
@@ -612,7 +645,16 @@ export default function RestaurantPage() {
         className="absolute inset-0 bg-cover bg-center bg-fixed opacity-50"
         style={{ backgroundImage: "url('/images/background.jpeg')" }}
       />
-      <Toaster position="top-right" />
+      <Toaster 
+        position="top-right"
+        toastOptions={{
+          duration: 4000,
+          style: {
+            background: '#363636',
+            color: '#fff',
+          },
+        }}
+      />
       <Header />
       <div className="mt-14 max-w-6xl w-full mx-auto flex flex-col md:flex-row gap-8 p-4 md:p-6 rounded-lg shadow-2xl bg-gray-800/90 backdrop-blur-md">
         <RestaurantHeader restaurant={restaurant} />

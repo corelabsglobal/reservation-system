@@ -6,8 +6,7 @@ import toast from "react-hot-toast";
 export default function DateSelector({ 
   selectedDate, 
   setSelectedDate, 
-  isDateClosed,
-  closureDays 
+  isDateClosed
 }) {
   const [localDate, setLocalDate] = useState(selectedDate);
 
@@ -16,17 +15,17 @@ export default function DateSelector({
     const today = new Date().toISOString().split("T")[0];
     
     if (selected < today) {
-      toast.error("Cannot select a date in the past");
       setLocalDate(today);
       setSelectedDate(today);
+      toast.error("Cannot select a date in the past", { id: 'past-date' });
       return;
     }
 
-    setLocalDate(selected);
-    setSelectedDate(selected);
-    
-    if (isDateClosed(selected)) {
-      toast.error("The restaurant is closed on this day");
+    if (!isDateClosed(selected)) {
+      setLocalDate(selected);
+      setSelectedDate(selected);
+    } else {
+      toast.error("The restaurant is closed on this day", { id: 'closed-date' });
     }
   };
 
