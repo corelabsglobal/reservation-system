@@ -15,11 +15,12 @@ const SubscriptionManager = ({ restaurant }) => {
   const [loading, setLoading] = useState(false);
   const [firstChargeDate, setFirstChargeDate] = useState(null);
   const [showSubscriptionPrompt, setShowSubscriptionPrompt] = useState(false);
+  const [hasPayment, setHasPayment] = useState(false);
   const ANNUAL_SUBSCRIPTION_AMOUNT = 1920000;
 
-  // Fetch the first charge date from Supabase
-  useEffect(() => {
-    const fetchFirstChargeDate = async () => {
+  // Enhanced fetch function
+  const fetchPaymentData = async () => {
+    try {
       const { data, error } = await supabase
         .from("payments")
         .select("created_at")
@@ -27,42 +28,43 @@ const SubscriptionManager = ({ restaurant }) => {
         .order("created_at", { ascending: true })
         .limit(1);
 
+      if (error) throw error;
+
       if (data && data.length > 0) {
         setFirstChargeDate(new Date(data[0].created_at));
+        setHasPayment(true); // Mark that payment exists
+        setShowSubscriptionPrompt(false); // Ensure prompt is hidden
       } else {
-        // If no payment exists, show the subscription prompt
+        setHasPayment(false);
         setShowSubscriptionPrompt(true);
       }
-    };
+    } catch (error) {
+      console.error("Error fetching payment data:", error);
+      toast.error("Failed to load payment information");
+    }
+  };
 
-    fetchFirstChargeDate();
+  // Fetch payment data on mount and when restaurant changes
+  useEffect(() => {
+    fetchPaymentData();
   }, [restaurant]);
 
-  // Check if subscription is due (30 days before the annual renewal date)
+  // Check if subscription is due
   useEffect(() => {
     if (!firstChargeDate) return;
 
     const checkSubscriptionDue = () => {
       const today = new Date();
       const chargeDate = new Date(firstChargeDate);
-
-      // Calculate the next charge date (1 year after first charge)
       const nextChargeDate = new Date(
         chargeDate.getFullYear() + 1,
         chargeDate.getMonth(),
         chargeDate.getDate()
       );
-
-      // Calculate the reminder date (30 days before the charge date)
       const reminderDate = new Date(nextChargeDate);
       reminderDate.setDate(nextChargeDate.getDate() - 30);
 
-      // Check if today is within the reminder period
-      if (today >= reminderDate && today < nextChargeDate) {
-        setSubscriptionDue(true);
-      } else {
-        setSubscriptionDue(false);
-      }
+      setSubscriptionDue(today >= reminderDate && today < nextChargeDate);
     };
 
     checkSubscriptionDue();
@@ -72,7 +74,7 @@ const SubscriptionManager = ({ restaurant }) => {
   const config = {
     reference: new Date().getTime().toString(),
     email: restaurant?.owner_email || "danloski25@gmail.com",
-    amount: ANNUAL_SUBSCRIPTION_AMOUNT, // 19,200 GHS in kobo
+    amount: ANNUAL_SUBSCRIPTION_AMOUNT,
     publicKey: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
     currency: "GHS",
     metadata: {
@@ -81,56 +83,44 @@ const SubscriptionManager = ({ restaurant }) => {
     },
   };
 
-  // Handle payment success
+  // Enhanced payment success handler
   const onSuccess = async (response) => {
     setLoading(true);
     try {
-      // Save payment details to Supabase
-      const { data, error } = await supabase
+      // Save payment details
+      const { error } = await supabase
         .from("payments")
-        .insert([
-          {
-            restaurant_id: restaurant.id,
-            amount: 19200,
-            status: "success",
-            transaction_reference: response.reference,
-            authorization_code: response.authorization?.authorization_code,
-            subscription_type: "annual",
-          },
-        ]);
+        .insert([{
+          restaurant_id: restaurant.id,
+          amount: 19200,
+          status: "success",
+          transaction_reference: response.reference,
+          authorization_code: response.authorization?.authorization_code,
+          subscription_type: "annual",
+        }]);
 
-      if (error) {
-        console.error("Supabase insert error:", error);
-        throw error;
-      }
+      if (error) throw error;
 
-      console.log("Payment saved to Supabase:", data);
-
-      // Update the first charge date
-      setFirstChargeDate(new Date());
-
-      // Hide the subscription prompt
-      setShowSubscriptionPrompt(false);
+      // Refresh payment data
+      await fetchPaymentData();
 
       toast.success("Payment successful! Annual subscription activated.");
-      setSubscriptionDue(false);
     } catch (error) {
-      toast.error("Failed to save payment details.");
-      console.error(error);
+      console.error("Payment processing error:", error);
+      toast.error("Failed to complete payment process");
     } finally {
       setLoading(false);
     }
   };
 
-  // Handle payment failure
   const onClose = () => {
     toast.error("Payment canceled or failed. Please try again.");
   };
 
   return (
     <>
-      {/* Non-closable subscription prompt for first-time users */}
-      {showSubscriptionPrompt && (
+      {/* Only show prompt if no payment exists */}
+      {showSubscriptionPrompt && !hasPayment && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-75 z-50">
           <div className="bg-gray-800 p-6 rounded-lg shadow-lg max-w-sm w-full">
             <h2 className="text-xl font-semibold mb-4 text-indigo-100">Subscription Required</h2>
@@ -151,7 +141,7 @@ const SubscriptionManager = ({ restaurant }) => {
         </div>
       )}
 
-      {/* Annual subscription reminder */}
+      {/* Subscription reminder */}
       {subscriptionDue && (
         <div className="fixed bottom-4 right-4 bg-gray-800 p-4 rounded-lg shadow-lg flex items-center gap-4 z-50">
           <p className="text-white">
