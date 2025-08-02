@@ -1291,7 +1291,6 @@ const ProfilePage = () => {
 
               <ClosureDaysManager restaurant={restaurant} />
               <ReservationTimingManager restaurant={restaurant} setRestaurant={setRestaurant} />
-              <ClosureDaysManager restaurant={restaurant} />
 
               {/* Set Booking Cost Section */}
               <div className="bg-gray-700/50 p-6 rounded-lg shadow-lg">
