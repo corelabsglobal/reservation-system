@@ -42,6 +42,22 @@ export default function RestaurantPage() {
   const searchParams = useSearchParams();
   const [bookingCostTiers, setBookingCostTiers] = useState([]);
   const [closureDays, setClosureDays] = useState([]);
+
+  const isDateClosed = (date) => {
+    const dateObj = new Date(date);
+    const dayOfWeek = dateObj.getDay();
+    
+    return closureDays.some(closure => {
+      if (!closure.is_recurring && closure.date === date) {
+        return true;
+      }
+      if (closure.is_recurring && closure.day_of_week === dayOfWeek) {
+        return true;
+      }
+      return false;
+    });
+  };
+  
   const [selectedDate, setSelectedDate] = useState(() => {
     const urlDate = searchParams.get('date');
     let initialDate = new Date().toISOString().split("T")[0];
@@ -85,21 +101,6 @@ export default function RestaurantPage() {
     slotTime.setHours(hours, minutes, 0, 0);
     
     return now > slotTime;
-  };
-
-  const isDateClosed = (date) => {
-    const dateObj = new Date(date);
-    const dayOfWeek = dateObj.getDay();
-    
-    return closureDays.some(closure => {
-      if (!closure.is_recurring && closure.date === date) {
-        return true;
-      }
-      if (closure.is_recurring && closure.day_of_week === dayOfWeek) {
-        return true;
-      }
-      return false;
-    });
   };
 
   useEffect(() => {
