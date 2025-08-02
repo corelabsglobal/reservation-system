@@ -304,7 +304,7 @@ export default function SignUp() {
             <CardTitle className="text-2xl">Sign Up</CardTitle>
           </CardHeader>
           <CardContent>
-            <GoogleSignInButton onClick={handleGoogleSignIn} />
+            {/*<GoogleSignInButton onClick={handleGoogleSignIn} />*/}
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div>
                 <Input {...register("name")} type="text" placeholder="Full Name" className="w-full text-sm sm:text-base py-2 sm:py-3 px-3 sm:px-4" />
