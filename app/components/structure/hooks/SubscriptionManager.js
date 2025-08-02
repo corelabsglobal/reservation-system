@@ -71,7 +71,7 @@ const SubscriptionManager = ({ restaurant }) => {
   // Paystack configuration
   const config = {
     reference: new Date().getTime().toString(),
-    email: restaurant?.owner_email || "kbtechnologies2@gmail.com",
+    email: restaurant?.owner_email || "danloski25@gmail.com",
     amount: ANNUAL_SUBSCRIPTION_AMOUNT, // 19,200 GHS in kobo
     publicKey: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
     currency: "GHS",
