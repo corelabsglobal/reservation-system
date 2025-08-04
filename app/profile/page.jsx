@@ -231,31 +231,69 @@ const ProfilePage = () => {
       return;
     }
 
-    const { data, error } = await supabase
-      .from('tables')
-      .insert([{ 
-        ...newTable, 
-        restaurant_id: restaurant.id,
-        is_available: true 
-      }])
-      .select();
-    
-    if (error) {
-      toast.error('Failed to add table');
-    } else {
-      toast.success('Table added successfully');
-      const { data: fullTableData } = await supabase
-        .from('tables')
-        .select('*, table_types(*)')
-        .eq('id', data[0].id)
-        .single();
-      
-      setTables([...tables, fullTableData]);
+    try {
+      // Check if table_number is a number (for multiple tables)
+      const tableCount = parseInt(newTable.table_number);
+      const isMultipleTables = !isNaN(tableCount) && tableCount > 1;
+
+      if (isMultipleTables) {
+        // Create multiple tables
+        const tablesToInsert = Array.from({ length: tableCount }, (_, i) => ({
+          table_type_id: newTable.table_type_id,
+          table_number: (i + 1).toString(), // Number them sequentially
+          position_description: newTable.position_description,
+          restaurant_id: restaurant.id,
+          is_available: true
+        }));
+
+        const { data, error } = await supabase
+          .from('tables')
+          .insert(tablesToInsert)
+          .select();
+
+        if (error) throw error;
+
+        // Fetch all the newly created tables with their types
+        const { data: fullTablesData } = await supabase
+          .from('tables')
+          .select('*, table_types(*)')
+          .in('id', data.map(t => t.id));
+
+        setTables([...tables, ...fullTablesData]);
+        toast.success(`Created ${tableCount} tables successfully`);
+      } else {
+        // Single table creation (original logic)
+        const { data, error } = await supabase
+          .from('tables')
+          .insert([{ 
+            ...newTable, 
+            restaurant_id: restaurant.id,
+            is_available: true 
+          }])
+          .select();
+        
+        if (error) throw error;
+
+        const { data: fullTableData } = await supabase
+          .from('tables')
+          .select('*, table_types(*)')
+          .eq('id', data[0].id)
+          .single();
+        
+        setTables([...tables, fullTableData]);
+        toast.success('Table added successfully');
+      }
+
+      // Reset form
       setNewTable({
         table_type_id: '',
         table_number: '',
         position_description: ''
       });
+
+    } catch (error) {
+      console.error('Error adding table(s):', error);
+      toast.error(error.message || 'Failed to add table(s)');
     }
   };
 
@@ -1236,11 +1274,14 @@ const ProfilePage = () => {
                       </select>
                       <input
                         type="text"
-                        placeholder="Number of Tables"
+                        placeholder="Number of tables to create (e.g. '5') or specific name (e.g. 'Window Table 1')"
                         value={newTable.table_number}
                         onChange={(e) => setNewTable({...newTable, table_number: e.target.value})}
                         className="w-full p-2 bg-gray-700 rounded border border-gray-600 text-white"
                       />
+                      <p className="text-xs text-gray-400 mt-1">
+                        Enter a number to create multiple tables of this type, or a specific name for a single table.
+                      </p>
                       <input
                         type="text"
                         placeholder="Position description (optional)"

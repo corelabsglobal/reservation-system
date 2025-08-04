@@ -38,6 +38,7 @@ export default function BookingDialog({
   onPaystackSuccess,
   onPaystackClose
 }) {
+
   return (
     <Dialog open={openDialog} onOpenChange={setOpenDialog}>
       <DialogContent className="bg-gray-800 text-white border border-gray-700 shadow-xl rounded-lg p-6 max-w-md">
