@@ -42,7 +42,6 @@ export default function RestaurantPage() {
   const searchParams = useSearchParams();
   const [bookingCostTiers, setBookingCostTiers] = useState([]);
   const [closureDays, setClosureDays] = useState([]);
-
   const isDateClosed = (date) => {
     const dateObj = new Date(date);
     const dayOfWeek = dateObj.getDay();
