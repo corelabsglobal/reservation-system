@@ -13,6 +13,7 @@ import PartySizeSelector from "@/app/components/restaurants/PartySizeSelector";
 import TimeSlotsGrid from "@/app/components/restaurants/TimeSlotsGrid";
 import BookingDialog from "@/app/components/restaurants/BookingDialog";
 import PaymentModal from "@/app/components/restaurants/PaymentModal";
+import ReservationNotification from "@/app/components/restaurants/ReservationNotification";
 
 export default function RestaurantPage() {
   const { id } = useParams();
@@ -41,6 +42,7 @@ export default function RestaurantPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [bookingCostTiers, setBookingCostTiers] = useState([]);
+  const [notification, setNotification] = useState(null);
   const [closureDays, setClosureDays] = useState([]);
   const isDateClosed = (date) => {
     const dateObj = new Date(date);
@@ -170,9 +172,10 @@ export default function RestaurantPage() {
         if (tableData.length === 0 || tables.length === 0) {
           if (!fallbackMode) {
             setFallbackMode(true);
-            toast("This restaurant hasn't set up tables yet. Using basic reservation system.", {
-              icon: 'ℹ️',
-              id: 'fallback-notice'
+            setNotification({
+              type: 'info',
+              title: 'Notice',
+              message: 'This restaurant hasn\'t set up tables yet. Using basic reservation system.'
             });
           }
         }
@@ -338,12 +341,16 @@ export default function RestaurantPage() {
       const nextOpenDate = findNextOpenDate(selectedDate);
       if (nextOpenDate) {
         setSelectedDate(nextOpenDate);
-        toast.error(`Restaurant is closed on ${selectedDate}. Showing next available date: ${nextOpenDate}`,{
-          id: 'closed-notice'
+        setNotification({
+          type: 'warning',
+          title: 'Restaurant Closed',
+          message: `Restaurant is closed on ${selectedDate}. Showing next available date: ${nextOpenDate}.`
         });
       } else {
-        toast.error("Could not find an available date in the next 30 days",{
-          id: 'unavailable-notice'
+        setNotification({
+          type: 'error',
+          title: 'No Available Dates',
+          message: 'Could not find an available date in the next 30 days.'
         });
       }
     }
@@ -391,16 +398,20 @@ export default function RestaurantPage() {
   
   const onPaystackSuccess = async (response) => {
     setPaymentSuccess(true);
-    toast.success("Payment successful! Proceeding with reservation...",{
-      id: 'payment-success'
+    setNotification({
+      type: 'success',
+      title: 'Payment Successful',
+      message: 'Proceeding with reservation...'
     });
     await saveReservation();
     setPaymentInitialized(false);
   };
   
   const onPaystackClose = () => {
-    toast.error("Payment canceled or failed. Please try again.",{
-      id: 'payment-failed'
+    setNotification({
+      type: 'error',
+      title: 'Payment Failed',
+      message: 'Payment canceled or failed. Please try again.'
     });
     setShowPaystack(false);
     setPaymentInitialized(false);
@@ -599,7 +610,11 @@ export default function RestaurantPage() {
         )
       ]);
   
-      toast.success("Reservation successful! Confirmation emails sent.");
+      setNotification({
+        type: 'success',
+        title: 'Reservation Successful',
+        message: 'Your reservation is confirmed! Confirmation emails have been sent.'
+      });
 
       const { data: newReservations } = await supabase
         .from("reservations")
@@ -633,7 +648,11 @@ export default function RestaurantPage() {
   
     } catch (error) {
       console.error('Reservation error:', error);
-      toast.error(`Booking failed: ${error.message}`);
+      setNotification({
+        type: 'error',
+        title: 'Booking Failed',
+        message: error.message || 'An error occurred while processing your reservation'
+      });
     } finally {
       setIsLoading(false);
     }
@@ -667,6 +686,10 @@ export default function RestaurantPage() {
             color: '#fff',
           },
         }}
+      />
+      <ReservationNotification 
+        notification={notification} 
+        onClose={() => setNotification(null)} 
       />
       <Header />
       <div className="mt-14 max-w-6xl w-full mx-auto flex flex-col md:flex-row gap-8 p-4 md:p-6 rounded-lg shadow-2xl bg-gray-800/90 backdrop-blur-md">
