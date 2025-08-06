@@ -38,6 +38,12 @@ export default function BookingDialog({
   onPaystackSuccess,
   onPaystackClose
 }) {
+  // Check if we're showing tables with higher capacity
+  const showingHigherCapacityTables = availableTables.some(group => 
+    group.type.capacity > partySize
+  ) && !availableTables.some(group => 
+    group.type.capacity === partySize
+  );
 
   return (
     <Dialog open={openDialog} onOpenChange={setOpenDialog}>
@@ -84,6 +90,14 @@ export default function BookingDialog({
                     </div>
                   )}
 
+                  {showingHigherCapacityTables && (
+                    <div className="bg-blue-600/20 p-3 rounded-md border border-blue-400">
+                      <p className="text-blue-400">
+                        No exact matches found. Showing tables with higher capacity.
+                      </p>
+                    </div>
+                  )}
+
                   {bookingCost > 0 && !paymentSuccess && (
                     <div>
                       <p className="text-yellow-400 mb-2">
@@ -96,17 +110,58 @@ export default function BookingDialog({
                       </p>
                       {showPaystack && (
                         <div className="relative z-50">
-                        <PaystackButton
-                          {...paystackConfig}
-                          text="Pay Now"
-                          onSuccess={onPaystackSuccess}
-                          onClose={onPaystackClose}
-                          className="bg-gradient-to-r from-yellow-400 to-pink-600 px-4 py-2 rounded-lg hover:opacity-80 transition-all disabled:opacity-50 w-full"
-                        />
+                          <PaystackButton
+                            {...paystackConfig}
+                            text="Pay Now"
+                            onSuccess={onPaystackSuccess}
+                            onClose={onPaystackClose}
+                            className="bg-gradient-to-r from-yellow-400 to-pink-600 px-4 py-2 rounded-lg hover:opacity-80 transition-all disabled:opacity-50 w-full"
+                          />
                         </div>
                       )}
                     </div>
                   )}
+
+                  {availableTables.length > 0 && (
+                    <div className="mt-2">
+                      <h3 className="text-md font-medium text-gray-300 mb-2">
+                        Available Tables for {partySize} {partySize === 1 ? 'person' : 'people'}
+                      </h3>
+                      <div className="space-y-3">
+                        {availableTables.map((group) => (
+                          <div key={group.type.id} className="bg-gray-700/50 p-3 rounded-md border border-gray-600">
+                            <div className="flex justify-between items-center">
+                              <h4 className="font-medium text-yellow-400">
+                                {group.type.name}
+                              </h4>
+                              <span className="text-sm bg-gray-600 px-2 py-1 rounded-full">
+                                {group.type.capacity} seats
+                              </span>
+                            </div>
+                            <p className="text-xs text-gray-400 mt-1">
+                              {group.type.description || 'No description available'}
+                            </p>
+                            <div className="mt-2 grid grid-cols-3 gap-2">
+                              {group.tables.map((table) => (
+                                <button
+                                  key={table.id}
+                                  onClick={() => setSelectedTable(table.id)}
+                                  className={`px-2 py-1 text-sm rounded-md transition-colors ${
+                                    selectedTable === table.id
+                                      ? 'bg-yellow-500 text-black font-medium'
+                                      : 'bg-gray-600 hover:bg-gray-500'
+                                  }`}
+                                >
+                                  {table.table_number}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   <form onSubmit={handleBooking} className="mt-4 flex flex-col gap-3">
                     {userId === "guest" && (
                       <>
@@ -157,8 +212,8 @@ export default function BookingDialog({
                     )}
                     <button
                       type="submit"
-                      className="mt-5 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-black font-bold rounded-md"
-                      disabled={!fallbackMode && !selectedTable || isLoading}
+                      className="mt-3 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-black font-bold rounded-md transition-colors"
+                      disabled={(!fallbackMode && !selectedTable) || isLoading}
                     >
                       {isLoading ? (
                         <div className="flex items-center justify-center">

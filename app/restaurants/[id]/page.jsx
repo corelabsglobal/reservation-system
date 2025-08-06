@@ -213,22 +213,16 @@ export default function RestaurantPage() {
 
           if (fallbackMode) return true;
 
-          const bookedCountByType = {};
-          for (const res of reservationsForSlot) {
-            const table = allTables.find(t => t.id === res.table_id);
-            if (!table) continue;
-            if (!bookedCountByType[table.table_type_id]) {
-              bookedCountByType[table.table_type_id] = 0;
+          // Check if there are any tables that can accommodate the party size
+          const hasSuitableTables = allTables.some(table => {
+            if (reservationsForSlot.some(r => r.table_id === table.id)) {
+              return false;
             }
-            bookedCountByType[table.table_type_id]++;
-          }
-
-          return Object.entries(tableTypeCounts).some(([typeId, info]) => {
-            return (
-              info.capacity >= partySize &&
-              (bookedCountByType[typeId] || 0) < info.total
-            );
+            const tableType = tableTypes.find(t => t.id === table.table_type_id);
+            return tableType?.capacity >= partySize;
           });
+
+          return hasSuitableTables;
         });
 
         setAvailableSlots(filteredSlots);
@@ -261,12 +255,30 @@ export default function RestaurantPage() {
 
       const bookedTableIds = new Set(reservationsForSlot.map(r => r.table_id));
       
-      const suitableTables = allTables.filter(table => {
+      // First, find tables with exact capacity match
+      let suitableTables = allTables.filter(table => {
         const tableType = tableTypes.find(t => t.id === table.table_type_id);
         return !bookedTableIds.has(table.id) && 
-               tableType?.capacity >= partySize;
+              tableType?.capacity === partySize;
       });
 
+      // If no exact matches, find tables with next higher capacity
+      if (suitableTables.length === 0) {
+        suitableTables = allTables.filter(table => {
+          const tableType = tableTypes.find(t => t.id === table.table_type_id);
+          return !bookedTableIds.has(table.id) && 
+                tableType?.capacity > partySize;
+        });
+
+        // Sort by capacity ascending to show smallest suitable tables first
+        suitableTables.sort((a, b) => {
+          const aCapacity = tableTypes.find(t => t.id === a.table_type_id)?.capacity || 0;
+          const bCapacity = tableTypes.find(t => t.id === b.table_type_id)?.capacity || 0;
+          return aCapacity - bCapacity;
+        });
+      }
+
+      // Group tables by type
       const tablesByType = suitableTables.reduce((acc, table) => {
         if (!acc[table.table_type_id]) {
           const type = tableTypes.find(t => t.id === table.table_type_id);
@@ -495,13 +507,14 @@ export default function RestaurantPage() {
         throw new Error('Missing required email addresses');
       }
 
-      let tableTypeName = "Not specified";
+      let tableInfo = "Not specified";
       if (!fallbackMode && selectedTable) {
         const table = allTables.find(t => t.id === selectedTable);
         if (table) {
           const tableType = tableTypes.find(t => t.id === table.table_type_id);
           if (tableType) {
-            tableTypeName = tableType.name;
+            // both table type and table number in the info
+            tableInfo = `${tableType.name} (Table "${table.table_number}")`;
           }
         }
       }
@@ -546,7 +559,7 @@ export default function RestaurantPage() {
         special_request: occasionDetails?.specialRequest || 'None',
         dashboard_link: dashboardLink,
         current_year: new Date().getFullYear().toString(),
-        table_type: tableTypeName
+        table_type: tableInfo
       };
   
       const customerEmailParams = {
@@ -566,7 +579,7 @@ export default function RestaurantPage() {
         party_size: (partySize).toString(),
         occasion: occasionDetails?.occasion || 'None specified',
         current_year: new Date().getFullYear().toString(),
-        table_type: tableTypeName
+        table_type: tableInfo
       };
   
       console.log('Sending emails with params:', { restaurantEmailParams, customerEmailParams });
