@@ -56,7 +56,7 @@ const DeleteAccountButton = ({ userId, userRole }) => {
       <Button 
         variant="destructive" 
         onClick={() => setOpen(true)}
-        className="mt-6"
+        className="mt-3"
       >
         Delete Account
       </Button>

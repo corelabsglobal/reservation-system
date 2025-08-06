@@ -7,11 +7,13 @@ import Header from '../components/structure/header'
 import LoginPrompt from '../components/login/page'
 import DeleteAccountButton from '../components/structure/DeleteAccountButton'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts'
-import { FiCalendar, FiClock, FiUsers, FiStar, FiDollarSign, FiAward } from 'react-icons/fi'
+import { FiCalendar, FiClock, FiUsers, FiStar, FiDollarSign } from 'react-icons/fi'
+import EditableProfile from '../components/profile/EditableProfile'
 
 const UserProfilePage = () => {
   const [user, setUser] = useState(null)
   const [userProfile, setUserProfile] = useState(null)
+  const [refreshTrigger, setRefreshTrigger] = useState(false);
   const [reservations, setReservations] = useState([])
   const [restaurants, setRestaurants] = useState([])
   const [loading, setLoading] = useState(true)
@@ -151,7 +153,7 @@ const UserProfilePage = () => {
     if (user) {
       fetchData()
     }
-  }, [user])
+  }, [user, refreshTrigger])
 
   // Process reservation data for charts
   const processReservationData = () => {
@@ -273,16 +275,21 @@ const UserProfilePage = () => {
                     https://www.danloski.com/restaurants/{restaurants?.url}
                   </p>
                 )}
-                <p className="text-gray-400 mt-2 text-sm sm:text-base">
+                <p className="text-gray-400 mt-2 text-sm sm:text-base mb-1">
                   Member since {stats?.joinDate || 'Unknown'}
                 </p>
+                <EditableProfile 
+                  user={user} 
+                  userProfile={userProfile} 
+                  restaurant={restaurants}
+                  onUpdate={() => setRefreshTrigger(prev => !prev)}
+                />
               </div>
 
               <div className="flex flex-col sm:flex-row md:flex-col items-start sm:items-end md:items-end gap-3">
                 <span className="inline-block bg-indigo-900 text-indigo-200 text-sm font-medium px-3 py-1 rounded-full w-fit">
                   {userProfile?.role || 'Member'}
                 </span>
-
                 <div className="w-full sm:w-auto">
                   <DeleteAccountButton 
                     userId={user?.id} 
