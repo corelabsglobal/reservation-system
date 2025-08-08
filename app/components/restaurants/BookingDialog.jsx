@@ -257,7 +257,6 @@ export default function BookingDialog({
           </div>
         </div>
 
-        {/* Custom scrollbar styling */}
         <style jsx>{`
           .hide-scrollbar::-webkit-scrollbar {
             width: 0;
