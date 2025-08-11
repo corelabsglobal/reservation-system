@@ -59,20 +59,24 @@ export default function TimeSlotsSelect({
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => handleSelect(slot)}
-            className={`py-3 px-2 rounded-lg border transition-all duration-200 ${
+            className={`py-3 px-3 rounded-lg border transition-all duration-200 flex items-center justify-between ${
               selectedSlot === slot
                 ? 'bg-gradient-to-br from-amber-600 to-amber-700 border-amber-500 shadow-lg'
                 : 'bg-amber-900/30 border-amber-700 hover:bg-amber-800/40 hover:border-amber-600'
             }`}
           >
-            <div className="flex flex-col items-center">
-              <span className="text-amber-100 font-medium text-sm sm:text-base">{slot}</span>
-              {selectedSlot === slot && (
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mt-1 text-amber-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-              )}
-            </div>
+            <span className="text-amber-100 font-medium text-sm sm:text-base">{slot}</span>
+            {selectedSlot === slot && (
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                className="h-4 w-4 text-amber-300 ml-2" 
+                fill="none" 
+                viewBox="0 0 24 24" 
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            )}
           </motion.button>
         ))}
       </div>
