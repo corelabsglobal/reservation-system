@@ -239,7 +239,7 @@ export default function RestaurantPage() {
     fetchRestaurantData();
   }, [id, selectedDate, partySize, reservations, fallbackMode]);
 
-  const fetchAvailableTablesForSlot = async (timeSlot) => {
+  {/*const fetchAvailableTablesForSlot = async (timeSlot) => {
     try {
       if (fallbackMode) {
         setAvailableTables([]);
@@ -280,6 +280,88 @@ export default function RestaurantPage() {
           return aCapacity - bCapacity;
         });
       }
+
+      // Group tables by type
+      const tablesByType = suitableTables.reduce((acc, table) => {
+        if (!acc[table.table_type_id]) {
+          const type = tableTypes.find(t => t.id === table.table_type_id);
+          acc[table.table_type_id] = {
+            type,
+            tables: []
+          };
+        }
+        acc[table.table_type_id].tables.push(table);
+        return acc;
+      }, {});
+
+      setAvailableTables(Object.values(tablesByType));
+      setSelectedTable(suitableTables[0]?.id || null);
+    } catch (error) {
+      console.error("Error fetching tables:", error);
+      toast.error("Failed to fetch available tables");
+    }
+  };*/}
+
+  const fetchAvailableTablesForSlot = async (timeSlot) => {
+    try {
+      if (fallbackMode) {
+        setAvailableTables([]);
+        setSelectedTable(null);
+        return;
+      }
+
+      const { data: reservationsForSlot, error } = await supabase
+        .from("reservations")
+        .select("table_id")
+        .eq("restaurant_id", restaurant?.id)
+        .eq("date", selectedDate)
+        .eq("time", timeSlot);
+
+      if (error) throw error;
+
+      const bookedTableIds = new Set(reservationsForSlot.map(r => r.table_id));
+      
+      // First, find tables with exact capacity match
+      let suitableTables = allTables.filter(table => {
+        const tableType = tableTypes.find(t => t.id === table.table_type_id);
+        return !bookedTableIds.has(table.id) && 
+              tableType?.capacity === partySize;
+      });
+
+      // If no exact matches or we want to show larger tables regardless,
+      // find tables with next higher capacities
+      const largerTables = allTables.filter(table => {
+        const tableType = tableTypes.find(t => t.id === table.table_type_id);
+        return !bookedTableIds.has(table.id) && 
+              tableType?.capacity > partySize;
+      });
+
+      // Sort larger tables by capacity ascending to get the next suitable sizes
+      largerTables.sort((a, b) => {
+        const aCapacity = tableTypes.find(t => t.id === a.table_type_id)?.capacity || 0;
+        const bCapacity = tableTypes.find(t => t.id === b.table_type_id)?.capacity || 0;
+        return aCapacity - bCapacity;
+      });
+
+      // Find the next two distinct larger capacities
+      const distinctLargerCapacities = [...new Set(
+        largerTables.map(table => {
+          const tableType = tableTypes.find(t => t.id === table.table_type_id);
+          return tableType?.capacity;
+        })
+      )].filter(Boolean).sort((a, b) => a - b);
+
+      // Take the next 1-2 larger capacities
+      const allowedLargerCapacities = distinctLargerCapacities.slice(0, 2);
+
+      // Add tables that match these larger capacities
+      const additionalTables = largerTables.filter(table => {
+        const tableType = tableTypes.find(t => t.id === table.table_type_id);
+        return allowedLargerCapacities.includes(tableType?.capacity);
+      });
+
+      // Combine exact matches with larger tables
+      suitableTables = [...suitableTables, ...additionalTables];
 
       // Group tables by type
       const tablesByType = suitableTables.reduce((acc, table) => {
