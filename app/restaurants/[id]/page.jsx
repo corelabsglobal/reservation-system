@@ -207,7 +207,7 @@ export default function RestaurantPage() {
           return acc;
         }, {});
 
-        const filteredSlots = timeSlots.filter(slot => {
+        {/*const filteredSlots = timeSlots.filter(slot => {
           if (isTimeSlotPassed(slot, selectedDate)) {
             return false;
           }
@@ -226,6 +226,54 @@ export default function RestaurantPage() {
           });
 
           return hasSuitableTables;
+        });*/}
+
+        const filteredSlots = timeSlots.filter(slot => {
+          if (isTimeSlotPassed(slot, selectedDate)) {
+            return false;
+          }
+
+          const reservationsForSlot = reservations.filter(r => r.time === slot);
+
+          if (fallbackMode) return true;
+
+          // Get all available tables for this slot
+          const availableTablesForSlot = allTables.filter(table => 
+            !reservationsForSlot.some(r => r.table_id === table.id)
+          );
+
+          // Check for exact matches first
+          const hasExactMatch = availableTablesForSlot.some(table => {
+            const tableType = tableTypes.find(t => t.id === table.table_type_id);
+            return tableType?.capacity === partySize;
+          });
+
+          if (hasExactMatch) return true;
+
+          // If no exact matches, check for next 1-2 larger capacities
+          const largerTables = availableTablesForSlot.filter(table => {
+            const tableType = tableTypes.find(t => t.id === table.table_type_id);
+            return tableType?.capacity > partySize;
+          });
+
+          // Get distinct larger capacities
+          const distinctLargerCapacities = [...new Set(
+            largerTables.map(table => {
+              const tableType = tableTypes.find(t => t.id === table.table_type_id);
+              return tableType?.capacity;
+            })
+          )].filter(Boolean).sort((a, b) => a - b);
+
+          // Take the next 1-2 larger capacities
+          const allowedLargerCapacities = distinctLargerCapacities.slice(0, 2);
+
+          // Check if any tables match these larger capacities
+          const hasSuitableLargerTables = largerTables.some(table => {
+            const tableType = tableTypes.find(t => t.id === table.table_type_id);
+            return allowedLargerCapacities.includes(tableType?.capacity);
+          });
+
+          return hasSuitableLargerTables;
         });
 
         setAvailableSlots(filteredSlots);
