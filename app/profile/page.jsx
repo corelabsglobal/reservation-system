@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import toast from 'react-hot-toast';
 import { Download } from "lucide-react";
@@ -21,6 +22,7 @@ const ProfilePage = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterDate, setFilterDate] = useState('');
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState('overview');
   const [showAllReservations, setShowAllReservations] = useState(false);
   const [newImage, setNewImage] = useState(null);
@@ -48,6 +50,13 @@ const ProfilePage = () => {
     table_number: '',
     position_description: ''
   });
+
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam && ['overview', 'customers', 'insights', 'reservations', 'manage'].includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const fetchRestaurant = async () => {
