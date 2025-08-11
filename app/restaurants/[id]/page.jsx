@@ -287,69 +287,6 @@ export default function RestaurantPage() {
     fetchRestaurantData();
   }, [id, selectedDate, partySize, reservations, fallbackMode]);
 
-  {/*const fetchAvailableTablesForSlot = async (timeSlot) => {
-    try {
-      if (fallbackMode) {
-        setAvailableTables([]);
-        setSelectedTable(null);
-        return;
-      }
-
-      const { data: reservationsForSlot, error } = await supabase
-        .from("reservations")
-        .select("table_id")
-        .eq("restaurant_id", restaurant?.id)
-        .eq("date", selectedDate)
-        .eq("time", timeSlot);
-
-      if (error) throw error;
-
-      const bookedTableIds = new Set(reservationsForSlot.map(r => r.table_id));
-      
-      // First, find tables with exact capacity match
-      let suitableTables = allTables.filter(table => {
-        const tableType = tableTypes.find(t => t.id === table.table_type_id);
-        return !bookedTableIds.has(table.id) && 
-              tableType?.capacity === partySize;
-      });
-
-      // If no exact matches, find tables with next higher capacity
-      if (suitableTables.length === 0) {
-        suitableTables = allTables.filter(table => {
-          const tableType = tableTypes.find(t => t.id === table.table_type_id);
-          return !bookedTableIds.has(table.id) && 
-                tableType?.capacity > partySize;
-        });
-
-        // Sort by capacity ascending to show smallest suitable tables first
-        suitableTables.sort((a, b) => {
-          const aCapacity = tableTypes.find(t => t.id === a.table_type_id)?.capacity || 0;
-          const bCapacity = tableTypes.find(t => t.id === b.table_type_id)?.capacity || 0;
-          return aCapacity - bCapacity;
-        });
-      }
-
-      // Group tables by type
-      const tablesByType = suitableTables.reduce((acc, table) => {
-        if (!acc[table.table_type_id]) {
-          const type = tableTypes.find(t => t.id === table.table_type_id);
-          acc[table.table_type_id] = {
-            type,
-            tables: []
-          };
-        }
-        acc[table.table_type_id].tables.push(table);
-        return acc;
-      }, {});
-
-      setAvailableTables(Object.values(tablesByType));
-      setSelectedTable(suitableTables[0]?.id || null);
-    } catch (error) {
-      console.error("Error fetching tables:", error);
-      toast.error("Failed to fetch available tables");
-    }
-  };*/}
-
   const fetchAvailableTablesForSlot = async (timeSlot) => {
     try {
       if (fallbackMode) {
