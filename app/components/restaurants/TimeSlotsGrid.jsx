@@ -16,7 +16,12 @@ export default function TimeSlotsSelect({
   const handleSelect = (slot) => {
     setSelectedSlot(slot);
     setIsDropdownOpen(false);
-    handleOpenDialog(slot);
+  };
+
+  const handleConfirm = () => {
+    if (selectedSlot) {
+      handleOpenDialog(selectedSlot);
+    }
   };
 
   useEffect(() => {
@@ -142,7 +147,7 @@ export default function TimeSlotsSelect({
               <p className="text-lg font-bold text-amber-100">{selectedSlot}</p>
             </div>
             <button
-              onClick={() => handleOpenDialog(selectedSlot)}
+              onClick={handleConfirm}
               className="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 rounded-lg text-white font-medium text-sm shadow transition-all duration-200 transform hover:scale-[1.02] focus:outline-none focus:ring-1 focus:ring-amber-400"
             >
               Confirm Reservation
