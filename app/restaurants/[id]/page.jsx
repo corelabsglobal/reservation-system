@@ -617,7 +617,7 @@ export default function RestaurantPage() {
       const { error: dbError } = await supabase.from("reservations").insert([reservationData]);
       if (dbError) throw new Error(`Database error: ${dbError.message}`);
   
-      const dashboardLink = 'https://danloski.com/profile';
+      const dashboardLink = `https://danloski.com/profile?tab=reservations`;
       
       const restaurantEmailParams = {
         to_email: ownerData.email,
