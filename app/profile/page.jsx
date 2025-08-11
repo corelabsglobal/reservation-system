@@ -1226,7 +1226,7 @@ const ProfilePage = () => {
                     {tableTypes.length === 0 ? (
                       <p className="text-gray-400">No table types defined yet</p>
                     ) : (
-                      <div className="space-y-2">
+                      <div className="space-y-2 max-h-64 overflow-y-auto custom-scrollbar">
                         {tableTypes.map(type => (
                           <div key={type.id} className="flex justify-between items-center bg-gray-700/50 p-3 rounded">
                             <div>
@@ -1313,7 +1313,7 @@ const ProfilePage = () => {
                     {tables.length === 0 ? (
                       <p className="text-gray-400">No tables added yet</p>
                     ) : (
-                      <div className="space-y-2">
+                      <div className="space-y-2 max-h-64 overflow-y-auto custom-scrollbar">
                         {tables.map(table => (
                           <div key={table.id} className="flex justify-between items-center bg-gray-700/50 p-3 rounded">
                             <div>
