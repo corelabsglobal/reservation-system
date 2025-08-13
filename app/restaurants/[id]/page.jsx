@@ -820,6 +820,7 @@ export default function RestaurantPage() {
         onPaystackSuccess={onPaystackSuccess}
         onPaystackClose={onPaystackClose}
         paymentSuccess={paymentSuccess}
+        restaurant={restaurant}
       />
 
       <PaymentModal

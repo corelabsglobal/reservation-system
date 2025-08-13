@@ -36,7 +36,8 @@ export default function BookingDialog({
   paymentSuccess,
   paystackConfig,
   onPaystackSuccess,
-  onPaystackClose
+  onPaystackClose,
+  restaurant
 }) {
   // Check if we're showing tables with higher capacity
   const showingHigherCapacityTables = availableTables.some(group => 
@@ -239,8 +240,8 @@ export default function BookingDialog({
                 <div className="bg-red-600/10 p-4 rounded-lg border border-red-400/50">
                   <p className="text-red-400">
                     {fallbackMode 
-                      ? "No availability for selected time." 
-                      : "No tables available for your party size at this time."}
+                      ? "No available slots for selected date. Please contact the restaurant directly at " + restaurant.phone
+                      : "No available slots for selected date/party size. Please contact the restaurant directly at " + restaurant.phone}
                   </p>
                 </div>
               )}
