@@ -787,6 +787,7 @@ export default function RestaurantPage() {
             availableSlots={availableSlots}
             handleOpenDialog={handleOpenDialog}
             fallbackMode={fallbackMode}
+            restaurant={restaurant}
           />
         </div>
       </div>
