@@ -6,7 +6,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 export default function TimeSlotsSelect({ 
   availableSlots, 
   handleOpenDialog,
-  fallbackMode 
+  fallbackMode,
+  restaurant
 }) {
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -40,8 +41,8 @@ export default function TimeSlotsSelect({
         <h2 className="text-xl sm:text-2xl font-semibold text-amber-400 mb-3">Available Reservations</h2>
         <p className="text-gray-400 text-sm sm:text-md">
           {fallbackMode 
-            ? "No available slots for selected date." 
-            : "No available slots for selected date/party size."}
+            ? "No available slots for selected date. Please contact the restaurant directly at " + restaurant.phone
+            : "No available slots for selected date/party size. Please contact the restaurant directly at " + restaurant.phone}
         </p>
       </div>
     );
