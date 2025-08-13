@@ -88,7 +88,7 @@ const OccasionDetails = ({ onChange }) => {
 
             {/* Dropdown Menu */}
             {isCountryDropdownOpen && (
-              <div className="absolute z-20 mt-1 w-64 max-h-60 overflow-auto bg-gray-800 border border-gray-600 rounded-md shadow-lg">
+              <div className="absolute z-20 mt-1 w-64 max-h-60 bg-gray-800 border border-gray-600 rounded-md shadow-lg">
                 {/* Search Input */}
                 <div className="sticky top-0 bg-gray-800 p-2 border-b border-gray-700">
                   <div className="relative">
@@ -105,7 +105,7 @@ const OccasionDetails = ({ onChange }) => {
                 </div>
 
                 {/* Country List */}
-                <div className="overflow-y-auto max-h-48">
+                <div className="overflow-y-auto max-h-48 custom-scrollbar">
                   {filteredCountries.length > 0 ? (
                     filteredCountries.map((country) => (
                       <div
@@ -168,6 +168,28 @@ const OccasionDetails = ({ onChange }) => {
           className="bg-gray-700 text-white px-4 py-2 rounded-md border border-gray-600 focus:ring-2 focus:ring-yellow-400 min-h-[100px]"
         />
       </div>
+
+      {/* Custom scrollbar styling */}
+      <style jsx global>{`
+        .custom-scrollbar {
+          scrollbar-width: thin;
+          scrollbar-color: #4b5563 #1f2937;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: #1f2937;
+          border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background-color: #4b5563;
+          border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background-color: #6b7280;
+        }
+      `}</style>
     </div>
   );
 };
