@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, Eye, EyeOff, X, AlertTriangle, UserCheck, Clock, Calendar, Users, Table } from 'lucide-react';
+import { Check, Eye, EyeOff, X, AlertTriangle, UserCheck, Clock, Calendar, Users, Table, Phone } from 'lucide-react';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
 import {
@@ -15,6 +15,20 @@ const ReservationCard = ({ res, markAsSeen, cancelReservation, markAsAttended, h
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
   const [expanded, setExpanded] = useState(false);
+
+  const formatPhoneNumber = (phone) => {
+    if (!phone && phone !== 0) return 'N/A';
+    
+    const phoneStr = typeof phone === 'number' ? phone.toString() : String(phone);
+    
+    const cleaned = phoneStr.replace(/[^\d+]/g, '')
+      .replace(/^\+233/, '')
+      .replace(/^233/, '');
+      
+    return cleaned.startsWith('0') ? cleaned : `0${cleaned}`;
+  };
+
+  const formattedPhone = formatPhoneNumber(res.number);
 
   const reservationTime = new Date(`${res.date}T${res.time}`);
   const now = new Date();
@@ -122,6 +136,12 @@ const ReservationCard = ({ res, markAsSeen, cancelReservation, markAsAttended, h
                     <span className="ml-1 text-blue-500 animate-pulse">•</span>
                   )}
                 </h3>
+              </div>
+              
+              {/* Phone number display */}
+              <div className="flex items-center gap-1 mt-1">
+                <Phone className="h-3 w-3 text-gray-400" />
+                <span className="text-xs text-gray-500">{formattedPhone}</span>
               </div>
               
               {/* Time status badge */}
