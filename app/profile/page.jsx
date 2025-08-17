@@ -15,6 +15,7 @@ import CustomerSpendAnalytics from '../components/Dashboard/CustomerSpendAnalyti
 import CopyArea from '../components/structure/CopyArea';
 import ClosureDaysManager from '../components/structure/ClosureDaysManager';
 import ReservationTimingManager from '../components/Dashboard/ReservationTimingManager';
+import RestaurantInfoManager from '../components/Dashboard/RestaurantInfoManager';
 
 const ProfilePage = () => {
   const [restaurant, setRestaurant] = useState(null);
@@ -1341,6 +1342,7 @@ const ProfilePage = () => {
 
               <ClosureDaysManager restaurant={restaurant} />
               <ReservationTimingManager restaurant={restaurant} setRestaurant={setRestaurant} />
+              <RestaurantInfoManager restaurant={restaurant} setRestaurant={setRestaurant} />
 
               {/* Set Booking Cost Section */}
               <div className="bg-gray-700/50 p-6 rounded-lg shadow-lg">
