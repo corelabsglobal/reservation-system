@@ -9,7 +9,7 @@ const createCustomIcon = () => {
   return L.icon({
     iconUrl: '/images/marker-icon.jpg',
     iconRetinaUrl: '/images/marker-icon-2x.jpg',
-    shadowUrl: '/images/marker-shadow.png',
+    //shadowUrl: '/images/marker-shadow.png',
     iconSize: [25, 41],
     iconAnchor: [12, 41],
     popupAnchor: [1, -34],
