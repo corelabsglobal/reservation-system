@@ -207,27 +207,6 @@ export default function RestaurantPage() {
           return acc;
         }, {});
 
-        {/*const filteredSlots = timeSlots.filter(slot => {
-          if (isTimeSlotPassed(slot, selectedDate)) {
-            return false;
-          }
-
-          const reservationsForSlot = reservations.filter(r => r.time === slot);
-
-          if (fallbackMode) return true;
-
-          // Check if there are any tables that can accommodate the party size
-          const hasSuitableTables = allTables.some(table => {
-            if (reservationsForSlot.some(r => r.table_id === table.id)) {
-              return false;
-            }
-            const tableType = tableTypes.find(t => t.id === table.table_type_id);
-            return tableType?.capacity >= partySize;
-          });
-
-          return hasSuitableTables;
-        });*/}
-
         const filteredSlots = timeSlots.filter(slot => {
           if (isTimeSlotPassed(slot, selectedDate)) {
             return false;
