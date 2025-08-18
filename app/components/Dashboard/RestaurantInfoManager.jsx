@@ -17,7 +17,6 @@ const RestaurantInfoManager = ({ restaurant, setRestaurant }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Initialize form with restaurant data
   useEffect(() => {
     if (restaurant) {
       setDescription(restaurant.description || '');
@@ -105,7 +104,7 @@ const RestaurantInfoManager = ({ restaurant, setRestaurant }) => {
           </div>
 
           <div>
-            <label className="block text-gray-300 mb-2">Location on Map</label>
+            <label className="block text-gray-300 mb-2">Location</label>
             <div className="h-64 bg-gray-800 rounded-lg overflow-hidden">
               <MapWithNoSSR 
                 location={location}
@@ -113,7 +112,7 @@ const RestaurantInfoManager = ({ restaurant, setRestaurant }) => {
               />
             </div>
             <p className="text-xs text-gray-400 mt-2">
-              Click on the map to set your restaurant's location
+              Search for your restaurant above the map or click on the map to set location
             </p>
           </div>
 
