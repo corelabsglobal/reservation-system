@@ -155,7 +155,9 @@ export default function Home() {
                     <h2 className="text-2xl font-bold text-yellow-400">
                       {restaurant.name}
                     </h2>
-                    <p className="text-gray-300">{restaurant.location}</p>
+                    <p className="text-gray-300">
+                      {restaurant.address || restaurant.location}
+                    </p>
                     <Button 
                       className="mt-4 w-full bg-gradient-to-r from-yellow-400 to-orange-600 hover:from-orange-500 hover:to-orange-700 transition-all"
                       onClick={() => handleBooking(restaurant.id)}
