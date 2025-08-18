@@ -17,14 +17,26 @@ const RestaurantInfoManager = ({ restaurant, setRestaurant }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
+  // Initialize form with restaurant data
   useEffect(() => {
     if (restaurant) {
       setDescription(restaurant.description || '');
-      setLocation(restaurant.location ? {
-        lat: restaurant.location.latitude,
-        lng: restaurant.location.longitude
-      } : null);
       setAddress(restaurant.address || '');
+      
+      // Handle both location formats (direct object or nested in location property)
+      if (restaurant.location) {
+        setLocation({
+          lat: restaurant.location.latitude || restaurant.location.lat,
+          lng: restaurant.location.longitude || restaurant.location.lng
+        });
+      } else if (restaurant.latitude && restaurant.longitude) {
+        setLocation({
+          lat: restaurant.latitude,
+          lng: restaurant.longitude
+        });
+      } else {
+        setLocation(null);
+      }
     }
   }, [restaurant]);
 
@@ -37,15 +49,27 @@ const RestaurantInfoManager = ({ restaurant, setRestaurant }) => {
     
     setIsSaving(true);
     try {
+      // Prepare updates object
       const updates = {
         description,
         address,
-        location: location ? {
-          latitude: location.lat,
-          longitude: location.lng
-        } : null,
         updated_at: new Date().toISOString()
       };
+
+      // Handle location updates based on your Supabase schema
+      if (location) {
+        // Choose one of these based on your schema:
+        
+        // Option 1: If location is stored as JSONB
+        updates.location = {
+          latitude: location.lat,
+          longitude: location.lng
+        };
+        
+        // OR Option 2: If stored as separate columns
+        // updates.latitude = location.lat;
+        // updates.longitude = location.lng;
+      }
 
       const { data, error } = await supabase
         .from('restaurants')
@@ -61,7 +85,7 @@ const RestaurantInfoManager = ({ restaurant, setRestaurant }) => {
       setIsEditing(false);
     } catch (error) {
       console.error('Error updating restaurant:', error);
-      toast.error('Failed to update restaurant information');
+      toast.error(error.message || 'Failed to update restaurant information');
     } finally {
       setIsSaving(false);
     }
