@@ -159,7 +159,7 @@ export default function Home() {
                       {restaurant.address || restaurant.location}
                     </p>
                     <Button 
-                      className="mt-4 w-full bg-gradient-to-r from-yellow-400 to-orange-600 hover:from-orange-500 hover:to-orange-700 transition-all"
+                      className="mt-4 w-full bg-gradient-to-r from-yellow-400 to-orange-600 hover:from-orange-500 hover:to-orange-700 transition-all "
                       onClick={() => handleBooking(restaurant.id)}
                     >
                       Book Now
