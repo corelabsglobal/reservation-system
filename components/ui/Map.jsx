@@ -4,12 +4,12 @@ import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
+// Create custom marker icon
 const createCustomIcon = () => {
   return L.icon({
-    iconUrl: '/images/marker-icon.png',
-    iconRetinaUrl: '/images/marker-icon-2x.png',
-    //shadowUrl: '/images/marker-shadow.png',
-    shadowUrl: '/images/marker-icon.png',
+    iconUrl: '/images/marker-icon.jpg',
+    iconRetinaUrl: '/images/marker-icon-2x.jpg',
+    shadowUrl: '/images/marker-shadow.png',
     iconSize: [25, 41],
     iconAnchor: [12, 41],
     popupAnchor: [1, -34],
@@ -59,15 +59,27 @@ const Map = ({ location, onLocationSelect, interactive = true }) => {
         item.addEventListener('click', () => {
           const lat = parseFloat(result.lat);
           const lng = parseFloat(result.lon);
+          
+          // Remove existing marker if it exists
           if (markerRef.current) {
-            markerRef.current.setLatLng([lat, lng]);
-          } else {
-            markerRef.current = L.marker([lat, lng], { icon: createCustomIcon() }).addTo(mapRef.current);
+            mapRef.current.removeLayer(markerRef.current);
           }
+          
+          // Create new marker with custom icon
+          markerRef.current = L.marker([lat, lng], { 
+            icon: createCustomIcon(),
+            riseOnHover: true
+          }).addTo(mapRef.current);
+          
+          // Zoom to the location
           mapRef.current.setView([lat, lng], 16);
+          
+          // Update the location state
           if (onLocationSelect) {
             onLocationSelect({ lat, lng });
           }
+          
+          // Hide search results
           searchResultsRef.current.style.display = 'none';
         });
         searchResultsRef.current.appendChild(item);
@@ -131,18 +143,27 @@ const Map = ({ location, onLocationSelect, interactive = true }) => {
         }
       });
 
+      // Initialize marker if location exists
       if (location && (location.lat || location.latitude) && (location.lng || location.longitude)) {
-        markerRef.current = L.marker([lat, lng], { icon: createCustomIcon() }).addTo(map);
+        const [lat, lng] = getCoordinates();
+        markerRef.current = L.marker([lat, lng], { 
+          icon: createCustomIcon(),
+          riseOnHover: true
+        }).addTo(map);
       }
 
       if (interactive) {
         map.on('click', (e) => {
           const { lat, lng } = e.latlng;
+          // Remove existing marker if it exists
           if (markerRef.current) {
-            markerRef.current.setLatLng([lat, lng]);
-          } else {
-            markerRef.current = L.marker([lat, lng], { icon: createCustomIcon() }).addTo(map);
+            map.removeLayer(markerRef.current);
           }
+          // Create new marker
+          markerRef.current = L.marker([lat, lng], { 
+            icon: createCustomIcon(),
+            riseOnHover: true
+          }).addTo(map);
           if (onLocationSelect) {
             onLocationSelect({ lat, lng });
           }
@@ -165,11 +186,15 @@ const Map = ({ location, onLocationSelect, interactive = true }) => {
     if (mapRef.current && location) {
       const [lat, lng] = getCoordinates();
       mapRef.current.setView([lat, lng], DEFAULT_ZOOM);
+      // Remove existing marker if it exists
       if (markerRef.current) {
-        markerRef.current.setLatLng([lat, lng]);
-      } else if (location) {
-        markerRef.current = L.marker([lat, lng], { icon: createCustomIcon() }).addTo(mapRef.current);
+        mapRef.current.removeLayer(markerRef.current);
       }
+      // Create new marker
+      markerRef.current = L.marker([lat, lng], { 
+        icon: createCustomIcon(),
+        riseOnHover: true
+      }).addTo(mapRef.current);
     }
   }, [location]);
 
