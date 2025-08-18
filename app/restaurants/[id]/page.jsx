@@ -14,6 +14,12 @@ import TimeSlotsGrid from "@/app/components/restaurants/TimeSlotsGrid";
 import BookingDialog from "@/app/components/restaurants/BookingDialog";
 import PaymentModal from "@/app/components/restaurants/PaymentModal";
 import ReservationNotification from "@/app/components/restaurants/ReservationNotification";
+import dynamic from 'next/dynamic';
+
+const MapWithNoSSR = dynamic(
+  () => import('@/components/ui/Map'),
+  { ssr: false }
+);
 
 export default function RestaurantPage() {
   const { id } = useParams();
@@ -743,7 +749,49 @@ export default function RestaurantPage() {
         
         <div className="md:w-1/2 flex flex-col justify-center">
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-yellow-400 mb-2">{restaurant.name}</h1>
-          <p className="text-gray-300 text-sm sm:text-md md:text-lg">{restaurant.location}</p>
+          {!restaurant.location && !restaurant.address && (
+            <p className="text-gray-300 text-sm sm:text-md md:text-lg">
+              {restaurant.location}
+            </p>
+          )}
+          {(restaurant.location || restaurant.address) && (
+            <div className="mt-6">
+              <h3 className="text-xl font-bold text-yellow-400 mb-2">Location</h3>
+              {restaurant.location && (
+                <div className="h-64 bg-gray-800 rounded-lg overflow-hidden">
+                  <MapWithNoSSR 
+                    location={restaurant.location}
+                    interactive={false}
+                  />
+                </div>
+              )}
+              {restaurant.address && (
+                <p className="mt-2 text-gray-300">
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    className="h-5 w-5 inline-block mr-1" 
+                    fill="none" 
+                    viewBox="0 0 24 24" 
+                    stroke="currentColor"
+                  >
+                    <path 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      strokeWidth={2} 
+                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" 
+                    />
+                    <path 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      strokeWidth={2} 
+                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" 
+                    />
+                  </svg>
+                  {restaurant.address}
+                </p>
+              )}
+            </div>
+          )}
           <p className="mt-3 text-gray-300 leading-relaxed text-sm sm:text-md md:text-lg">
             {restaurant.description || "No description available."}
           </p>
