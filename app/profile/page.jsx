@@ -16,6 +16,7 @@ import CopyArea from '../components/structure/CopyArea';
 import ClosureDaysManager from '../components/structure/ClosureDaysManager';
 import ReservationTimingManager from '../components/Dashboard/ReservationTimingManager';
 import RestaurantInfoManager from '../components/Dashboard/RestaurantInfoManager';
+import ReservationTableManager from '../components/structure/ReservationTableManager';
 
 const ProfilePage = () => {
   const [restaurant, setRestaurant] = useState(null);
@@ -918,7 +919,7 @@ const ProfilePage = () => {
 
             {/* Reservation Group Tabs */}
             <div className="flex flex-wrap gap-2 mb-6 border-b border-gray-700 pb-4">
-              {['current', 'today', 'all'].map((tab) => (
+              {['current', 'today', 'all', 'manage'].map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveReservationTab(tab)}
@@ -928,7 +929,11 @@ const ProfilePage = () => {
                       : 'bg-gray-700 hover:bg-gray-600'
                   }`}
                 >
-                  {tab === 'current' ? 'Current' : tab === 'today' ? "Today's" : 'All'} Reservations
+                  {tab === 'current' ? 'Current' : 
+                    tab === 'today' ? "Today's" : 
+                    tab === 'all' ? 'All' : 
+                    'Manage'
+                  } Reservations
                   {tab === 'current' && currentReservations.length > 0 && (
                     <span className="ml-2 bg-white text-black rounded-full px-2 py-0.5 text-xs">
                       {currentReservations.length}
@@ -1113,6 +1118,23 @@ const ProfilePage = () => {
                     )}
                   </div>
                 )}
+              </div>
+            )}
+            {activeReservationTab === 'manage' && (
+              <div className="mb-8">
+                <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                  </svg>
+                  Manage Reservations
+                </h3>
+                
+                <ReservationTableManager 
+                  restaurant={restaurant} 
+                  reservations={filteredReservations} 
+                  tables={tables} 
+                  tableTypes={tableTypes} 
+                />
               </div>
             )}
           </div>
