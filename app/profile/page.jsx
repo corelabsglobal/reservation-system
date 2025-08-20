@@ -549,10 +549,22 @@ const ProfilePage = () => {
     }
   };
 
-  const filteredReservations = reservations.filter(res =>
+  {/*const filteredReservations = reservations.filter(res =>
     res.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
     (filterDate ? res.date === filterDate : true)
-  );
+  );*/}
+
+  const filteredReservations = reservations.filter(res => {
+    const matchesSearch = res.name.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    if (filterDate) {
+      const reservationDateFormatted = new Date(res.date).toISOString().split('T')[0];
+      const filterDateFormatted = new Date(filterDate).toISOString().split('T')[0];
+      return matchesSearch && reservationDateFormatted === filterDateFormatted;
+    }
+    
+    return matchesSearch;
+  });
 
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
@@ -1134,6 +1146,30 @@ const ProfilePage = () => {
                   reservations={filteredReservations} 
                   tables={tables} 
                   tableTypes={tableTypes} 
+                  onReservationUpdate={() => {
+                  const fetchReservations = async () => {
+                    if (!restaurant) return;
+                    
+                    setLoading(true);
+                    const { data, error } = await supabase
+                      .from('reservations')
+                      .select('*, tables(table_number)')
+                      .eq('restaurant_id', restaurant.id)
+                      .order('created_at', { ascending: false });
+                
+                    if (!error) {
+                      const markedData = data.map(res => ({
+                        ...res,
+                        table_number: res.tables?.table_number,
+                        is_new: lastVisit ? new Date(res.created_at) > new Date(lastVisit) : false
+                      }));
+                      setReservations(markedData);
+                    }
+                    setLoading(false);
+                  };
+                  
+                  if (restaurant) fetchReservations();
+                }}
                 />
               </div>
             )}
