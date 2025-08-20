@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import toast from 'react-hot-toast';
 
-const ReservationTableManager = ({ restaurant, reservations, tables, tableTypes }) => {
+const ReservationTableManager = ({ restaurant, reservations, tables, tableTypes, onReservationUpdate }) => {
   const [selectedReservation, setSelectedReservation] = useState(null);
   const [availableTables, setAvailableTables] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -49,8 +49,13 @@ const ReservationTableManager = ({ restaurant, reservations, tables, tableTypes 
         if (error) throw error;
 
         const conflictingTableIds = conflictingReservations.map(res => res.table_id);
+        // Exclude the current table (if already assigned) from conflicting tables
+        const filteredConflictingTableIds = conflictingTableIds.filter(
+          tableId => tableId !== selectedReservation.table_id
+        );
+        
         const trulyAvailableTables = suitableTables.filter(
-          table => !conflictingTableIds.includes(table.id)
+          table => !filteredConflictingTableIds.includes(table.id)
         );
 
         setAvailableTables(trulyAvailableTables);
@@ -78,6 +83,12 @@ const ReservationTableManager = ({ restaurant, reservations, tables, tableTypes 
       if (error) throw error;
 
       toast.success(`Reservation moved to Table ${tables.find(t => t.id === newTableId)?.table_number}`);
+      
+      // Call the callback to refresh reservations
+      if (onReservationUpdate) {
+        onReservationUpdate();
+      }
+      
       setSelectedReservation(null);
     } catch (error) {
       console.error('Error moving reservation:', error);
