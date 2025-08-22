@@ -762,6 +762,7 @@ export default function RestaurantPage() {
                   <MapWithNoSSR 
                     location={restaurant.location}
                     interactive={false}
+                    showSearch={false}
                   />
                 </div>
               )}
