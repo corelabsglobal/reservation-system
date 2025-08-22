@@ -17,6 +17,7 @@ import ClosureDaysManager from '../components/structure/ClosureDaysManager';
 import ReservationTimingManager from '../components/Dashboard/ReservationTimingManager';
 import RestaurantInfoManager from '../components/Dashboard/RestaurantInfoManager';
 import ReservationTableManager from '../components/structure/ReservationTableManager';
+import TableAssignmentManager from '../components/structure/TableAssignmentManager';
 
 const ProfilePage = () => {
   const [restaurant, setRestaurant] = useState(null);
@@ -1228,6 +1229,25 @@ const ProfilePage = () => {
                   </div>
                 </div>
               </div>
+
+              <TableAssignmentManager 
+                restaurant={restaurant} 
+                onUpdate={() => {
+                  const fetchRestaurant = async () => {
+                    const { data: user } = await supabase.auth.getUser();
+                    if (!user) return;
+                    
+                    const { data } = await supabase
+                      .from('restaurants')
+                      .select('*')
+                      .eq('owner_id', user.user.id)
+                      .single();
+                    
+                    if (data) setRestaurant(data);
+                  };
+                  fetchRestaurant();
+                }}
+              />
 
               {/* Manage Table Types Section */}
               <div className="bg-gray-700/50 p-4 rounded-lg shadow-lg">
