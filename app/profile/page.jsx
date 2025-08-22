@@ -764,7 +764,7 @@ const ProfilePage = () => {
 
         {/* Overview Tab */}
         {activeTab === 'overview' && (
-          <div className="mb-6 p-6 shadow-2xl bg-gray-800/90 backdrop-blur-md rounded-xl">
+          <div className="mb-6 p-4 shadow-2xl bg-gray-800/90 backdrop-blur-md rounded-xl">
             <h2 className="text-2xl font-semibold mb-6 text-gray-100">Reservation Overview</h2>
             {restaurant?.url && (
               <CopyArea restaurantUrl={restaurant?.url}/>
@@ -775,7 +775,7 @@ const ProfilePage = () => {
 
         {/* Customers Tab */}
         {activeTab === 'customers' && (
-          <div className="mb-6 p-6 shadow-2xl bg-gray-800/90 backdrop-blur-md rounded-xl">
+          <div className="mb-6 p-4 shadow-2xl bg-gray-800/90 backdrop-blur-md rounded-xl">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-semibold">Customers</h2>
               <div className="flex items-center gap-3">
@@ -905,7 +905,7 @@ const ProfilePage = () => {
 
         {/* Insights Tab */}
         {activeTab === 'insights' && (
-          <div className="mb-6 p-6 shadow-2xl bg-gray-800/90 backdrop-blur-md rounded-xl">
+          <div className="mb-6 p-4 shadow-2xl bg-gray-800/90 backdrop-blur-md rounded-xl">
             <h2 className="text-2xl font-semibold mb-6 text-gray-100">Customer Spend Analytics</h2>
             <CustomerSpendAnalytics restaurant={restaurant} reservations={reservations} />
           </div>
@@ -913,7 +913,7 @@ const ProfilePage = () => {
 
         {/* Reservations Tab */}
         {activeTab === 'reservations' && (
-          <div className="mb-6 p-6 shadow-2xl bg-gray-800/90 backdrop-blur-md rounded-xl">
+          <div className="mb-6 p-4 shadow-2xl bg-gray-800/90 backdrop-blur-md rounded-xl">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-semibold">Reservations</h2>
               <div className="flex items-center gap-2">
@@ -1178,11 +1178,11 @@ const ProfilePage = () => {
 
         {/* Manage Tab */}
         {activeTab === 'manage' && (
-          <div className="mb-6 p-6 shadow-2xl bg-gray-800/90 backdrop-blur-md rounded-xl">
+          <div className="mb-6 p-4 shadow-2xl bg-gray-800/90 backdrop-blur-md rounded-xl">
             <h2 className="text-2xl font-semibold mb-6 text-yellow-400">Manage Restaurant</h2>
             <div className="space-y-8">
               {/* Update Restaurant Image Section */}
-              <div className="bg-gray-700/50 p-6 rounded-lg shadow-lg">
+              <div className="bg-gray-700/50 p-4 rounded-lg shadow-lg">
                 <div className="flex items-center gap-2 mb-4">
                   <h3 className="text-xl font-bold text-yellow-400">Update Restaurant Image</h3>
                   <div className="group relative">
@@ -1230,7 +1230,7 @@ const ProfilePage = () => {
               </div>
 
               {/* Manage Table Types Section */}
-              <div className="bg-gray-700/50 p-6 rounded-lg shadow-lg">
+              <div className="bg-gray-700/50 p-4 rounded-lg shadow-lg">
                 <div className="flex items-center gap-2 mb-4">
                   <h3 className="text-xl font-bold text-yellow-400">Manage Table Types</h3>
                   <div className="group relative">
@@ -1310,7 +1310,7 @@ const ProfilePage = () => {
               </div>
 
               {/* Manage Tables Section */}
-              <div className="bg-gray-700/50 p-6 rounded-lg shadow-lg">
+              <div className="bg-gray-700/50 p-4 rounded-lg shadow-lg">
                 <div className="flex items-center gap-2 mb-4">
                   <h3 className="text-xl font-bold text-yellow-400">Manage Tables</h3>
                   <div className="group relative">
@@ -1403,7 +1403,7 @@ const ProfilePage = () => {
               <RestaurantInfoManager restaurant={restaurant} setRestaurant={setRestaurant} />
 
               {/* Set Booking Cost Section */}
-              <div className="bg-gray-700/50 p-6 rounded-lg shadow-lg">
+              <div className="bg-gray-700/50 p-4 rounded-lg shadow-lg">
                 <div className="flex items-center gap-2 mb-4">
                   <h3 className="text-xl font-bold text-yellow-400">Booking Pricing</h3>
                 </div>
