@@ -145,7 +145,7 @@ const ReservationTableManager = ({ restaurant, reservations, tables, tableTypes,
   };
 
   return (
-    <div className="bg-gray-700/50 p-6 rounded-lg shadow-lg">
+    <div className="bg-gray-700/50 p-4 rounded-lg shadow-lg">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div className="flex items-center gap-2">
           <h3 className="text-xl font-bold text-yellow-400">Reservation Table Manager</h3>
