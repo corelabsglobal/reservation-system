@@ -21,7 +21,7 @@ const DEFAULT_LAT = 5.6037;
 const DEFAULT_LNG = -0.1870;
 const DEFAULT_ZOOM = 15;
 
-const Map = ({ location, onLocationSelect, interactive = true }) => {
+const Map = ({ location, onLocationSelect, interactive = true, showSearch = true }) => {
   const mapRef = useRef(null);
   const markerRef = useRef(null);
   const searchInputRef = useRef(null);
@@ -99,49 +99,51 @@ const Map = ({ location, onLocationSelect, interactive = true }) => {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       }).addTo(map);
 
-      // Create search UI elements
-      const searchContainer = document.createElement('div');
-      searchContainer.className = 'absolute top-2 left-2 right-2 z-[1000]';
-      searchContainer.innerHTML = `
-        <div class="relative">
-          <input 
-            type="text" 
-            placeholder="Search for restaurant location..." 
-            class="w-full p-3 bg-gray-700 rounded-lg border border-gray-600 text-white focus:ring-2 focus:ring-yellow-400 focus:outline-none"
-          />
-          <div class="absolute right-3 top-3 text-gray-400">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
+      // Only create search UI if showSearch prop is true
+      if (showSearch) {
+        const searchContainer = document.createElement('div');
+        searchContainer.className = 'absolute top-2 left-2 right-2 z-[1000]';
+        searchContainer.innerHTML = `
+          <div class="relative">
+            <input 
+              type="text" 
+              placeholder="Search for restaurant location..." 
+              class="w-full p-3 bg-gray-700 rounded-lg border border-gray-600 text-white focus:ring-2 focus:ring-yellow-400 focus:outline-none"
+            />
+            <div class="absolute right-3 top-3 text-gray-400">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+            <div class="absolute z-10 w-full mt-1 bg-gray-700 rounded-lg border border-gray-600 shadow-lg hidden max-h-60 overflow-y-auto"></div>
           </div>
-          <div class="absolute z-10 w-full mt-1 bg-gray-700 rounded-lg border border-gray-600 shadow-lg hidden max-h-60 overflow-y-auto"></div>
-        </div>
-      `;
-      map.getContainer().appendChild(searchContainer);
+        `;
+        map.getContainer().appendChild(searchContainer);
 
-      searchInputRef.current = searchContainer.querySelector('input');
-      searchResultsRef.current = searchContainer.querySelector('div > div:last-child');
+        searchInputRef.current = searchContainer.querySelector('input');
+        searchResultsRef.current = searchContainer.querySelector('div > div:last-child');
 
-      // Set up search event listeners
-      let searchTimeout;
-      searchInputRef.current.addEventListener('input', (e) => {
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(() => {
-          if (e.target.value.trim()) {
-            handleSearch(e.target.value);
-            searchResultsRef.current.style.display = 'block';
-          } else {
+        // Set up search event listeners
+        let searchTimeout;
+        searchInputRef.current.addEventListener('input', (e) => {
+          clearTimeout(searchTimeout);
+          searchTimeout = setTimeout(() => {
+            if (e.target.value.trim()) {
+              handleSearch(e.target.value);
+              searchResultsRef.current.style.display = 'block';
+            } else {
+              searchResultsRef.current.style.display = 'none';
+            }
+          }, 500);
+        });
+
+        // Close results when clicking outside
+        document.addEventListener('click', (e) => {
+          if (!searchContainer.contains(e.target)) {
             searchResultsRef.current.style.display = 'none';
           }
-        }, 500);
-      });
-
-      // Close results when clicking outside
-      document.addEventListener('click', (e) => {
-        if (!searchContainer.contains(e.target)) {
-          searchResultsRef.current.style.display = 'none';
-        }
-      });
+        });
+      }
 
       // Initialize marker if location exists
       if (location && (location.lat || location.latitude) && (location.lng || location.longitude)) {
