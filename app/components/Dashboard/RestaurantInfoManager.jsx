@@ -92,7 +92,7 @@ const RestaurantInfoManager = ({ restaurant, setRestaurant }) => {
   };
 
   return (
-    <div className="bg-gray-700/50 p-6 rounded-lg shadow-lg">
+    <div className="bg-gray-700/50 p-4 rounded-lg shadow-lg">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-xl font-bold text-yellow-400">Restaurant Information</h3>
         <button
