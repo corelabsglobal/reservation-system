@@ -91,6 +91,10 @@ const RestaurantInfoManager = ({ restaurant, setRestaurant }) => {
     }
   };
 
+  const handleAddressSelect = (selectedAddress) => {
+    setAddress(selectedAddress);
+  };
+
   return (
     <div className="bg-gray-700/50 p-4 rounded-lg shadow-lg">
       <div className="flex items-center justify-between mb-4">
@@ -133,6 +137,7 @@ const RestaurantInfoManager = ({ restaurant, setRestaurant }) => {
               <MapWithNoSSR 
                 location={location}
                 onLocationSelect={handleLocationSelect}
+                onAddressSelect={handleAddressSelect}
               />
             </div>
             <p className="text-xs text-gray-400 mt-2">
@@ -169,6 +174,7 @@ const RestaurantInfoManager = ({ restaurant, setRestaurant }) => {
               <h4 className="text-gray-300 font-medium mb-1">Location</h4>
               <div className="h-64 bg-gray-800 rounded-lg overflow-hidden">
                 <MapWithNoSSR 
+                  onAddressSelect={handleAddressSelect}
                   location={location}
                   interactive={false}
                 />

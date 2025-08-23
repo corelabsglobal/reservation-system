@@ -21,7 +21,7 @@ const DEFAULT_LAT = 5.6037;
 const DEFAULT_LNG = -0.1870;
 const DEFAULT_ZOOM = 15;
 
-const Map = ({ location, onLocationSelect, interactive = true }) => {
+const Map = ({ location, onLocationSelect, onAddressSelect, interactive = true }) => {
   const mapRef = useRef(null);
   const markerRef = useRef(null);
   const searchInputRef = useRef(null);
@@ -77,6 +77,10 @@ const Map = ({ location, onLocationSelect, interactive = true }) => {
           // Update the location state
           if (onLocationSelect) {
             onLocationSelect({ lat, lng });
+          }
+
+          if (onAddressSelect) {
+            onAddressSelect(result.display_name);
           }
           
           // Hide search results
