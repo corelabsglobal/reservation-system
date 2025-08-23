@@ -17,7 +17,7 @@ import ReservationNotification from "@/app/components/restaurants/ReservationNot
 import dynamic from 'next/dynamic';
 
 const MapWithNoSSR = dynamic(
-  () => import('@/components/ui/Map'),
+  () => import('../../components/restaurants/Map'),
   { ssr: false }
 );
 
@@ -571,15 +571,16 @@ export default function RestaurantPage() {
       }
 
       let tableInfo = "Not specified";
-      if (!fallbackMode && selectedTable) {
+      if (restaurant.table_assignment_mode !== 'manual' && !fallbackMode && selectedTable) {
         const table = allTables.find(t => t.id === selectedTable);
         if (table) {
           const tableType = tableTypes.find(t => t.id === table.table_type_id);
           if (tableType) {
-            // both table type and table number in the info
             tableInfo = `${tableType.name} (Table "${table.table_number}")`;
           }
         }
+      } else if (restaurant.table_assignment_mode === 'manual') {
+        tableInfo = "Manual assignment required - staff will assign upon arrival";
       }
   
       const reservationData = {
@@ -596,7 +597,7 @@ export default function RestaurantPage() {
         people: partySize,
         paid: bookingCost > 0,
         booking_cost: bookingCost,
-        table_id: !fallbackMode ? selectedTable : null
+        table_id: restaurant.table_assignment_mode !== 'manual' && !fallbackMode ? selectedTable : null
       };
   
       const { error: dbError } = await supabase.from("reservations").insert([reservationData]);
@@ -622,7 +623,9 @@ export default function RestaurantPage() {
         special_request: occasionDetails?.specialRequest || 'None',
         dashboard_link: dashboardLink,
         current_year: new Date().getFullYear().toString(),
-        table_type: tableInfo
+        table_type: tableInfo,
+        assignment_mode: restaurant.table_assignment_mode === 'manual' ? 'manual' : 'automatic',
+        requires_table_assignment: restaurant.table_assignment_mode === 'manual' ? 'YES' : 'NO'
       };
   
       const customerEmailParams = {
@@ -762,7 +765,6 @@ export default function RestaurantPage() {
                   <MapWithNoSSR 
                     location={restaurant.location}
                     interactive={false}
-                    showSearch={false}
                   />
                 </div>
               )}
