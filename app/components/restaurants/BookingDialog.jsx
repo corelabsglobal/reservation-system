@@ -39,6 +39,9 @@ export default function BookingDialog({
   onPaystackClose,
   restaurant
 }) {
+
+  const isManualAssignment = restaurant?.table_assignment_mode === 'manual';
+
   // Check if we're showing tables with higher capacity
   const showingHigherCapacityTables = availableTables.some(group => 
     group.type.capacity > partySize
@@ -87,7 +90,16 @@ export default function BookingDialog({
                     </div>
                   ) : (
                     <>
-                      {fallbackMode && (
+                      {isManualAssignment && (
+                        <div className="bg-blue-600/20 p-3 rounded-md border border-blue-400/50">
+                          <p className="text-blue-400">
+                            This restaurant uses manual table assignment. The staff will assign 
+                            your table based on availability when you arrive.
+                          </p>
+                        </div>
+                      )}
+
+                      {fallbackMode && !isManualAssignment && (
                         <div className="bg-yellow-600/20 p-3 rounded-md border border-yellow-400/50">
                           <p className="text-yellow-400">
                             This restaurant hasn't set up specific tables yet. Your reservation will be confirmed based on general availability.
@@ -95,7 +107,7 @@ export default function BookingDialog({
                         </div>
                       )}
 
-                      {showingHigherCapacityTables && (
+                      {!isManualAssignment && showingHigherCapacityTables && (
                         <div className="bg-blue-600/20 p-3 rounded-md border border-blue-400/50">
                           <p className="text-blue-400">
                             No exact matches found. Showing tables with higher capacity.
@@ -127,7 +139,7 @@ export default function BookingDialog({
                         </div>
                       )}
 
-                      {availableTables.length > 0 && (
+                      {!isManualAssignment && availableTables.length > 0 && (
                         <div className="mt-2">
                           <h3 className="text-md font-medium text-gray-300 mb-3">
                             Available Tables for {partySize} {partySize === 1 ? 'person' : 'people'}
