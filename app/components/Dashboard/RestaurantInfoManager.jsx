@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import toast from 'react-hot-toast';
 import dynamic from 'next/dynamic';
@@ -16,6 +16,10 @@ const RestaurantInfoManager = ({ restaurant, setRestaurant }) => {
   const [address, setAddress] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [addressSuggestions, setAddressSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const addressInputRef = useRef(null);
+  const suggestionsRef = useRef(null);
 
   // Initialize form with restaurant data
   useEffect(() => {
@@ -40,8 +44,64 @@ const RestaurantInfoManager = ({ restaurant, setRestaurant }) => {
     }
   }, [restaurant]);
 
+  // Handle clicks outside the suggestions dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (suggestionsRef.current && !suggestionsRef.current.contains(event.target) && 
+          addressInputRef.current && !addressInputRef.current.contains(event.target)) {
+        setShowSuggestions(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   const handleLocationSelect = (selectedLocation) => {
     setLocation(selectedLocation);
+  };
+
+  const fetchAddressSuggestions = async (query) => {
+    if (!query || query.length < 3) {
+      setAddressSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+    
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`
+      );
+      const results = await response.json();
+      setAddressSuggestions(results);
+      setShowSuggestions(results.length > 0);
+    } catch (error) {
+      console.error('Error fetching address suggestions:', error);
+      setAddressSuggestions([]);
+      setShowSuggestions(false);
+    }
+  };
+
+  const handleAddressChange = (e) => {
+    const value = e.target.value;
+    setAddress(value);
+    fetchAddressSuggestions(value);
+  };
+
+  const handleAddressSuggestionSelect = (suggestion) => {
+    setAddress(suggestion.display_name);
+    setShowSuggestions(false);
+    
+    const lat = parseFloat(suggestion.lat);
+    const lng = parseFloat(suggestion.lon);
+    setLocation({ lat, lng });
+    
+    // Update the map through the onLocationSelect callback if needed
+    if (handleLocationSelect) {
+      handleLocationSelect({ lat, lng });
+    }
   };
 
   const handleSave = async () => {
@@ -120,18 +180,37 @@ const RestaurantInfoManager = ({ restaurant, setRestaurant }) => {
             />
           </div>
 
-          <div>
+          <div className="relative z-50">
             <label className="block text-gray-300 mb-2">Address</label>
             <input
+              ref={addressInputRef}
               type="text"
               value={address}
-              onChange={(e) => setAddress(e.target.value)}
+              onChange={handleAddressChange}
+              onFocus={() => addressSuggestions.length > 0 && setShowSuggestions(true)}
               className="w-full p-3 bg-gray-700 rounded-lg border border-gray-600 text-white focus:ring-2 focus:ring-yellow-400"
               placeholder="Enter your restaurant's full address"
             />
+            {showSuggestions && addressSuggestions.length > 0 && (
+              <div 
+                ref={suggestionsRef}
+                className="absolute z-50 w-full mt-1 bg-gray-700 rounded-lg border border-gray-600 shadow-lg max-h-60 overflow-y-auto"
+              >
+                {addressSuggestions.map((suggestion, index) => (
+                  <div
+                    key={index}
+                    className="p-2 border-b border-gray-600 hover:bg-gray-600 cursor-pointer"
+                    onClick={() => handleAddressSuggestionSelect(suggestion)}
+                  >
+                    <div className="font-medium">{suggestion.display_name.split(',')[0]}</div>
+                    <div className="text-xs text-gray-400">{suggestion.display_name}</div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
-          <div>
+          <div className="relative z-10">
             <label className="block text-gray-300 mb-2">Location</label>
             <div className="h-64 bg-gray-800 rounded-lg overflow-hidden">
               <MapWithNoSSR 
@@ -141,7 +220,7 @@ const RestaurantInfoManager = ({ restaurant, setRestaurant }) => {
               />
             </div>
             <p className="text-xs text-gray-400 mt-2">
-              Search for your restaurant above the map or click on the map to set location
+              Search for your restaurant above the map or type in the address field to see suggestions
             </p>
           </div>
 
