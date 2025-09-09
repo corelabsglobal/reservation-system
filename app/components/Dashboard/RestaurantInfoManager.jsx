@@ -79,12 +79,40 @@ const RestaurantInfoManager = ({ restaurant, setRestaurant }) => {
     
     try {
       setIsLoadingSuggestions(true);
+      
+      // Define bounding box for Ghana (approximate coordinates)
+      // West, South, East, North
+      const ghanaBoundingBox = '-3.255,4.737,1.191,11.174';
+      
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&viewbox=${ghanaBoundingBox}&bounded=1`
       );
+      
       const results = await response.json();
-      setAddressSuggestions(results);
-      setShowSuggestions(results.length > 0);
+      
+      // Additional filtering to ensure results are in Ghana
+      const ghanaResults = results.filter(result => {
+        // Check if the display name contains Ghana or major Ghanaian cities
+        const displayName = result.display_name.toLowerCase();
+        return displayName.includes('ghana') || 
+               displayName.includes('accra') ||
+               displayName.includes('kumasi') ||
+               displayName.includes('tema') ||
+               displayName.includes('takoradi') ||
+               displayName.includes('cape coast') ||
+               displayName.includes('tamale') ||
+               displayName.includes('sunyani') ||
+               displayName.includes('ho') ||
+               displayName.includes('wa') ||
+               displayName.includes('bolgatanga') ||
+               displayName.includes('elmina') ||
+               displayName.includes('navrongo') ||
+               displayName.includes('techiman') ||
+               displayName.includes('sekondi');
+      });
+      
+      setAddressSuggestions(ghanaResults);
+      setShowSuggestions(ghanaResults.length > 0);
     } catch (error) {
       console.error('Error fetching address suggestions:', error);
       setAddressSuggestions([]);
@@ -208,7 +236,7 @@ const RestaurantInfoManager = ({ restaurant, setRestaurant }) => {
               onChange={handleAddressChange}
               onFocus={() => addressSuggestions.length > 0 && setShowSuggestions(true)}
               className="w-full p-3 bg-gray-700 rounded-lg border border-gray-600 text-white focus:ring-2 focus:ring-yellow-400"
-              placeholder="Enter your restaurant's full address"
+              placeholder="Enter your restaurant's address in Ghana"
             />
             {isLoadingSuggestions && (
               <div className="absolute z-50 w-full mt-1 bg-gray-700 rounded-lg border border-gray-600 shadow-lg p-2">
@@ -217,7 +245,7 @@ const RestaurantInfoManager = ({ restaurant, setRestaurant }) => {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                   </svg>
-                  Loading suggestions...
+                  Loading Ghana locations...
                 </div>
               </div>
             )}
@@ -250,7 +278,7 @@ const RestaurantInfoManager = ({ restaurant, setRestaurant }) => {
               />
             </div>
             <p className="text-xs text-gray-400 mt-2">
-              Search for your restaurant above the map or type in the address field to see suggestions
+              Search for your restaurant above the map or type in the address field to see Ghana location suggestions
             </p>
           </div>
 
