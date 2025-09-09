@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import toast from 'react-hot-toast';
 import dynamic from 'next/dynamic';
@@ -18,8 +18,10 @@ const RestaurantInfoManager = ({ restaurant, setRestaurant }) => {
   const [isSaving, setIsSaving] = useState(false);
   const [addressSuggestions, setAddressSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
   const addressInputRef = useRef(null);
   const suggestionsRef = useRef(null);
+  const debounceTimeoutRef = useRef(null);
 
   // Initialize form with restaurant data
   useEffect(() => {
@@ -56,6 +58,10 @@ const RestaurantInfoManager = ({ restaurant, setRestaurant }) => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
+      // Clear timeout on unmount
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
     };
   }, []);
 
@@ -63,14 +69,16 @@ const RestaurantInfoManager = ({ restaurant, setRestaurant }) => {
     setLocation(selectedLocation);
   };
 
-  const fetchAddressSuggestions = async (query) => {
+  const fetchAddressSuggestions = useCallback(async (query) => {
     if (!query || query.length < 3) {
       setAddressSuggestions([]);
       setShowSuggestions(false);
+      setIsLoadingSuggestions(false);
       return;
     }
     
     try {
+      setIsLoadingSuggestions(true);
       const response = await fetch(
         `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`
       );
@@ -81,13 +89,24 @@ const RestaurantInfoManager = ({ restaurant, setRestaurant }) => {
       console.error('Error fetching address suggestions:', error);
       setAddressSuggestions([]);
       setShowSuggestions(false);
+    } finally {
+      setIsLoadingSuggestions(false);
     }
-  };
+  }, []);
 
   const handleAddressChange = (e) => {
     const value = e.target.value;
     setAddress(value);
-    fetchAddressSuggestions(value);
+    
+    // Clear previous timeout
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+    }
+    
+    // Set new timeout with debounce (500ms)
+    debounceTimeoutRef.current = setTimeout(() => {
+      fetchAddressSuggestions(value);
+    }, 500);
   };
 
   const handleAddressSuggestionSelect = (suggestion) => {
@@ -191,7 +210,18 @@ const RestaurantInfoManager = ({ restaurant, setRestaurant }) => {
               className="w-full p-3 bg-gray-700 rounded-lg border border-gray-600 text-white focus:ring-2 focus:ring-yellow-400"
               placeholder="Enter your restaurant's full address"
             />
-            {showSuggestions && addressSuggestions.length > 0 && (
+            {isLoadingSuggestions && (
+              <div className="absolute z-50 w-full mt-1 bg-gray-700 rounded-lg border border-gray-600 shadow-lg p-2">
+                <div className="flex items-center justify-center text-gray-400">
+                  <svg className="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  Loading suggestions...
+                </div>
+              </div>
+            )}
+            {showSuggestions && addressSuggestions.length > 0 && !isLoadingSuggestions && (
               <div 
                 ref={suggestionsRef}
                 className="absolute z-50 w-full mt-1 bg-gray-700 rounded-lg border border-gray-600 shadow-lg max-h-60 overflow-y-auto"
