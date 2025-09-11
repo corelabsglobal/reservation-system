@@ -7,13 +7,13 @@ import toast, { Toaster } from "react-hot-toast";
 import Header from "@/app/components/structure/header";
 import emailjs from '@emailjs/browser';
 import { generateTimeSlots } from "@/utils/timeSlots";
-import RestaurantHeader from "@/app/components/restaurants/RestaurantHeader";
 import DateSelector from "@/app/components/restaurants/DateSelector";
 import PartySizeSelector from "@/app/components/restaurants/PartySizeSelector";
 import TimeSlotsGrid from "@/app/components/restaurants/TimeSlotsGrid";
 import BookingDialog from "@/app/components/restaurants/BookingDialog";
 import PaymentModal from "@/app/components/restaurants/PaymentModal";
 import ReservationNotification from "@/app/components/restaurants/ReservationNotification";
+import PhotoGallery from "@/app/components/restaurants/PhotoGallery";
 import dynamic from 'next/dynamic';
 
 const MapWithNoSSR = dynamic(
@@ -50,6 +50,8 @@ export default function RestaurantPage() {
   const [bookingCostTiers, setBookingCostTiers] = useState([]);
   const [notification, setNotification] = useState(null);
   const [closureDays, setClosureDays] = useState([]);
+  const [activeTab, setActiveTab] = useState('reserve');
+  
   const isDateClosed = (date) => {
     const dateObj = new Date(date);
     const dayOfWeek = dateObj.getDay();
@@ -652,173 +654,326 @@ export default function RestaurantPage() {
   
       await Promise.all([
         emailjs.send(
-          process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID,
-          process.env.NEXT_PUBLIC_EMAILJS_RESTAURANT_TEMPLATE_ID,
-          restaurantEmailParams,
-          process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY
-        ),
-        emailjs.send(
-          process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID,
-          process.env.NEXT_PUBLIC_EMAILJS_CUSTOMER_TEMPLATE_ID,
-          customerEmailParams,
-          process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY
-        )
-      ]);
-  
-      setNotification({
-        type: 'success',
-        title: 'Reservation Successful',
-        message: 'Your reservation is confirmed! Confirmation emails have been sent.'
-      });
+        process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID,
+        process.env.NEXT_PUBLIC_EMAILJS_RESTAURANT_TEMPLATE_ID,
+        restaurantEmailParams,
+        process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY
+      ),
+      emailjs.send(
+        process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID,
+        process.env.NEXT_PUBLIC_EMAILJS_CUSTOMER_TEMPLATE_ID,
+        customerEmailParams,
+        process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY
+      )
+    ]);
 
-      const { data: newReservations } = await supabase
-        .from("reservations")
-        .select("time, date, user_id, table_id, people")
-        .eq("restaurant_id", restaurant.id)
-        .eq("date", selectedDate);
+    setNotification({
+      type: 'success',
+      title: 'Reservation Successful',
+      message: 'Your reservation is confirmed! Confirmation emails have been sent.'
+    });
 
-      setReservations(newReservations);
+    const { data: newReservations } = await supabase
+      .from("reservations")
+      .select("time, date, user_id, table_id, people")
+      .eq("restaurant_id", restaurant.id)
+      .eq("date", selectedDate);
 
-      const updatedAvailableSlots = timeSlots.filter(slot => {
-        const reservationsForSlot = newReservations.filter(r => r.time === slot);
-        const bookedTablesForSlot = new Set(reservationsForSlot.map(r => r.table_id));
-        
-        if (fallbackMode) return true;
-        
-        return allTables.some(table => {
-          const tableType = tableTypes.find(t => t.id === table.table_type_id);
-          return !bookedTablesForSlot.has(table.id) && tableType?.capacity >= partySize;
-        });
-      });
+    setReservations(newReservations);
 
-      setAvailableSlots(updatedAvailableSlots);
+    const updatedAvailableSlots = timeSlots.filter(slot => {
+      const reservationsForSlot = newReservations.filter(r => r.time === slot);
+      const bookedTablesForSlot = new Set(reservationsForSlot.map(r => r.table_id));
       
-      setReservations([...reservations, reservationData]);
-      localStorage.setItem("reservationToken", reservationToken);
-      localStorage.setItem("reservationEmail", email);
-  
-      setTimeout(() => {
-        router.push(userId === "guest" ? "/guests" : "/reservations");
-      }, 2200);
-  
-    } catch (error) {
-      console.error('Reservation error:', error);
-      setNotification({
-        type: 'error',
-        title: 'Booking Failed',
-        message: error.message || 'An error occurred while processing your reservation'
+      if (fallbackMode) return true;
+      
+      return allTables.some(table => {
+        const tableType = tableTypes.find(t => t.id === table.table_type_id);
+        return !bookedTablesForSlot.has(table.id) && tableType?.capacity >= partySize;
       });
-    } finally {
-      setIsLoading(false);
-    }
+    });
+
+    setAvailableSlots(updatedAvailableSlots);
+    
+    setReservations([...reservations, reservationData]);
+    localStorage.setItem("reservationToken", reservationToken);
+    localStorage.setItem("reservationEmail", email);
+
+    setTimeout(() => {
+      router.push(userId === "guest" ? "/guests" : "/reservations");
+    }, 2200);
+
+  } catch (error) {
+    console.error('Reservation error:', error);
+    setNotification({
+      type: 'error',
+      title: 'Booking Failed',
+      message: error.message || 'An error occurred while processing your reservation'
+    });
+  } finally {
+    setIsLoading(false);
+  }
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-900">
-        <div className="animate-pulse text-2xl font-medium text-indigo-400">Loading restaurants...</div>
+      <div className="flex items-center justify-center min-h-screen bg-white">
+        <div className="animate-pulse flex flex-col items-center">
+          <div className="h-12 w-12 bg-gradient-to-r from-amber-500 to-amber-600 rounded-full mb-4"></div>
+          <div className="text-2xl font-medium text-gray-700">Loading restaurant...</div>
+        </div>
       </div>
     )
   }
   if (!restaurant) return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-900">
-      <p className="text-center text-red-500">Restaurant not found.</p>
+    <div className="flex items-center justify-center min-h-screen bg-white">
+      <p className="text-center text-red-500 text-xl">Restaurant not found.</p>
     </div>
   )
 
   return (
-    <div className="relative min-h-screen bg-gray-900 text-white px-4 md:px-6 py-10 flex items-center justify-center">
-      <div
-        className="absolute inset-0 bg-cover bg-center bg-fixed opacity-50"
-        style={{ backgroundImage: "url('/images/background.jpeg')" }}
-      />
+    <div className="min-h-screen bg-white text-gray-800">
       <Toaster 
         position="top-right"
         toastOptions={{
           duration: 4000,
           style: {
-            background: '#363636',
+            background: '#1F2937',
             color: '#fff',
           },
         }}
       />
+      <Header />
       <ReservationNotification 
         notification={notification} 
         onClose={() => setNotification(null)} 
       />
-      <Header />
-      <div className="mt-14 max-w-6xl w-full mx-auto flex flex-col md:flex-row gap-8 p-4 md:p-6 rounded-lg shadow-2xl bg-gray-800/90 backdrop-blur-md">
-        <RestaurantHeader restaurant={restaurant} />
+
+      {/* Hero Section */}
+      <div className="relative h-96 w-full overflow-hidden">
+        <div 
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ 
+            backgroundImage: restaurant.restaurant_image ? `url(${restaurant.restaurant_image})` : "url('/images/restaurant-default.jpg')"
+          }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-black/30"></div>
+        </div>
         
-        <div className="md:w-1/2 flex flex-col justify-center">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-yellow-400 mb-2">{restaurant.name}</h1>
-          {!restaurant.location && !restaurant.address && (
-            <p className="text-gray-300 text-sm sm:text-md md:text-lg">
-              {restaurant.location}
-            </p>
-          )}
-          {(restaurant.location || restaurant.address) && (
-            <div className="mt-6">
-              <h3 className="text-xl font-bold text-yellow-400 mb-2">Location</h3>
-              {restaurant.location && (
-                <div className="h-64 bg-gray-800 rounded-lg overflow-hidden">
-                  <MapWithNoSSR 
-                    location={restaurant.location}
-                    interactive={false}
-                  />
-                </div>
-              )}
-              {restaurant.address && (
-                <p className="mt-2 text-gray-300">
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    className="h-5 w-5 inline-block mr-1" 
-                    fill="none" 
-                    viewBox="0 0 24 24" 
-                    stroke="currentColor"
-                  >
-                    <path 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round" 
-                      strokeWidth={2} 
-                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" 
-                    />
-                    <path 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round" 
-                      strokeWidth={2} 
-                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" 
-                    />
-                  </svg>
-                  {restaurant.address}
-                </p>
-              )}
+        <div className="relative z-10 container mx-auto px-4 h-full flex flex-col justify-end pb-8">
+          <h1 className="text-4xl md:text-5xl font-bold text-white mb-2">{restaurant.name}</h1>
+          <div className="flex items-center text-white/90">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            <span>{restaurant.address || restaurant.location || 'Location not specified'}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Left Column - Info */}
+          <div className="lg:w-2/5">
+            {/* Tabs */}
+            <div className="flex border-b border-gray-200 mb-6">
+              <button 
+                className={`py-3 px-6 font-medium ${activeTab === 'reserve' ? 'text-amber-600 border-b-2 border-amber-600' : 'text-gray-500 hover:text-gray-700'}`}
+                onClick={() => setActiveTab('reserve')}
+              >
+                Reserve
+              </button>
+              <button 
+                className={`py-3 px-6 font-medium ${activeTab === 'info' ? 'text-amber-600 border-b-2 border-amber-600' : 'text-gray-500 hover:text-gray-700'}`}
+                onClick={() => setActiveTab('info')}
+              >
+                Info
+              </button>
             </div>
-          )}
-          <p className="mt-3 text-gray-300 leading-relaxed text-sm sm:text-md md:text-lg">
-            {restaurant.description || "No description available."}
-          </p>
-          
-          <DateSelector 
-            selectedDate={selectedDate}
-            setSelectedDate={setSelectedDate}
-            isDateClosed={isDateClosed}
-            closureDays={closureDays}
-          />
 
-          <PartySizeSelector 
-            partySize={partySize}
-            handlePartySizeChange={handlePartySizeChange}
-            bookingCost={bookingCost}
-            bookingCostTiers={bookingCostTiers}
-          />
+            {activeTab === 'reserve' ? (
+              <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+                <h2 className="text-2xl font-bold mb-6">Make a Reservation</h2>
+                
+                <DateSelector 
+                  selectedDate={selectedDate}
+                  setSelectedDate={setSelectedDate}
+                  isDateClosed={isDateClosed}
+                  closureDays={closureDays}
+                />
 
-          <TimeSlotsGrid 
-            availableSlots={availableSlots}
-            handleOpenDialog={handleOpenDialog}
-            fallbackMode={fallbackMode}
-            restaurant={restaurant}
-          />
+                <PartySizeSelector 
+                  partySize={partySize}
+                  handlePartySizeChange={handlePartySizeChange}
+                  bookingCost={bookingCost}
+                  bookingCostTiers={bookingCostTiers}
+                />
+
+                <TimeSlotsGrid 
+                  availableSlots={availableSlots}
+                  handleOpenDialog={handleOpenDialog}
+                  fallbackMode={fallbackMode}
+                  restaurant={restaurant}
+                />
+              </div>
+            ) : (
+              <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+                <h2 className="text-2xl font-bold mb-4">About {restaurant.name}</h2>
+                <p className="text-gray-600 mb-6 leading-relaxed">
+                  {restaurant.description || "No description available."}
+                </p>
+                
+                <div className="space-y-4">
+                  {restaurant.cuisine_type && (
+                    <div className="flex items-start">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-amber-600 mt-1 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
+                      </svg>
+                      <div>
+                        <h3 className="font-semibold">Cuisine</h3>
+                        <p className="text-gray-600">{restaurant.cuisine_type}</p>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {restaurant.phone && (
+                    <div className="flex items-start">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-amber-600 mt-1 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                      </svg>
+                      <div>
+                        <h3 className="font-semibold">Phone</h3>
+                        <p className="text-gray-600">{restaurant.phone}</p>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {restaurant.email && (
+                    <div className="flex items-start">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-amber-600 mt-1 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      </svg>
+                      <div>
+                        <h3 className="font-semibold">Email</h3>
+                        <p className="text-gray-600">{restaurant.email}</p>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {restaurant.website && (
+                    <div className="flex items-start">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-amber-600 mt-1 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                      </svg>
+                      <div>
+                        <h3 className="font-semibold">Website</h3>
+                        <a href={restaurant.website} target="_blank" rel="noopener noreferrer" className="text-amber-600 hover:underline">
+                          Visit website
+                        </a>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Map Section */}
+            {(restaurant.location || restaurant.address) && (
+              <div className="bg-white rounded-lg shadow-lg p-6">
+                <h3 className="text-xl font-bold mb-4">Location</h3>
+                {restaurant.location && (
+                  <div className="h-64 bg-gray-100 rounded-lg overflow-hidden mb-4">
+                    <MapWithNoSSR 
+                      location={restaurant.location}
+                      interactive={true}
+                    />
+                  </div>
+                )}
+                {restaurant.address && (
+                  <p className="text-gray-600 flex items-start">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-amber-600 mt-0.5 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    {restaurant.address}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Right Column - Gallery */}
+          <div className="lg:w-3/5">
+            <PhotoGallery 
+              restaurant={{
+                name: "Restaurant Name",
+                gallery_images: []
+              }} 
+            />
+
+            {/* Reviews Section */}
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <h2 className="text-2xl font-bold mb-4">Customer Reviews</h2>
+              <div className="flex items-center mb-6">
+                <div className="flex items-center mr-4">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <svg key={star} xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-amber-400" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                  ))}
+                </div>
+                <span className="text-gray-600">4.8 based on 124 reviews</span>
+              </div>
+              
+              <div className="space-y-4">
+                {/* Sample Review */}
+                <div className="border-b border-gray-100 pb-4 last:border-0">
+                  <div className="flex items-center mb-2">
+                    <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center mr-3">
+                      <span className="text-gray-600 font-medium">JD</span>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold">John Doe</h4>
+                      <div className="flex items-center">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <svg key={star} xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-amber-400" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                          </svg>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-gray-600 text-sm">The food was absolutely incredible! The atmosphere was perfect for our anniversary dinner. Will definitely be coming back soon.</p>
+                </div>
+                
+                {/* Another Sample Review */}
+                <div className="border-b border-gray-100 pb-4 last:border-0">
+                  <div className="flex items-center mb-2">
+                    <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center mr-3">
+                      <span className="text-gray-600 font-medium">AS</span>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold">Alice Smith</h4>
+                      <div className="flex items-center">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <svg key={star} xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-amber-400" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                          </svg>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-gray-600 text-sm">Excellent service and the wine selection was impressive. The staff went above and beyond to make our evening special.</p>
+                </div>
+              </div>
+              
+              <button className="mt-6 w-full py-3 bg-white border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors">
+                View All Reviews
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
