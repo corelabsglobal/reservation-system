@@ -92,7 +92,7 @@ const ReservationsPage = () => {
                   </div>
                   <div>
                     <h2 className="text-2xl font-semibold text-yellow-400">{restaurant.name}</h2>
-                    <p className="text-gray-400">{restaurant.location}</p>
+                    <p className="text-gray-400">{restaurant.address || restaurant.location}</p>
                   </div>
                 </div>
                 <div className="mt-4">
