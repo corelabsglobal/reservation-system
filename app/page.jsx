@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
 import Header from "./components/structure/header";
-import { Card, CardContent } from "@/components/ui/card";
-import { Search, User } from "lucide-react";
+import { CardContent } from "@/components/ui/card";
+import { Search } from "lucide-react";
 import { NearbyRestaurants } from "./components/HomePage/NearbyRestaurants";
 import { usePreviousDayReservationCheck, RatingModal } from "./components/HomePage/RatingModal";
 
