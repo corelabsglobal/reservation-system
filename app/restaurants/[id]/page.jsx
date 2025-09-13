@@ -908,10 +908,7 @@ export default function RestaurantPage() {
           {/* Right Column - Gallery */}
           <div className="lg:w-3/5">
             <PhotoGallery 
-              restaurant={{
-                name: "Restaurant Name",
-                gallery_images: []
-              }} 
+              restaurant={restaurant} 
             />
 
             {/* Reviews Section */}
