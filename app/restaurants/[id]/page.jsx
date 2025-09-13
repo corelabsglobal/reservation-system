@@ -14,6 +14,8 @@ import BookingDialog from "@/app/components/restaurants/BookingDialog";
 import PaymentModal from "@/app/components/restaurants/PaymentModal";
 import ReservationNotification from "@/app/components/restaurants/ReservationNotification";
 import PhotoGallery from "@/app/components/restaurants/PhotoGallery";
+import LoadingAnimation from "@/components/ui/LoadingAnimation";
+import NotFound from "@/components/ui/NotFound";
 import dynamic from 'next/dynamic';
 
 const MapWithNoSSR = dynamic(
@@ -51,6 +53,7 @@ export default function RestaurantPage() {
   const [notification, setNotification] = useState(null);
   const [closureDays, setClosureDays] = useState([]);
   const [activeTab, setActiveTab] = useState('reserve');
+  const [showLoading, setShowLoading] = useState(true);
   
   const isDateClosed = (date) => {
     const dateObj = new Date(date);
@@ -715,20 +718,18 @@ export default function RestaurantPage() {
   }
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-white">
-        <div className="animate-pulse flex flex-col items-center">
-          <div className="h-12 w-12 bg-gradient-to-r from-amber-500 to-amber-600 rounded-full mb-4"></div>
-          <div className="text-2xl font-medium text-gray-700">Loading restaurant...</div>
-        </div>
-      </div>
-    )
+  useEffect(() => {
+    if (!loading) {
+      const timer = setTimeout(() => setShowLoading(false), 300);
+      return () => clearTimeout(timer);
+    }
+  }, [loading]);
+
+  if (loading && showLoading) {
+    return <LoadingAnimation />;
   }
   if (!restaurant) return (
-    <div className="flex items-center justify-center min-h-screen bg-white">
-      <p className="text-center text-red-500 text-xl">Restaurant not found.</p>
-    </div>
+    <NotFound />
   )
 
   return (
