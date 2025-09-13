@@ -16,6 +16,7 @@ import ReservationNotification from "@/app/components/restaurants/ReservationNot
 import PhotoGallery from "@/app/components/restaurants/PhotoGallery";
 import LoadingAnimation from "@/components/ui/LoadingAnimation";
 import NotFound from "@/components/ui/NotFound";
+import Reviews from "@/app/components/restaurants/Reviews";
 import dynamic from 'next/dynamic';
 
 const MapWithNoSSR = dynamic(
@@ -912,65 +913,7 @@ export default function RestaurantPage() {
             />
 
             {/* Reviews Section */}
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <h2 className="text-2xl font-bold mb-4">Customer Reviews</h2>
-              <div className="flex items-center mb-6">
-                <div className="flex items-center mr-4">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <svg key={star} xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-amber-400" viewBox="0 0 20 20" fill="currentColor">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                  ))}
-                </div>
-                <span className="text-gray-600">4.8 based on 124 reviews</span>
-              </div>
-              
-              <div className="space-y-4">
-                {/* Sample Review */}
-                <div className="border-b border-gray-100 pb-4 last:border-0">
-                  <div className="flex items-center mb-2">
-                    <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center mr-3">
-                      <span className="text-gray-600 font-medium">JD</span>
-                    </div>
-                    <div>
-                      <h4 className="font-semibold">John Doe</h4>
-                      <div className="flex items-center">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <svg key={star} xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-amber-400" viewBox="0 0 20 20" fill="currentColor">
-                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                          </svg>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                  <p className="text-gray-600 text-sm">The food was absolutely incredible! The atmosphere was perfect for our anniversary dinner. Will definitely be coming back soon.</p>
-                </div>
-                
-                {/* Another Sample Review */}
-                <div className="border-b border-gray-100 pb-4 last:border-0">
-                  <div className="flex items-center mb-2">
-                    <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center mr-3">
-                      <span className="text-gray-600 font-medium">AS</span>
-                    </div>
-                    <div>
-                      <h4 className="font-semibold">Alice Smith</h4>
-                      <div className="flex items-center">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <svg key={star} xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-amber-400" viewBox="0 0 20 20" fill="currentColor">
-                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                          </svg>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                  <p className="text-gray-600 text-sm">Excellent service and the wine selection was impressive. The staff went above and beyond to make our evening special.</p>
-                </div>
-              </div>
-              
-              <button className="mt-6 w-full py-3 bg-white border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors">
-                View All Reviews
-              </button>
-            </div>
+            <Reviews />
           </div>
         </div>
       </div>
