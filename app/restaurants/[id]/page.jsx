@@ -725,8 +725,8 @@ export default function RestaurantPage() {
     }
   }, [loading]);
 
-  if (loading && showLoading) {
-    return <LoadingAnimation />;
+  if (loading) {
+    return <LoadingAnimation />
   }
   if (!restaurant) return (
     <NotFound />
