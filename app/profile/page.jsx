@@ -18,6 +18,7 @@ import ReservationTimingManager from '../components/Dashboard/ReservationTimingM
 import RestaurantInfoManager from '../components/Dashboard/RestaurantInfoManager';
 import ReservationTableManager from '../components/structure/ReservationTableManager';
 import TableAssignmentManager from '../components/structure/TableAssignmentManager';
+import SideImagesUploader from '../components/Dashboard/SideImagesUploader';
 
 const ProfilePage = () => {
   const [restaurant, setRestaurant] = useState(null);
@@ -1229,6 +1230,25 @@ const ProfilePage = () => {
                   </div>
                 </div>
               </div>
+              <SideImagesUploader 
+                restaurant={restaurant} 
+                onUpdate={() => {
+                  // Refresh restaurant data
+                  const fetchRestaurant = async () => {
+                    const { data: user } = await supabase.auth.getUser();
+                    if (!user) return;
+                    
+                    const { data } = await supabase
+                      .from('restaurants')
+                      .select('*')
+                      .eq('owner_id', user.user.id)
+                      .single();
+                    
+                    if (data) setRestaurant(data);
+                  };
+                  fetchRestaurant();
+                }}
+              />
 
               <TableAssignmentManager 
                 restaurant={restaurant} 
