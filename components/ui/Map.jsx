@@ -8,7 +8,7 @@ import 'leaflet/dist/leaflet.css';
 const createCustomIcon = () => {
   return L.icon({
     iconUrl: '/images/marker-icon.jpg',
-    iconRetinaUrl: '/images/marker-icon-2x.jpg',
+    iconRetinaUrl: '/images/marker-logo.png',
     //shadowUrl: '/images/marker-shadow.png',
     iconSize: [25, 41],
     iconAnchor: [12, 41],
