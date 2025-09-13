@@ -40,6 +40,13 @@ export default function Home() {
     fetchRestaurants();
   }, []);
 
+  // Function to truncate text to a single line
+  const truncateText = (text, maxLength = 35) => {
+    if (!text) return "";
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + "...";
+  };
+
   const filteredRestaurants = useMemo(() => {
     if (!search) return restaurants;
     
@@ -155,8 +162,8 @@ export default function Home() {
                     <h2 className="text-2xl font-bold text-yellow-400">
                       {restaurant.name}
                     </h2>
-                    <p className="text-gray-300">
-                      {restaurant.address || restaurant.location}
+                    <p className="text-gray-300 truncate" title={restaurant.address || restaurant.location}>
+                      {truncateText(restaurant.address || restaurant.location)}
                     </p>
                     <Button 
                       className="mt-4 w-full bg-gradient-to-r from-yellow-400 to-orange-600 hover:from-orange-500 hover:to-orange-700 transition-all "
