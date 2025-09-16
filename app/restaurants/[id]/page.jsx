@@ -15,6 +15,7 @@ import PaymentModal from "@/app/components/restaurants/PaymentModal";
 import ReservationNotification from "@/app/components/restaurants/ReservationNotification";
 import PhotoGallery from "@/app/components/restaurants/PhotoGallery";
 import LoadingAnimation from "@/components/ui/LoadingAnimation";
+import HeroCarousel from "@/app/components/restaurants/HeroCarousel";
 import NotFound from "@/components/ui/NotFound";
 import Reviews from "@/app/components/restaurants/Reviews";
 import dynamic from 'next/dynamic';
@@ -752,47 +753,7 @@ export default function RestaurantPage() {
       />
 
       {/* Hero Section */}
-      <div className="relative h-96 w-full overflow-hidden">
-        <div 
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ 
-            backgroundImage: restaurant.restaurant_image ? `url(${restaurant.restaurant_image})` : "url('/images/restaurant-default.jpg')"
-          }}
-        >
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-black/30"></div>
-        </div>
-        
-        <div className="relative z-10 container mx-auto px-4 h-full flex flex-col justify-end pb-8">
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-2">
-            {restaurant.name}
-          </h1>
-          <div className="flex items-center text-white/90">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5 mr-1 flex-shrink-0"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-              />
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-              />
-            </svg>
-            <span className="truncate max-w-xs sm:max-w-sm md:max-w-md">
-              {restaurant.address || restaurant.location || "Location not specified"}
-            </span>
-          </div>
-        </div>
-      </div>
+      <HeroCarousel restaurant={restaurant} />
 
       {/* Main Content */}
       <div className="container mx-auto px-4 py-8">
