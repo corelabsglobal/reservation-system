@@ -13,10 +13,6 @@ export default function PhotoGallery({ restaurant }) {
                 alt={`${restaurant.name} gallery image ${index + 1}`} 
                 className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
               />
-              {/* Image number overlay */}
-              <div className="absolute top-2 left-2 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded-full">
-                {index + 1}
-              </div>
             </div>
           ))}
         </div>
