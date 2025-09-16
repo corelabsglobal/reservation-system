@@ -19,6 +19,7 @@ const RestaurantInfoManager = ({ restaurant, setRestaurant }) => {
   const [addressSuggestions, setAddressSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
+  const [googleMapsLoaded, setGoogleMapsLoaded] = useState(false);
   const addressInputRef = useRef(null);
   const suggestionsRef = useRef(null);
   const debounceTimeoutRef = useRef(null);
@@ -46,6 +47,39 @@ const RestaurantInfoManager = ({ restaurant, setRestaurant }) => {
     }
   }, [restaurant]);
 
+  // Load Google Maps script for geocoding
+  useEffect(() => {
+    // Check if Google Maps API is already loaded
+    if (window.google && window.google.maps) {
+      setGoogleMapsLoaded(true);
+      return;
+    }
+
+    // Load Google Maps script if not already loaded
+    const existingScript = document.querySelector('script[src*="maps.googleapis.com"]');
+    if (!existingScript) {
+      const script = document.createElement('script');
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}`;
+      script.async = true;
+      script.defer = true;
+      script.onload = () => {
+        setGoogleMapsLoaded(true);
+      };
+      script.onerror = () => {
+        console.error('Failed to load Google Maps API');
+      };
+      document.head.appendChild(script);
+    } else if (window.google && window.google.maps) {
+      // Script is already loaded
+      setGoogleMapsLoaded(true);
+    } else {
+      // Script is loading, wait for it
+      existingScript.onload = () => {
+        setGoogleMapsLoaded(true);
+      };
+    }
+  }, []);
+
   // Handle clicks outside the suggestions dropdown
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -70,7 +104,7 @@ const RestaurantInfoManager = ({ restaurant, setRestaurant }) => {
   };
 
   const fetchAddressSuggestions = useCallback(async (query) => {
-    if (!query || query.length < 3) {
+    if (!query || query.length < 3 || !googleMapsLoaded) {
       setAddressSuggestions([]);
       setShowSuggestions(false);
       setIsLoadingSuggestions(false);
@@ -80,47 +114,47 @@ const RestaurantInfoManager = ({ restaurant, setRestaurant }) => {
     try {
       setIsLoadingSuggestions(true);
       
-      // Define bounding box for Ghana (approximate coordinates)
-      // West, South, East, North
-      const ghanaBoundingBox = '-3.255,4.737,1.191,11.174';
+      // Use Google Maps Geocoding API directly
+      const geocoder = new window.google.maps.Geocoder();
       
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&viewbox=${ghanaBoundingBox}&bounded=1`
-      );
-      
-      const results = await response.json();
-      
-      // Additional filtering to ensure results are in Ghana
-      const ghanaResults = results.filter(result => {
-        // Check if the display name contains Ghana or major Ghanaian cities
-        const displayName = result.display_name.toLowerCase();
-        return displayName.includes('ghana') || 
-               displayName.includes('accra') ||
-               displayName.includes('kumasi') ||
-               displayName.includes('tema') ||
-               displayName.includes('takoradi') ||
-               displayName.includes('cape coast') ||
-               displayName.includes('tamale') ||
-               displayName.includes('sunyani') ||
-               displayName.includes('ho') ||
-               displayName.includes('wa') ||
-               displayName.includes('bolgatanga') ||
-               displayName.includes('elmina') ||
-               displayName.includes('navrongo') ||
-               displayName.includes('techiman') ||
-               displayName.includes('sekondi');
+      // Search globally first
+      geocoder.geocode({
+        address: query
+      }, (results, status) => {
+        if (status !== window.google.maps.GeocoderStatus.OK || !results) {
+          setAddressSuggestions([]);
+          setShowSuggestions(false);
+          setIsLoadingSuggestions(false);
+          return;
+        }
+
+        // Filter and prioritize Ghana results
+        const ghanaResults = results.filter(result => {
+          const address = result.formatted_address.toLowerCase();
+          return address.includes('ghana') || address.includes('accra') || 
+                 address.includes('kumasi') || address.includes('tema');
+        });
+
+        const displayResults = ghanaResults.length > 0 ? ghanaResults : results.slice(0, 5);
+
+        // Format results for display
+        const formattedSuggestions = displayResults.map(result => ({
+          formatted_address: result.formatted_address,
+          location: result.geometry.location,
+          place_id: result.place_id || `geo-${result.geometry.location.lat()}-${result.geometry.location.lng()}`
+        }));
+        
+        setAddressSuggestions(formattedSuggestions);
+        setShowSuggestions(formattedSuggestions.length > 0);
+        setIsLoadingSuggestions(false);
       });
-      
-      setAddressSuggestions(ghanaResults);
-      setShowSuggestions(ghanaResults.length > 0);
     } catch (error) {
       console.error('Error fetching address suggestions:', error);
       setAddressSuggestions([]);
       setShowSuggestions(false);
-    } finally {
       setIsLoadingSuggestions(false);
     }
-  }, []);
+  }, [googleMapsLoaded]);
 
   const handleAddressChange = (e) => {
     const value = e.target.value;
@@ -138,14 +172,15 @@ const RestaurantInfoManager = ({ restaurant, setRestaurant }) => {
   };
 
   const handleAddressSuggestionSelect = (suggestion) => {
-    setAddress(suggestion.display_name);
+    setAddress(suggestion.formatted_address);
     setShowSuggestions(false);
     
-    const lat = parseFloat(suggestion.lat);
-    const lng = parseFloat(suggestion.lon);
+    const lat = suggestion.location.lat();
+    const lng = suggestion.location.lng();
+    
     setLocation({ lat, lng });
     
-    // Update the map through the onLocationSelect callback if needed
+    // Update the map through the onLocationSelect callback
     if (handleLocationSelect) {
       handleLocationSelect({ lat, lng });
     }
@@ -236,7 +271,7 @@ const RestaurantInfoManager = ({ restaurant, setRestaurant }) => {
               onChange={handleAddressChange}
               onFocus={() => addressSuggestions.length > 0 && setShowSuggestions(true)}
               className="w-full p-3 bg-gray-700 rounded-lg border border-gray-600 text-white focus:ring-2 focus:ring-yellow-400"
-              placeholder="Enter your restaurant's address in Ghana"
+              placeholder="Enter your restaurant's address"
             />
             {isLoadingSuggestions && (
               <div className="absolute z-50 w-full mt-1 bg-gray-700 rounded-lg border border-gray-600 shadow-lg p-2">
@@ -245,7 +280,7 @@ const RestaurantInfoManager = ({ restaurant, setRestaurant }) => {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                   </svg>
-                  Loading Ghana locations...
+                  Loading locations...
                 </div>
               </div>
             )}
@@ -260,8 +295,7 @@ const RestaurantInfoManager = ({ restaurant, setRestaurant }) => {
                     className="p-2 border-b border-gray-600 hover:bg-gray-600 cursor-pointer"
                     onClick={() => handleAddressSuggestionSelect(suggestion)}
                   >
-                    <div className="font-medium">{suggestion.display_name.split(',')[0]}</div>
-                    <div className="text-xs text-gray-400">{suggestion.display_name}</div>
+                    <div className="font-medium">{suggestion.formatted_address}</div>
                   </div>
                 ))}
               </div>
@@ -278,7 +312,7 @@ const RestaurantInfoManager = ({ restaurant, setRestaurant }) => {
               />
             </div>
             <p className="text-xs text-gray-400 mt-2">
-              Search for your restaurant above the map or type in the address field to see Ghana location suggestions
+              Search for your restaurant above the map or type in the address field to see location suggestions
             </p>
           </div>
 
