@@ -95,7 +95,7 @@ const Map = ({ location, onLocationSelect, interactive = true }) => {
     }
   }, [location]);
 
-  return <div id="map-container" style={{ height: '100%', width: '100%', position: 'relative' }} />;
+  return <div id="map-container" style={{ height: '100%', width: '100%', position: 'relative', zIndex: 1 }} />;
 };
 
 export default Map;
