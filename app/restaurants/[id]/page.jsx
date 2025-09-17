@@ -756,7 +756,7 @@ export default function RestaurantPage() {
       <HeroCarousel restaurant={restaurant} />
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 pt-20 pb-8">
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Left Column - Info */}
           <div className="lg:w-2/5">

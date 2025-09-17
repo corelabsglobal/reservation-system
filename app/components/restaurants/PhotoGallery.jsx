@@ -2,7 +2,7 @@ export default function PhotoGallery({ restaurant }) {
   const galleryImages = restaurant?.side_images || [];
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+    <div className="bg-white rounded-lg shadow-lg p-6 mb-6 z-10">
       <h2 className="text-2xl font-bold mb-4">Photo Gallery</h2>
       {galleryImages.length > 0 ? (
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
