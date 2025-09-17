@@ -4,6 +4,14 @@ import { useState, useRef } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import toast from 'react-hot-toast';
 import Image from 'next/image';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 const SideImagesUploader = ({ restaurant, onUpdate }) => {
   const [uploading, setUploading] = useState(false);
@@ -37,22 +45,25 @@ const SideImagesUploader = ({ restaurant, onUpdate }) => {
   };
 
   const handleImageUpload = async (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
+    const files = Array.from(event.target.files);
+    if (!files || files.length === 0) return;
 
     // Check if we've reached the maximum of 6 images
-    if (currentImages.length >= 6) {
-      toast.error("Maximum of 6 images allowed");
+    const totalImagesAfterUpload = currentImages.length + files.length;
+    if (totalImagesAfterUpload > 6) {
+      toast.error(`Maximum of 6 images allowed. You can only upload ${6 - currentImages.length} more.`);
       return;
     }
 
     setUploading(true);
 
     try {
-      const imageUrl = await handleUpload(file);
+      const uploadPromises = files.map(file => handleUpload(file));
+      const uploadedUrls = await Promise.all(uploadPromises);
+      const successfulUploads = uploadedUrls.filter(url => url !== "");
       
-      if (imageUrl) {
-        const updatedImages = [...currentImages, imageUrl];
+      if (successfulUploads.length > 0) {
+        const updatedImages = [...currentImages, ...successfulUploads];
         
         // Update the database
         const { error } = await supabase
@@ -64,11 +75,11 @@ const SideImagesUploader = ({ restaurant, onUpdate }) => {
 
         setCurrentImages(updatedImages);
         onUpdate?.(); // Refresh parent component if needed
-        toast.success('Image uploaded successfully');
+        toast.success(`Uploaded ${successfulUploads.length} image${successfulUploads.length > 1 ? 's' : ''}`);
       }
     } catch (error) {
-      console.error('Error uploading image:', error);
-      toast.error('Failed to upload image');
+      console.error('Error uploading images:', error);
+      toast.error('Failed to upload images');
     } finally {
       setUploading(false);
       // Reset the file input
@@ -110,27 +121,6 @@ const SideImagesUploader = ({ restaurant, onUpdate }) => {
     }
   };
 
-  const reorderImages = async (startIndex, endIndex) => {
-    const result = Array.from(currentImages);
-    const [removed] = result.splice(startIndex, 1);
-    result.splice(endIndex, 0, removed);
-
-    try {
-      const { error } = await supabase
-        .from('restaurants')
-        .update({ side_images: result })
-        .eq('id', restaurant.id);
-
-      if (error) throw error;
-
-      setCurrentImages(result);
-      toast.success('Image order updated');
-    } catch (error) {
-      console.error('Error reordering images:', error);
-      toast.error('Failed to reorder images');
-    }
-  };
-
   const imagesToShow = showAllImages ? currentImages : currentImages.slice(0, 4);
   const hasMoreImages = currentImages.length > 4;
 
@@ -162,6 +152,7 @@ const SideImagesUploader = ({ restaurant, onUpdate }) => {
             accept="image/*"
             onChange={handleImageUpload}
             disabled={uploading || currentImages.length >= 6}
+            multiple
             className="w-full p-3 bg-gray-600 rounded-lg text-white focus:ring-2 focus:ring-yellow-400 disabled:opacity-50 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-yellow-500 file:text-gray-900 hover:file:bg-yellow-400"
           />
           
@@ -250,65 +241,33 @@ const SideImagesUploader = ({ restaurant, onUpdate }) => {
         </div>
       )}
 
-      {/* Reordering Interface - Mobile optimized */}
-      {currentImages.length > 1 && (
-        <div className="mt-6 p-4 bg-gray-800/60 rounded-lg">
-          <h4 className="text-sm font-medium text-gray-300 mb-3 flex items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
-            </svg>
-            <span>Drag to reorder images</span>
-          </h4>
-          <div className="flex flex-wrap gap-2">
-            {currentImages.map((_, index) => (
-              <div
-                key={index}
-                className="bg-gray-700 px-3 py-2 rounded text-sm text-gray-300 cursor-move flex items-center"
-                draggable
-                onDragStart={(e) => e.dataTransfer.setData('text/plain', index)}
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={(e) => {
-                  e.preventDefault();
-                  const fromIndex = parseInt(e.dataTransfer.getData('text/plain'));
-                  reorderImages(fromIndex, index);
-                }}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
-                </svg>
-                <span className="truncate">Image {index + 1}</span>
-              </div>
-            ))}
-          </div>
-          <p className="text-xs text-gray-400 mt-2">The first image will be the most prominent on your page</p>
-        </div>
-      )}
-
-      {/* Delete Confirmation Modal - Mobile optimized */}
-      {deletingIndex !== null && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-800 p-6 rounded-lg max-w-md w-full">
-            <h3 className="text-lg font-semibold text-white mb-4">Delete Image?</h3>
-            <p className="text-gray-300 mb-6">
+      {/* Delete Confirmation Dialog using Shadcn UI */}
+      <Dialog open={deletingIndex !== null} onOpenChange={(open) => !open && cancelRemoveImage()}>
+        <DialogContent className="sm:max-w-md bg-gray-800 border-gray-700">
+          <DialogHeader>
+            <DialogTitle className="text-white">Delete Image?</DialogTitle>
+            <DialogDescription className="text-gray-300">
               Are you sure you want to delete this image? This action cannot be undone.
-            </p>
-            <div className="flex flex-col sm:flex-row justify-end gap-3">
-              <button
-                onClick={cancelRemoveImage}
-                className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-500 transition-colors flex-1 sm:flex-none"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={removeImage}
-                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-500 transition-colors flex-1 sm:flex-none"
-              >
-                Delete Image
-              </button>
-            </div>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col sm:flex-row justify-end gap-3 mt-4">
+            <Button 
+              variant="outline" 
+              onClick={cancelRemoveImage}
+              className="bg-gray-600 text-white border-gray-600 hover:bg-gray-500 flex-1 sm:flex-none"
+            >
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={removeImage}
+              className="flex-1 sm:flex-none"
+            >
+              Delete Image
+            </Button>
           </div>
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

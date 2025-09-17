@@ -60,7 +60,7 @@ export default function Header() {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 bg-gray-900 bg-opacity-90 text-white flex justify-between items-center px-6 py-4 z-60 shadow-md">
+    <header className="fixed top-0 left-0 right-0 bg-gray-900 bg-opacity-90 text-white flex justify-between items-center px-6 py-4 z-50 shadow-md">
       <Toaster />
       <a href="/">
         <h1 className="text-xl sm:text-2xl font-serif italic">DanLoski</h1>
