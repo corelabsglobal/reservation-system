@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import toast, { Toaster } from "react-hot-toast";
-import Header from "@/app/components/structure/header";
 import emailjs from '@emailjs/browser';
 import { generateTimeSlots } from "@/utils/timeSlots";
 import DateSelector from "@/app/components/restaurants/DateSelector";
@@ -19,6 +18,7 @@ import HeroCarousel from "@/app/components/restaurants/HeroCarousel";
 import NotFound from "@/components/ui/NotFound";
 import Reviews from "@/app/components/restaurants/Reviews";
 import dynamic from 'next/dynamic';
+import RestaurantHeader from "@/app/components/restaurants/Header";
 
 const MapWithNoSSR = dynamic(
   () => import('../../components/restaurants/Map'),
@@ -746,7 +746,7 @@ export default function RestaurantPage() {
           },
         }}
       />
-      <Header />
+      <RestaurantHeader />
       <ReservationNotification 
         notification={notification} 
         onClose={() => setNotification(null)} 
