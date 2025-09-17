@@ -48,7 +48,6 @@ const SideImagesUploader = ({ restaurant, onUpdate }) => {
     const files = Array.from(event.target.files);
     if (!files || files.length === 0) return;
 
-    // Check if we've reached the maximum of 6 images
     const totalImagesAfterUpload = currentImages.length + files.length;
     if (totalImagesAfterUpload > 6) {
       toast.error(`Maximum of 6 images allowed. You can only upload ${6 - currentImages.length} more.`);
