@@ -1,101 +1,164 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
-
-// Create custom marker icon
-const createCustomIcon = () => {
-  return L.icon({
-    iconUrl: '/images/marker-icon-2x.jpg',
-    iconRetinaUrl: '/images/marker-logo.png',
-    //shadowUrl: '/images/marker-shadow.png',
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowSize: [41, 41]
-  });
-};
 
 const DEFAULT_LAT = 5.6037;
 const DEFAULT_LNG = -0.1870;
 const DEFAULT_ZOOM = 15;
 
-const Map = ({ location, onLocationSelect, interactive = true }) => {
+const Map = ({ location }) => {
   const mapRef = useRef(null);
   const markerRef = useRef(null);
 
   const getCoordinates = () => {
-    if (!location) return [DEFAULT_LAT, DEFAULT_LNG];
+    if (!location) return { lat: DEFAULT_LAT, lng: DEFAULT_LNG };
     const lat = location.lat ?? location.latitude ?? DEFAULT_LAT;
     const lng = location.lng ?? location.longitude ?? DEFAULT_LNG;
-    return [lat, lng];
+    return { lat, lng };
   };
 
   useEffect(() => {
-    if (!mapRef.current) {
-      const [lat, lng] = getCoordinates();
-      const map = L.map('map-container').setView([lat, lng], DEFAULT_ZOOM);
+    if (window.google && window.google.maps) {
+      initializeMap();
+      return;
+    }
+
+    // Load Google Maps script if not already loaded
+    const existingScript = document.querySelector('script[src*="maps.googleapis.com"]');
+    if (!existingScript) {
+      const script = document.createElement('script');
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}`;
+      script.async = true;
+      script.defer = true;
+      script.onload = () => initializeMap();
+      script.onerror = () => {
+        console.error('Failed to load Google Maps API');
+      };
+      document.head.appendChild(script);
+    } else if (window.google && window.google.maps) {
+      // Script is already loaded, initialize map
+      initializeMap();
+    } else {
+      // Script is loading, wait for it
+      existingScript.onload = () => initializeMap();
+    }
+
+    function initializeMap() {
+      // Check if map container exists and Google Maps is loaded
+      const mapContainer = document.getElementById('map-display-container');
+      if (!mapContainer || !window.google || !window.google.maps) {
+        return;
+      }
+
+      const { lat, lng } = getCoordinates();
       
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-      }).addTo(map);
-
-      // Initialize marker if location exists
-      if (location && (location.lat || location.latitude) && (location.lng || location.longitude)) {
-        const [lat, lng] = getCoordinates();
-        markerRef.current = L.marker([lat, lng], { 
-          icon: createCustomIcon(),
-          riseOnHover: true
-        }).addTo(map);
-      }
-
-      if (interactive) {
-        map.on('click', (e) => {
-          const { lat, lng } = e.latlng;
-          // Remove existing marker if it exists
-          if (markerRef.current) {
-            map.removeLayer(markerRef.current);
+      // Initialize the map
+      const map = new window.google.maps.Map(mapContainer, {
+        center: { lat, lng },
+        zoom: DEFAULT_ZOOM,
+        streetViewControl: false,
+        mapTypeControl: false,
+        fullscreenControl: true,
+        zoomControl: true,
+        styles: [
+          {
+            "featureType": "all",
+            "elementType": "geometry",
+            "stylers": [{ "color": "#242f3e" }]
+          },
+          {
+            "featureType": "all",
+            "elementType": "labels.text.stroke",
+            "stylers": [{ "lightness": -80 }]
+          },
+          {
+            "featureType": "administrative",
+            "elementType": "labels.text.fill",
+            "stylers": [{ "color": "#746855" }]
+          },
+          {
+            "featureType": "landscape",
+            "elementType": "geometry",
+            "stylers": [{ "color": "#2c3e50" }]
+          },
+          {
+            "featureType": "poi",
+            "elementType": "labels.text.fill",
+            "stylers": [{ "color": "#d59563" }]
+          },
+          {
+            "featureType": "road",
+            "elementType": "geometry",
+            "stylers": [{ "color": "#38414e" }]
+          },
+          {
+            "featureType": "road",
+            "elementType": "labels.text.fill",
+            "stylers": [{ "color": "#9ca5b3" }]
+          },
+          {
+            "featureType": "water",
+            "elementType": "geometry",
+            "stylers": [{ "color": "#17263c" }]
+          },
+          {
+            "featureType": "water",
+            "elementType": "labels.text.fill",
+            "stylers": [{ "color": "#515c6d" }]
           }
-          // Create new marker
-          markerRef.current = L.marker([lat, lng], { 
-            icon: createCustomIcon(),
-            riseOnHover: true
-          }).addTo(map);
-          if (onLocationSelect) {
-            onLocationSelect({ lat, lng });
-          }
-        });
-      }
+        ]
+      });
+
+      // Create marker
+      markerRef.current = new window.google.maps.Marker({
+        position: { lat, lng },
+        map: map,
+        icon: {
+          url: '/images/marker-logo.png',
+          scaledSize: new window.google.maps.Size(40, 40),
+          anchor: new window.google.maps.Point(20, 40)
+        },
+        animation: window.google.maps.Animation.DROP
+      });
 
       mapRef.current = map;
-
-      return () => {
-        if (mapRef.current) {
-          mapRef.current.remove();
-          mapRef.current = null;
-        }
-      };
     }
+
+    return () => {
+      if (markerRef.current) {
+        markerRef.current.setMap(null);
+      }
+    };
   }, []);
 
   useEffect(() => {
     if (mapRef.current && location) {
-      const [lat, lng] = getCoordinates();
-      mapRef.current.setView([lat, lng], DEFAULT_ZOOM);
+      const { lat, lng } = getCoordinates();
+      mapRef.current.setCenter({ lat, lng });
+      
       // Remove existing marker if it exists
       if (markerRef.current) {
-        mapRef.current.removeLayer(markerRef.current);
+        markerRef.current.setMap(null);
       }
+      
       // Create new marker
-      markerRef.current = L.marker([lat, lng], { 
-        icon: createCustomIcon(),
-        riseOnHover: true
-      }).addTo(mapRef.current);
+      markerRef.current = new window.google.maps.Marker({
+        position: { lat, lng },
+        map: mapRef.current,
+        icon: {
+          url: '/images/marker-logo.png',
+          scaledSize: new window.google.maps.Size(40, 40),
+          anchor: new window.google.maps.Point(20, 40)
+        }
+      });
     }
   }, [location]);
 
-  return <div id="map-container" style={{ height: '100%', width: '100%', position: 'relative', zIndex: 1 }} />;
+  return (
+    <div className="w-full h-full rounded-lg overflow-hidden shadow-lg">
+      <div id="map-display-container" style={{ height: '100%', width: '100%' }} />
+    </div>
+  );
 };
 
 export default Map;
