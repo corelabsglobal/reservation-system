@@ -60,7 +60,7 @@ export default function RestaurantHeader() {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 bg-gray-900 bg-opacity-90 text-gray-900 flex justify-between items-center px-6 py-4 z-50 shadow-md border-b border-gray-200">
+    <header className="fixed top-0 left-0 right-0 bg-gray-900 bg-opacity-90 text-gray-900 flex justify-between items-center px-6 py-4 z-50 shadow-md ">
       <a href="/">
         <h1 className="text-xl sm:text-2xl font-serif italic text-white">DanLoski</h1>
       </a>
