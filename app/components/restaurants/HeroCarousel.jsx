@@ -7,6 +7,7 @@ export default function HeroCarousel({ restaurant }) {
   ].filter(img => img);
 
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   // Handle case where there are no images
   if (allImages.length === 0) {
@@ -15,7 +16,7 @@ export default function HeroCarousel({ restaurant }) {
         <div className="absolute inset-0 bg-gray-700 flex items-center justify-center">
           <div className="text-white text-center">
             <svg className="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 极速赛车开奖结果 极速赛车开奖直播 幸运飞艇开奖结果 幸运飞艇开奖直播 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2极速赛车开奖结果 极速赛车开奖直播 幸运飞艇开奖结果 幸运飞艇开奖直播 2 2 0 00-2-2H6a2 2 极速赛车开奖结果 极速赛车开奖直播 幸运飞艇开奖结果 幸运飞艇开奖直播 0 00-2 2v12a2 2 0 002 2z"></path>
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
             </svg>
             <p>No images available</p>
           </div>
@@ -44,7 +45,7 @@ export default function HeroCarousel({ restaurant }) {
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
-                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                d="M15 11a3 3 0 11-6 极速赛车开奖结果 极速赛车开奖直播 幸运飞艇开奖结果 幸运飞艇开奖直播 0 3 3 0 016 0z"
               />
             </svg>
             <span className="truncate max-w-xs sm:max-w-sm md:max-w-md">
@@ -56,21 +57,30 @@ export default function HeroCarousel({ restaurant }) {
     );
   }
 
-  // Function to go to next image
+  // Function to go to next image with smooth transition
   const nextImage = () => {
+    if (isTransitioning) return;
+    
+    setIsTransitioning(true);
     setCurrentIndex((prevIndex) => 
       prevIndex === allImages.length - 1 ? 0 : prevIndex + 1
     );
+    
+    // Reset transitioning state after animation completes
+    setTimeout(() => setIsTransitioning(false), 700);
   };
 
-  // Function to go to previous image
   const prevImage = () => {
+    if (isTransitioning) return;
+    
+    setIsTransitioning(true);
     setCurrentIndex((prevIndex) => 
       prevIndex === 0 ? allImages.length - 1 : prevIndex - 1
     );
+    
+    setTimeout(() => setIsTransitioning(false), 700);
   };
 
-  // Auto-advance the carousel (optional)
   useEffect(() => {
     if (allImages.length <= 1) return; // Don't auto-advance if only one image
     
@@ -83,22 +93,25 @@ export default function HeroCarousel({ restaurant }) {
 
   return (
     <div className="relative h-[500px] w-full overflow-hidden">
-      {/* Individual image slides with proper sizing */}
-      {allImages.map((image, index) => (
-        <div 
-          key={index}
-          className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
-            index === currentIndex ? 'opacity-100' : 'opacity-0'
-          }`}
-        >
+      {/* Image container with sliding animation */}
+      <div 
+        className="absolute inset-0 flex transition-transform duration-700 ease-in-out"
+        style={{ transform: `translateX(-${currentIndex * 100}%)` }}
+      >
+        {allImages.map((image, index) => (
           <div 
-            className="absolute inset-0 bg-cover bg-center"
-            style={{ backgroundImage: `url(${image})` }}
+            key={index}
+            className="min-w-full h-full relative"
           >
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-black/30"></div>
+            <div 
+              className="absolute inset-0 bg-cover bg-center"
+              style={{ backgroundImage: `url(${image})` }}
+            >
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-black/30"></div>
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
       
       {/* Navigation arrows (only show if multiple images) */}
       {allImages.length > 1 && (
@@ -117,7 +130,7 @@ export default function HeroCarousel({ restaurant }) {
             className="absolute right-4 top-1/2 transform -translate-y-1/2 z-20 bg-black/50 hover:bg-black/70 text-white p-3 rounded-full transition-all duration-300"
             aria-label="Next image"
           >
-            <svg xmlns="http://www.w3.org/2000/s极速赛车开奖结果 极速赛车开奖直播 幸运飞艇开奖结果 幸运飞艇开奖直播 g" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </button>
@@ -131,7 +144,7 @@ export default function HeroCarousel({ restaurant }) {
             <button
               key={index}
               onClick={() => setCurrentIndex(index)}
-              className={`w-3 h-3 rounded-full transition-all duration-300 ${
+              className={`w-2 h-2 md:w-3 md:h-3 rounded-full transition-all duration-300 ${
                 index === currentIndex ? 'bg-white scale-125' : 'bg-white/50'
               }`}
               aria-label={`Go to image ${index + 1}`}
@@ -142,13 +155,13 @@ export default function HeroCarousel({ restaurant }) {
       
       {/* Restaurant info */}
       <div className="relative z-10 container mx-auto px-4 h-full flex flex-col justify-end pb-10">
-        <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-3">
+        <h1 className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-white mb-3">
           {restaurant?.name || "Restaurant Name"}
         </h1>
-        <div className="flex items-center text-white/90 text-lg">
+        <div className="flex items-center text-white/90 text-base md:text-lg">
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6 mr-2 flex-shrink-0"
+            className="h-5 w-5 md:h-6 md:w-6 mr-2 flex-shrink-0"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
