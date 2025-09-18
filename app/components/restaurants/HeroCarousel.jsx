@@ -155,7 +155,7 @@ export default function HeroCarousel({ restaurant }) {
       
       {/* Restaurant info */}
       <div className="relative z-10 container mx-auto px-4 h-full flex flex-col justify-end pb-10">
-        <h1 className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-white mb-3">
+        <h1 className="text-2xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-white mb-3">
           {restaurant?.name || "Restaurant Name"}
         </h1>
         <div className="flex items-center text-white/90 text-base md:text-lg">
