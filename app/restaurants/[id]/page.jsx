@@ -889,9 +889,9 @@ export default function RestaurantPage() {
 
           {/* Right Column - Gallery */}
           <div className="lg:w-3/5">
-            <PhotoGallery 
+            {/*<PhotoGallery 
               restaurant={restaurant} 
-            />
+            />*/}
 
             {/* Reviews Section */}
             <Reviews />
