@@ -1024,6 +1024,7 @@ const ProfilePage = () => {
                         markAsSeen={markAsSeen}
                         markAsAttended={markAsAttended}
                         cancelReservation={cancelReservation}
+                        restaurant={restaurant}
                         highlightCurrent
                       />
                     ))}
@@ -1071,6 +1072,7 @@ const ProfilePage = () => {
                               markAsAttended={markAsAttended}
                               cancelReservation={cancelReservation}
                               isPast={isPast}
+                              restaurant={restaurant}
                             />
                           </div>
                         );
@@ -1119,6 +1121,7 @@ const ProfilePage = () => {
                         markAsSeen={markAsSeen}
                         markAsAttended={markAsAttended}
                         cancelReservation={cancelReservation}
+                        restaurant={restaurant}
                       />
                     ))}
 

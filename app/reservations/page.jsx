@@ -35,7 +35,7 @@ const ReservationsPage = () => {
         .from("reservations")
         .select(`
           id, date, time, special_request, restaurant_id, name, occassion,
-          restaurants:restaurant_id (id, name, location, restaurant_image)
+          restaurants:restaurant_id (id, name, location, address, restaurant_image)
         `)
         .eq("user_id", user.id);
 
