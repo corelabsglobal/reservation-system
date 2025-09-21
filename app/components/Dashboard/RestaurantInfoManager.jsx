@@ -59,7 +59,7 @@ const RestaurantInfoManager = ({ restaurant, setRestaurant }) => {
     const existingScript = document.querySelector('script[src*="maps.googleapis.com"]');
     if (!existingScript) {
       const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}`;
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`;
       script.async = true;
       script.defer = true;
       script.onload = () => {
@@ -103,6 +103,28 @@ const RestaurantInfoManager = ({ restaurant, setRestaurant }) => {
     setLocation(selectedLocation);
   };
 
+  // Function to check if a result is in Ghana
+  const isInGhana = (result) => {
+    // Check address components for Ghana
+    if (result.address_components) {
+      for (let i = 0; i < result.address_components.length; i++) {
+        const component = result.address_components[i];
+        if (component.types.includes('country') && component.short_name === 'GH') {
+          return true;
+        }
+      }
+    }
+    
+    // Fallback: check formatted address for Ghana references
+    const address = result.formatted_address.toLowerCase();
+    return address.includes('ghana') || address.includes('accra') || 
+           address.includes('kumasi') || address.includes('tema') ||
+           address.includes('cape coast') || address.includes('takoradi') ||
+           address.includes('tamale') || address.includes('sunyani') ||
+           address.includes('ho') || address.includes('wa') ||
+           address.includes('bolgatanga') || address.includes('elmina');
+  };
+
   const fetchAddressSuggestions = useCallback(async (query) => {
     if (!query || query.length < 3 || !googleMapsLoaded) {
       setAddressSuggestions([]);
@@ -117,9 +139,10 @@ const RestaurantInfoManager = ({ restaurant, setRestaurant }) => {
       // Use Google Maps Geocoding API directly
       const geocoder = new window.google.maps.Geocoder();
       
-      // Search globally first
+      // Add component restrictions to limit results to Ghana
       geocoder.geocode({
-        address: query
+        address: query,
+        componentRestrictions: { country: 'GH' }
       }, (results, status) => {
         if (status !== window.google.maps.GeocoderStatus.OK || !results) {
           setAddressSuggestions([]);
@@ -128,14 +151,11 @@ const RestaurantInfoManager = ({ restaurant, setRestaurant }) => {
           return;
         }
 
-        // Filter and prioritize Ghana results
-        const ghanaResults = results.filter(result => {
-          const address = result.formatted_address.toLowerCase();
-          return address.includes('ghana') || address.includes('accra') || 
-                 address.includes('kumasi') || address.includes('tema');
-        });
+        // Filter to only include Ghana results using our function
+        const ghanaResults = results.filter(isInGhana);
 
-        const displayResults = ghanaResults.length > 0 ? ghanaResults : results.slice(0, 5);
+        // If we have Ghana results, use them, otherwise show a message
+        const displayResults = ghanaResults.length > 0 ? ghanaResults.slice(0, 5) : [];
 
         // Format results for display
         const formattedSuggestions = displayResults.map(result => ({
@@ -271,7 +291,7 @@ const RestaurantInfoManager = ({ restaurant, setRestaurant }) => {
               onChange={handleAddressChange}
               onFocus={() => addressSuggestions.length > 0 && setShowSuggestions(true)}
               className="w-full p-3 bg-gray-700 rounded-lg border border-gray-600 text-white focus:ring-2 focus:ring-yellow-400"
-              placeholder="Enter your restaurant's address"
+              placeholder="Enter your restaurant's address in Ghana"
             />
             {isLoadingSuggestions && (
               <div className="absolute z-50 w-full mt-1 bg-gray-700 rounded-lg border border-gray-600 shadow-lg p-2">
@@ -280,7 +300,7 @@ const RestaurantInfoManager = ({ restaurant, setRestaurant }) => {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                   </svg>
-                  Loading locations...
+                  Loading Ghana locations...
                 </div>
               </div>
             )}
@@ -300,6 +320,14 @@ const RestaurantInfoManager = ({ restaurant, setRestaurant }) => {
                 ))}
               </div>
             )}
+            {showSuggestions && addressSuggestions.length === 0 && !isLoadingSuggestions && (
+              <div 
+                ref={suggestionsRef}
+                className="absolute z-50 w-full mt-1 bg-gray-700 rounded-lg border border-gray-600 shadow-lg p-2"
+              >
+                <div className="text-gray-400">No Ghana locations found. Please try a different search term.</div>
+              </div>
+            )}
           </div>
 
           <div className="relative z-10">
@@ -312,7 +340,7 @@ const RestaurantInfoManager = ({ restaurant, setRestaurant }) => {
               />
             </div>
             <p className="text-xs text-gray-400 mt-2">
-              Search for your restaurant above the map or type in the address field to see location suggestions
+              Search for your restaurant in Ghana above the map or type in the address field to see location suggestions
             </p>
           </div>
 
@@ -346,7 +374,7 @@ const RestaurantInfoManager = ({ restaurant, setRestaurant }) => {
               <div className="h-64 bg-gray-800 rounded-lg overflow-hidden">
                 <MapWithNoSSR 
                   onAddressSelect={handleAddressSelect}
-                  location={location}
+                  location={restaurant.location}
                   interactive={false}
                 />
               </div>

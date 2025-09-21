@@ -10,10 +10,31 @@ const Map = ({ location }) => {
   const mapRef = useRef(null);
   const markerRef = useRef(null);
 
+  const normalizeLocation = (location) => {
+    if (!location) return null;
+
+    if (typeof location === "string") {
+      try {
+        return JSON.parse(location);
+      } catch (e) {
+        console.error("Invalid location JSON:", e);
+        return null;
+      }
+    }
+
+    return location;
+  };
+
+  console.log("location:", location)
+
   const getCoordinates = () => {
-    if (!location) return { lat: DEFAULT_LAT, lng: DEFAULT_LNG };
-    const lat = location.lat ?? location.latitude ?? DEFAULT_LAT;
-    const lng = location.lng ?? location.longitude ?? DEFAULT_LNG;
+    const parsedLocation = normalizeLocation(location);
+
+    if (!parsedLocation) return { lat: DEFAULT_LAT, lng: DEFAULT_LNG };
+
+    const lat = parsedLocation.lat ?? parsedLocation.latitude ?? DEFAULT_LAT;
+    const lng = parsedLocation.lng ?? parsedLocation.longitude ?? DEFAULT_LNG;
+
     return { lat, lng };
   };
 
