@@ -871,6 +871,7 @@ export default function RestaurantPage() {
                     <MapWithNoSSR 
                       location={restaurant.location}
                       interactive={true}
+                      address={restaurant.address}
                     />
                   </div>
                 )}
