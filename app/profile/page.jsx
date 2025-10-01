@@ -551,13 +551,42 @@ const ProfilePage = () => {
     }
   };
 
-  {/*const filteredReservations = reservations.filter(res =>
-    res.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
-    (filterDate ? res.date === filterDate : true)
-  );*/}
-
   const filteredReservations = reservations.filter(res => {
-    const matchesSearch = res.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const normalizePhone = (phone) => {
+      if (!phone && phone !== 0) return '';
+      
+      // Convert to string and remove all non-digit characters
+      const phoneStr = typeof phone === 'number' ? phone.toString() : String(phone);
+      const digitsOnly = phoneStr.replace(/[^\d]/g, '');
+      
+      if (digitsOnly.startsWith('233')) {
+        return '0' + digitsOnly.substring(3);
+      } else if (digitsOnly.startsWith('+233')) {
+        return '0' + digitsOnly.substring(4);
+      } else if (!digitsOnly.startsWith('0') && digitsOnly.length === 9) {
+        return '0' + digitsOnly;
+      }
+      
+      return digitsOnly;
+    };
+
+    const searchTerm = searchQuery.toLowerCase().trim();
+    const normalizedPhone = normalizePhone(res.number);
+    const searchDigits = searchQuery.replace(/[^\d]/g, '');
+    
+    if (!searchTerm) {
+      if (filterDate) {
+        const reservationDateFormatted = new Date(res.date).toISOString().split('T')[0];
+        const filterDateFormatted = new Date(filterDate).toISOString().split('T')[0];
+        return reservationDateFormatted === filterDateFormatted;
+      }
+      return true;
+    }
+    
+    // Search in name OR normalized phone number
+    const matchesSearch = 
+      res.name.toLowerCase().includes(searchTerm) ||
+      normalizedPhone.includes(searchDigits);
     
     if (filterDate) {
       const reservationDateFormatted = new Date(res.date).toISOString().split('T')[0];
@@ -967,7 +996,7 @@ const ProfilePage = () => {
                 </div>
                 <input
                   type="text"
-                  placeholder="Search by Name, Table, or Notes"
+                  placeholder="Search by Name or Phone Number"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-10 p-3 bg-gray-700 text-white rounded-lg border border-gray-600 focus:ring-2 focus:ring-yellow-400"
