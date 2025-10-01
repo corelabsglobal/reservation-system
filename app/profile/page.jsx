@@ -597,6 +597,14 @@ const ProfilePage = () => {
     return matchesSearch;
   });
 
+  const handleReservationUpdate = (updatedReservation) => {
+    setReservations(prevReservations => 
+      prevReservations.map(res => 
+        res.id === updatedReservation.id ? updatedReservation : res
+      )
+    );
+  };
+
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -1055,6 +1063,9 @@ const ProfilePage = () => {
                         cancelReservation={cancelReservation}
                         restaurant={restaurant}
                         highlightCurrent
+                        tables={tables}
+                        tableTypes={tableTypes}
+                        onReservationUpdate={handleReservationUpdate}
                       />
                     ))}
                   </div>
@@ -1102,6 +1113,9 @@ const ProfilePage = () => {
                               cancelReservation={cancelReservation}
                               isPast={isPast}
                               restaurant={restaurant}
+                              tables={tables}
+                              tableTypes={tableTypes}
+                              onReservationUpdate={handleReservationUpdate}
                             />
                           </div>
                         );
@@ -1151,6 +1165,9 @@ const ProfilePage = () => {
                         markAsAttended={markAsAttended}
                         cancelReservation={cancelReservation}
                         restaurant={restaurant}
+                        tables={tables}
+                        tableTypes={tableTypes}
+                        onReservationUpdate={handleReservationUpdate}
                       />
                     ))}
 
