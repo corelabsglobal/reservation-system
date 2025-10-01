@@ -83,11 +83,18 @@ const TableAssignmentModal = ({
 
       if (error) throw error;
 
-      toast.success(`Reservation moved to Table ${tables.find(t => t.id === newTableId)?.table_number}`);
+      const newTable = tables.find(t => t.id === newTableId);
+      toast.success(`Reservation moved to Table ${newTable?.table_number}`);
       
-      // Call the callback to refresh reservations
+      const updatedReservation = {
+        ...reservation,
+        table_id: newTableId,
+        table_number: newTable?.table_number,
+        tables: { table_number: newTable?.table_number }
+      };
+      
       if (onReservationUpdate) {
-        onReservationUpdate();
+        onReservationUpdate(updatedReservation);
       }
       
       onClose();
@@ -116,8 +123,15 @@ const TableAssignmentModal = ({
 
       toast.success('Table assignment cleared');
       
+      const updatedReservation = {
+        ...reservation,
+        table_id: null,
+        table_number: null,
+        tables: null
+      };
+      
       if (onReservationUpdate) {
-        onReservationUpdate();
+        onReservationUpdate(updatedReservation);
       }
       
       onClose();
