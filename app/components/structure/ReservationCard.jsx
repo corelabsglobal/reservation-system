@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, Eye, EyeOff, X, AlertTriangle, UserCheck, Clock, Calendar, Users, Table, Phone } from 'lucide-react';
+import { Check, Eye, EyeOff, X, AlertTriangle, UserCheck, Clock, Calendar, Users, Table, Phone, Move } from 'lucide-react';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
 import {
@@ -10,9 +10,21 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import TableAssignmentModal from './TableAssignmentModal';
 
-const ReservationCard = ({ res, markAsSeen, cancelReservation, markAsAttended, highlightCurrent = false, isPast = false }) => {
+const ReservationCard = ({ 
+  res, 
+  markAsSeen, 
+  cancelReservation, 
+  markAsAttended, 
+  highlightCurrent = false, 
+  isPast = false,
+  tables = [],
+  tableTypes = [],
+  onReservationUpdate 
+}) => {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showTableModal, setShowTableModal] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
   const [expanded, setExpanded] = useState(false);
 
@@ -49,6 +61,8 @@ const ReservationCard = ({ res, markAsSeen, cancelReservation, markAsAttended, h
     timeStatus = 'Now';
   }
 
+  const isFutureReservation = reservationTime > now && !res.cancelled;
+
   const handleCancelClick = () => {
     setShowConfirmModal(true);
   };
@@ -74,6 +88,15 @@ const ReservationCard = ({ res, markAsSeen, cancelReservation, markAsAttended, h
 
   const toggleExpand = () => {
     setExpanded(!expanded);
+  };
+
+  // Simplified table assignment handler
+  const handleTableAssignmentClick = async () => {
+    if (!isFutureReservation) {
+      toast.error('Cannot modify past reservations');
+      return;
+    }
+    setShowTableModal(true);
   };
 
   // Status indicator colors
@@ -120,7 +143,7 @@ const ReservationCard = ({ res, markAsSeen, cancelReservation, markAsAttended, h
         transition={{ duration: 0.3 }}
         className={cardClasses}
       >
-        {/* Main content area */}
+        {/* Main content area - unchanged */}
         <div className="flex flex-col">
           {/* Header section */}
           <div className="flex justify-between items-start gap-2">
@@ -224,15 +247,23 @@ const ReservationCard = ({ res, markAsSeen, cancelReservation, markAsAttended, h
                 </div>
               </div>
               
-              {res.table_number && (
-                <div className="flex items-start gap-2">
-                  <Table className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="text-xs text-gray-500">Table</p>
-                    <p className={`text-sm ${textColor}`}>{res.table_number}</p>
-                  </div>
+              <div className="flex items-start gap-2">
+                <Table className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="text-xs text-gray-500">Table</p>
+                  <p className={`text-sm ${textColor}`}>
+                    {res.table_number || 'Not assigned'}
+                    {isFutureReservation && (
+                      <button 
+                        onClick={handleTableAssignmentClick}
+                        className="ml-1 text-blue-600 hover:text-blue-800 text-xs font-medium"
+                      >
+                        {res.table_number ? '(Change)' : '(Assign)'}
+                      </button>
+                    )}
+                  </p>
                 </div>
-              )}
+              </div>
             </div>
 
             {(res.special_request || res.occassion) && (
@@ -317,6 +348,16 @@ const ReservationCard = ({ res, markAsSeen, cancelReservation, markAsAttended, h
                   </>
                 )}
               </button>
+
+              {/* Table Assignment Button */}
+              {isFutureReservation && (
+                <button
+                  onClick={handleTableAssignmentClick}
+                  className="flex-1 min-w-[120px] flex items-center justify-center gap-1 px-3 py-2 bg-orange-100 hover:bg-orange-200 text-orange-800 rounded-lg text-sm transition-all"
+                >
+                  <Move className="h-4 w-4" /> Table
+                </button>
+              )}
               
               <button
                 onClick={handleCancelClick}
@@ -329,6 +370,7 @@ const ReservationCard = ({ res, markAsSeen, cancelReservation, markAsAttended, h
         </div>
       </motion.div>
 
+      {/* Cancel Reservation Modal - unchanged */}
       <Dialog open={showConfirmModal} onOpenChange={setShowConfirmModal}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
@@ -390,6 +432,16 @@ const ReservationCard = ({ res, markAsSeen, cancelReservation, markAsAttended, h
           </div>
         </DialogContent>
       </Dialog>
+
+      <TableAssignmentModal
+        reservation={res}
+        tables={tables}
+        tableTypes={tableTypes}
+        isOpen={showTableModal}
+        onClose={() => setShowTableModal(false)}
+        onReservationUpdate={onReservationUpdate}
+        isFutureReservation={isFutureReservation}
+      />
     </>
   );
 };
