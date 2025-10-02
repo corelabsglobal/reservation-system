@@ -90,14 +90,14 @@ export default function BookingDialog({
                     </div>
                   ) : (
                     <>
-                      {isManualAssignment && (
+                      {/*isManualAssignment && (
                         <div className="bg-blue-600/20 p-3 rounded-md border border-blue-400/50">
                           <p className="text-blue-400">
                             This restaurant uses manual table assignment. The staff will assign 
                             your table based on availability when you arrive.
                           </p>
                         </div>
-                      )}
+                      )*/}
 
                       {fallbackMode && !isManualAssignment && (
                         <div className="bg-yellow-600/20 p-3 rounded-md border border-yellow-400/50">
