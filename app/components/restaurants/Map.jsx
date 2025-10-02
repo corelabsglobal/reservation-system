@@ -142,6 +142,18 @@ const Map = ({ location }) => {
         animation: window.google.maps.Animation.DROP
       });
 
+      map.addListener("click", (e) => {
+        const clickedLat = e.latLng.lat();
+        const clickedLng = e.latLng.lng();
+
+        const googleMapsUrl = `https://www.google.com/maps?q=${clickedLat},${clickedLng}`;
+
+        const shouldOpen = window.confirm("Do you want to open this location in Google Maps?");
+        if (shouldOpen) {
+          window.open(googleMapsUrl, "_blank");
+        }
+      });
+
       mapRef.current = map;
     }
 
