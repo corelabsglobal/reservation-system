@@ -587,7 +587,7 @@ export default function RestaurantPage() {
           }
         }
       } else if (restaurant.table_assignment_mode === 'manual') {
-        tableInfo = "Manual assignment required - staff will assign upon arrival";
+        tableInfo = "";
       }
   
       const reservationData = {
