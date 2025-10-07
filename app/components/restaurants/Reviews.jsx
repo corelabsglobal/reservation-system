@@ -9,20 +9,19 @@ const Reviews = ({ restaurantId }) => {
   const [loading, setLoading] = useState(true);
   const [averageRating, setAverageRating] = useState(0);
   const [displayedReviews, setDisplayedReviews] = useState([]);
+  const [userNames, setUserNames] = useState({}); // Store user names by user_id
 
   useEffect(() => {
-    const fetchReviews = async () => {
+    const fetchReviewsAndUsers = async () => {
       try {
-        // Fetch reviews without joining profiles table
-        const { data: reviewsData, error } = await supabase
+        // Fetch reviews
+        const { data: reviewsData, error: reviewsError } = await supabase
           .from('reviews')
           .select('*')
           .eq('restaurant_id', restaurantId)
           .order('created_at', { ascending: false });
 
-        if (error) throw error;
-
-        console.log('Fetched reviews:', reviewsData); // Debug log
+        if (reviewsError) throw reviewsError;
 
         setReviews(reviewsData || []);
 
@@ -34,6 +33,26 @@ const Reviews = ({ restaurantId }) => {
           // Display 2 random reviews
           const shuffled = [...reviewsData].sort(() => 0.5 - Math.random());
           setDisplayedReviews(shuffled.slice(0, 2));
+
+          // Fetch user names for all reviews
+          const userIds = [...new Set(reviewsData.map(review => review.user_id).filter(Boolean))];
+          
+          if (userIds.length > 0) {
+            const { data: usersData, error: usersError } = await supabase
+              .from('users')
+              .select('owner_id, name, email')
+              .in('owner_id', userIds);
+
+            if (usersError) throw usersError;
+
+            // Create a mapping of user_id to user name
+            const userNameMap = {};
+            usersData?.forEach(user => {
+              userNameMap[user.owner_id] = user.name || user.email?.split('@')[0] || 'Guest';
+            });
+
+            setUserNames(userNameMap);
+          }
         } else {
           setDisplayedReviews([]);
         }
@@ -45,7 +64,7 @@ const Reviews = ({ restaurantId }) => {
     };
 
     if (restaurantId) {
-      fetchReviews();
+      fetchReviewsAndUsers();
     }
   }, [restaurantId]);
 
@@ -78,9 +97,8 @@ const Reviews = ({ restaurantId }) => {
   };
 
   const getUserDisplayName = (review) => {
-    // Since we don't have profiles table, we'll use a generic name
-    // You can modify this based on what data you have
-    return 'Guest User';
+    // Get user name from our userNames mapping
+    return userNames[review.user_id] || 'Guest';
   };
 
   if (loading) {
