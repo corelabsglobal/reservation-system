@@ -14,7 +14,6 @@ import TableAssignmentModal from './TableAssignmentModal';
 
 const ReservationCard = ({ 
   res, 
-  markAsSeen, 
   cancelReservation, 
   markAsAttended, 
   highlightCurrent = false, 
@@ -105,15 +104,12 @@ const ReservationCard = ({
     current: 'bg-green-500 text-white',
     past: 'bg-gray-500 text-white',
     cancelled: 'bg-red-500 text-white',
-    seen: 'bg-purple-500 text-white',
     attended: 'bg-teal-500 text-white',
   };
 
   // Base card classes
   const cardClasses = `p-4 rounded-xl shadow-sm relative overflow-hidden transition-all duration-200 ${
     res.cancelled
-      ? 'bg-gray-100 border-l-4 border-red-400'
-      : !res.seen
       ? 'border-l-4 border-blue-400 bg-white'
       : res.attended
       ? 'border-l-4 border-teal-400 bg-white'
@@ -155,7 +151,7 @@ const ReservationCard = ({
                   }`}
                 >
                   {res.name}
-                  {!res.seen && !res.cancelled && (
+                  {!res.cancelled && (
                     <span className="ml-1 text-blue-500 animate-pulse">•</span>
                   )}
                 </h3>
@@ -194,13 +190,13 @@ const ReservationCard = ({
             
             {/* Status badges - top right */}
             <div className="flex flex-col items-end gap-1">
-              {!res.seen && !res.cancelled && (
+              {!res.cancelled && (
                 <span className={`inline-flex items-center gap-1 ${statusColors.new} text-xs px-2 py-1 rounded-full`}>
                   <Eye className="h-3 w-3" /> New
                 </span>
               )}
 
-              {res.seen && !res.attended && !res.cancelled && (
+              {!res.attended && !res.cancelled && (
                 <span className={`inline-flex items-center gap-1 ${statusColors.seen} text-xs px-2 py-1 rounded-full`}>
                   <Check className="h-3 w-3" /> Viewed
                 </span>
@@ -311,25 +307,6 @@ const ReservationCard = ({
           {/* Action buttons */}
           {!res.cancelled && (
             <div className="mt-4 flex flex-wrap gap-2">
-              <button
-                onClick={() => markAsSeen(res.id)}
-                className={`flex-1 min-w-[120px] flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-sm transition-all ${
-                  res.seen
-                    ? 'bg-purple-100 hover:bg-purple-200 text-purple-800'
-                    : 'bg-blue-100 hover:bg-blue-200 text-blue-800'
-                }`}
-              >
-                {res.seen ? (
-                  <>
-                    <EyeOff className="h-4 w-4" /> Unmark
-                  </>
-                ) : (
-                  <>
-                    <Eye className="h-4 w-4" /> Seen
-                  </>
-                )}
-              </button>
-              
               <button
                 onClick={handleMarkAsAttended}
                 className={`flex-1 min-w-[120px] flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-sm transition-all ${
