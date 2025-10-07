@@ -103,7 +103,7 @@ export const RatingModal = ({ reservation, restaurant, onClose, onSubmit }) => {
 };
 
 export const usePreviousDayReservationCheck = () => {
-  const [showRatingModal, setShowRatingModal] = useState(false);
+  const [showReviewModal, setShowReviewModal] = useState(false);
   const [reservationToRate, setReservationToRate] = useState(null);
   const [restaurant, setRestaurant] = useState(null);
 
@@ -130,7 +130,14 @@ export const usePreviousDayReservationCheck = () => {
         if (reservationError) throw reservationError;
         if (!reservations || reservations.length === 0) return;
 
-        // Check if we've already shown the rating prompt for any of these reservations
+        // Check if reviews already exist for these reservations
+        const { data: existingReviews, error: reviewsError } = await supabase
+          .from('reviews')
+          .select('reservation_id')
+          .in('reservation_id', reservations.map(r => r.id));
+
+        if (reviewsError) throw reviewsError;
+
         const { data: shownPrompts, error: promptError } = await supabase
           .from('shown_rating_prompts')
           .select('reservation_id')
@@ -139,15 +146,16 @@ export const usePreviousDayReservationCheck = () => {
 
         if (promptError) throw promptError;
 
-        // Filter out reservations that already had prompts shown
-        const unratedReservations = reservations.filter(
-          r => !shownPrompts.some(p => p.reservation_id === r.id)
+        // Filter out reservations that already have reviews or had prompts shown
+        const unreviewedReservations = reservations.filter(
+          r => !existingReviews?.some(review => review.reservation_id === r.id) &&
+               !shownPrompts?.some(prompt => prompt.reservation_id === r.id)
         );
 
-        if (unratedReservations.length === 0) return;
+        if (unreviewedReservations.length === 0) return;
 
-        // Get the restaurant details for the first unrated reservation
-        const reservation = unratedReservations[0];
+        // Get the restaurant details for the first unreviewed reservation
+        const reservation = unreviewedReservations[0];
         const { data: restaurantData, error: restaurantError } = await supabase
           .from('restaurants')
           .select('*')
@@ -163,7 +171,7 @@ export const usePreviousDayReservationCheck = () => {
 
         setReservationToRate(reservation);
         setRestaurant(restaurantData);
-        setShowRatingModal(true);
+        setShowReviewModal(true);
       } catch (error) {
         console.error("Error checking for previous day reservations:", error);
       }
@@ -172,20 +180,39 @@ export const usePreviousDayReservationCheck = () => {
     checkForPreviousDayReservation();
   }, []);
 
-  const handleSubmitRating = async (ratingData) => {
+  const handleSubmitReview = async (reviewData) => {
     try {
-      await supabase.from('reservation_ratings').insert([ratingData]);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      const { error } = await supabase
+        .from('reviews')
+        .insert([{
+          reservation_id: reviewData.reservationId,
+          restaurant_id: reviewData.restaurantId,
+          user_id: user.id,
+          rating: reviewData.rating,
+          title: reviewData.title,
+          review_text: reviewData.reviewText,
+          food_quality: reviewData.foodQuality,
+          service_quality: reviewData.serviceQuality,
+          ambiance: reviewData.ambiance,
+          value_for_money: reviewData.valueForMoney,
+          would_recommend: reviewData.wouldRecommend
+        }]);
+
+      if (error) throw error;
     } catch (error) {
-      console.error("Error submitting rating:", error);
+      console.error("Error submitting review:", error);
       throw error;
     }
   };
 
   return {
-    showRatingModal,
+    showReviewModal,
     reservationToRate,
     restaurant,
-    onClose: () => setShowRatingModal(false),
-    onSubmitRating: handleSubmitRating
+    onClose: () => setShowReviewModal(false),
+    onSubmitReview: handleSubmitReview
   };
 };
