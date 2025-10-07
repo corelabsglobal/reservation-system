@@ -9,7 +9,7 @@ const Reviews = ({ restaurantId }) => {
   const [loading, setLoading] = useState(true);
   const [averageRating, setAverageRating] = useState(0);
   const [displayedReviews, setDisplayedReviews] = useState([]);
-  const [userNames, setUserNames] = useState({}); // Store user names by user_id
+  const [userNames, setUserNames] = useState({});
 
   useEffect(() => {
     const fetchReviewsAndUsers = async () => {
@@ -30,9 +30,9 @@ const Reviews = ({ restaurantId }) => {
           const avg = reviewsData.reduce((sum, review) => sum + review.rating, 0) / reviewsData.length;
           setAverageRating(avg);
           
-          // Display 2 random reviews
+          // Display 3 random reviews
           const shuffled = [...reviewsData].sort(() => 0.5 - Math.random());
-          setDisplayedReviews(shuffled.slice(0, 2));
+          setDisplayedReviews(shuffled.slice(0, 3));
 
           // Fetch user names for all reviews
           const userIds = [...new Set(reviewsData.map(review => review.user_id).filter(Boolean))];

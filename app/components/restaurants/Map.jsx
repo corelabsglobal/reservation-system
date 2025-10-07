@@ -25,8 +25,6 @@ const Map = ({ location }) => {
     return location;
   };
 
-  console.log("location:", location)
-
   const getCoordinates = () => {
     const parsedLocation = normalizeLocation(location);
 
