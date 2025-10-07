@@ -12,7 +12,6 @@ import TimeSlotsGrid from "@/app/components/restaurants/TimeSlotsGrid";
 import BookingDialog from "@/app/components/restaurants/BookingDialog";
 import PaymentModal from "@/app/components/restaurants/PaymentModal";
 import ReservationNotification from "@/app/components/restaurants/ReservationNotification";
-import PhotoGallery from "@/app/components/restaurants/PhotoGallery";
 import LoadingAnimation from "@/components/ui/LoadingAnimation";
 import HeroCarousel from "@/app/components/restaurants/HeroCarousel";
 import NotFound from "@/components/ui/NotFound";
@@ -895,7 +894,7 @@ export default function RestaurantPage() {
             />*/}
 
             {/* Reviews Section */}
-            <Reviews />
+            <Reviews restaurantId={restaurant.id} />
           </div>
         </div>
       </div>
