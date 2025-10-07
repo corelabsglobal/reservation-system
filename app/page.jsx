@@ -9,14 +9,15 @@ import Header from "./components/structure/header";
 import { CardContent } from "@/components/ui/card";
 import { Search } from "lucide-react";
 import { NearbyRestaurants } from "./components/HomePage/NearbyRestaurants";
-import { usePreviousDayReservationCheck, RatingModal } from "./components/HomePage/RatingModal";
+import { usePreviousDayReservationCheck } from "./components/HomePage/RatingModal";
+import { ReviewModal } from "./components/HomePage/ReviewModal";
 
 export default function Home() {
   const [search, setSearch] = useState("");
   const [restaurants, setRestaurants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
-  const ratingModal = usePreviousDayReservationCheck();
+  const reviewModal = usePreviousDayReservationCheck();
   const router = useRouter();
 
   useEffect(() => {
@@ -148,7 +149,7 @@ export default function Home() {
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.97 }}
                   className="relative bg-gray-800 rounded-xl overflow-hidden shadow-2xl backdrop-blur-md hover:shadow-yellow-400/30 transition-all duration-300"
-                  layout // Add layout animation
+                  layout
                 >
                   <motion.img
                     src={restaurant.restaurant_image || "/images/placeholder.jpg"}
@@ -166,7 +167,7 @@ export default function Home() {
                       {truncateText(restaurant.address || restaurant.location)}
                     </p>
                     <Button 
-                      className="mt-4 w-full bg-gradient-to-r from-yellow-400 to-orange-600 hover:from-orange-500 hover:to-orange-700 transition-all "
+                      className="mt-4 w-full bg-gradient-to-r from-yellow-400 to-orange-600 hover:from-orange-500 hover:to-orange-700 transition-all"
                       onClick={() => handleBooking(restaurant.id)}
                     >
                       Book Now
@@ -199,12 +200,12 @@ export default function Home() {
           </div>
         )}
 
-        {ratingModal.showRatingModal && (
-          <RatingModal
-            reservation={ratingModal.reservationToRate}
-            restaurant={ratingModal.restaurant}
-            onClose={ratingModal.onClose}
-            onSubmit={ratingModal.onSubmitRating}
+        {reviewModal.showReviewModal && (
+          <ReviewModal
+            reservation={reviewModal.reservationToRate}
+            restaurant={reviewModal.restaurant}
+            onClose={reviewModal.onClose}
+            onSubmit={reviewModal.onSubmitReview}
           />
         )}
 
