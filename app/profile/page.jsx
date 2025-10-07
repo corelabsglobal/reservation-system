@@ -970,7 +970,7 @@ const ProfilePage = () => {
 
             {/* Reservation Group Tabs */}
             <div className="flex flex-wrap gap-2 mb-6 border-b border-gray-700 pb-4">
-              {['current', 'today', 'all', 'manage'].map((tab) => (
+              {['current', 'today', 'all'].map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveReservationTab(tab)}
@@ -1183,7 +1183,7 @@ const ProfilePage = () => {
                 )}
               </div>
             )}
-            {activeReservationTab === 'manage' && (
+            {/*activeReservationTab === 'manage' && (
               <div className="mb-8">
                 <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1223,7 +1223,7 @@ const ProfilePage = () => {
                 }}
                 />
               </div>
-            )}
+            )*/}
           </div>
         )}
 
