@@ -8,7 +8,7 @@ import { motion } from 'framer-motion';
 import { Paperclip, Send, Users, ChevronDown } from 'lucide-react';
 import EmailPreview from '../Dashboard/EmailPreview';
 
-const EmailMarketing = ({ restaurantId, name }) => {
+const EmailMarketing = ({ restaurantId, name, customers: propCustomers = [] }) => {
   const [customers, setCustomers] = useState([]);
   const [selectedCustomers, setSelectedCustomers] = useState([]);
   const [emailContent, setEmailContent] = useState({
@@ -46,21 +46,56 @@ const EmailMarketing = ({ restaurantId, name }) => {
     const fetchCustomers = async () => {
       setIsLoading(true);
       try {
-        const { data, error } = await supabase
-          .from('reservations')
-          .select('email, name, number')
-          .eq('restaurant_id', restaurantId)
-          .not('email', 'is', null);
+        // Fetch customers from both reservations and customers table
+        const [reservationsData, customersData] = await Promise.all([
+          // Get customers from reservations
+          supabase
+            .from('reservations')
+            .select('email, name, number')
+            .eq('restaurant_id', restaurantId)
+            .not('email', 'is', null),
+          
+          // Get customers from customers table
+          supabase
+            .from('customers')
+            .select('email, name, phone')
+            .eq('restaurant_id', restaurantId)
+            .not('email', 'is', null)
+        ]);
 
-        if (error) throw error;
+        if (reservationsData.error) throw reservationsData.error;
+        if (customersData.error) throw customersData.error;
 
-        // Get unique customers
-        const uniqueCustomers = Array.from(new Set(data.map(c => c.email)))
-          .map(email => {
-            return data.find(c => c.email === email);
-          })
-          .filter(customer => customer !== undefined);
+        // Combine both data sources
+        const allCustomers = [
+          ...(reservationsData.data || []).map(c => ({
+            email: c.email,
+            name: c.name,
+            phone: c.number,
+            source: 'reservation'
+          })),
+          ...(customersData.data || []).map(c => ({
+            email: c.email,
+            name: c.name,
+            phone: c.phone,
+            source: 'upload'
+          }))
+        ];
 
+        const uniqueCustomersMap = new Map();
+        
+        allCustomers.forEach(customer => {
+          if (customer.email) {
+            const normalizedEmail = customer.email.toLowerCase().trim();
+            if (!uniqueCustomersMap.has(normalizedEmail) || 
+                customer.source === 'reservation') {
+              uniqueCustomersMap.set(normalizedEmail, customer);
+            }
+          }
+        });
+
+        const uniqueCustomers = Array.from(uniqueCustomersMap.values());
+        
         setCustomers(uniqueCustomers);
       } catch (error) {
         toast.error('Failed to fetch customers');
@@ -72,6 +107,27 @@ const EmailMarketing = ({ restaurantId, name }) => {
 
     fetchCustomers();
   }, [restaurantId]);
+
+  useEffect(() => {
+    if (propCustomers && propCustomers.length > 0) {
+      const emailCustomers = propCustomers
+        .filter(customer => customer.email)
+        .reduce((unique, customer) => {
+          const normalizedEmail = customer.email.toLowerCase().trim();
+          if (!unique.some(u => u.email.toLowerCase().trim() === normalizedEmail)) {
+            unique.push({
+              email: customer.email,
+              name: customer.name,
+              phone: customer.phone,
+              source: customer.source || 'unknown'
+            });
+          }
+          return unique;
+        }, []);
+      
+      setCustomers(emailCustomers);
+    }
+  }, [propCustomers]);
 
   useEffect(() => {
     if (!restaurantId) return;
@@ -210,7 +266,7 @@ const EmailMarketing = ({ restaurantId, name }) => {
     const recipientData = recipients.map(customer => ({
       campaign_id: campaignId,
       customer_email: customer.email,
-      customer_name: customer.name
+      customer_name: customer.name,
     }));
 
     const { error } = await supabase
@@ -338,6 +394,23 @@ const EmailMarketing = ({ restaurantId, name }) => {
     }
   };
 
+  // Add customer source badges
+  const getCustomerSourceBadge = (source) => {
+    const sourceConfig = {
+      reservation: { color: 'bg-blue-900/30', text: 'text-blue-300', label: 'Reservation' },
+      upload: { color: 'bg-green-900/30', text: 'text-green-300', label: 'Uploaded' },
+      unknown: { color: 'bg-gray-700', text: 'text-gray-300', label: 'Unknown' }
+    };
+    
+    const config = sourceConfig[source] || sourceConfig.unknown;
+    
+    return (
+      <span className={`px-2 py-1 rounded-full text-xs ${config.color} ${config.text}`}>
+        {config.label}
+      </span>
+    );
+  };
+
   return (
     <div className="bg-gray-900 rounded-xl shadow-2xl overflow-hidden mt-2">
       {/* Header */}
@@ -347,8 +420,13 @@ const EmailMarketing = ({ restaurantId, name }) => {
           Email Marketing
         </h2>
         <p className="text-gray-300 mt-1">
-          Send promotions and announcements to your customers
+          Send promotions and announcements to your customers from reservations and uploaded lists
         </p>
+        {customers.length > 0 && (
+          <div className="mt-2 text-sm text-gray-400">
+            {customers.length} customers with email addresses available
+          </div>
+        )}
       </div>
 
       {/* Main Content */}
@@ -359,6 +437,11 @@ const EmailMarketing = ({ restaurantId, name }) => {
             <h3 className="text-lg font-semibold text-white flex items-center gap-2">
               <Users size={18} />
               Recipients
+              {customers.length > 0 && (
+                <span className="text-sm text-gray-400 ml-2">
+                  ({customers.length} available)
+                </span>
+              )}
             </h3>
             <button
               onClick={() => setShowCustomerDropdown(!showCustomerDropdown)}
@@ -381,31 +464,37 @@ const EmailMarketing = ({ restaurantId, name }) => {
               className="bg-gray-800 rounded-lg overflow-hidden mb-4"
             >
               <div className="max-h-60 overflow-y-auto p-2">
-                <div className="p-2 hover:bg-gray-700/50 rounded cursor-pointer" onClick={handleSelectAll}>
-                  <input
-                    type="checkbox"
-                    checked={selectedCustomers.length === customers.length && customers.length > 0}
-                    onChange={handleSelectAll}
-                    className="mr-2"
-                  />
-                  <span className="text-sm">Select all ({customers.length})</span>
+                <div className="p-2 hover:bg-gray-700/50 rounded cursor-pointer flex items-center justify-between" onClick={handleSelectAll}>
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={selectedCustomers.length === customers.length && customers.length > 0}
+                      onChange={handleSelectAll}
+                      className="mr-2"
+                    />
+                    <span className="text-sm">Select all customers</span>
+                  </div>
+                  <span className="text-xs text-gray-400">{customers.length} total</span>
                 </div>
                 {customers.map((customer) => (
                   <div
                     key={customer.email}
-                    className="p-2 hover:bg-gray-700/50 rounded cursor-pointer flex items-center"
+                    className="p-2 hover:bg-gray-700/50 rounded cursor-pointer flex items-center justify-between"
                     onClick={() => handleCustomerSelect(customer)}
                   >
-                    <input
-                      type="checkbox"
-                      checked={selectedCustomers.some(c => c.email === customer.email)}
-                      onChange={() => handleCustomerSelect(customer)}
-                      className="mr-2"
-                    />
-                    <div>
-                      <div className="text-sm">{customer.name}</div>
-                      <div className="text-xs text-gray-400">{customer.email}</div>
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={selectedCustomers.some(c => c.email === customer.email)}
+                        onChange={() => handleCustomerSelect(customer)}
+                        className="mr-2"
+                      />
+                      <div>
+                        <div className="text-sm">{customer.name || 'No Name'}</div>
+                        <div className="text-xs text-gray-400">{customer.email}</div>
+                      </div>
                     </div>
+                    {getCustomerSourceBadge(customer.source)}
                   </div>
                 ))}
               </div>
@@ -415,9 +504,10 @@ const EmailMarketing = ({ restaurantId, name }) => {
           {selectedCustomers.length > 0 && (
             <div className="flex flex-wrap gap-2 mt-2">
               {selectedCustomers.slice(0, 3).map(customer => (
-                <span key={customer.email} className="bg-blue-900/30 text-blue-300 px-2 py-1 rounded-full text-xs">
-                  {customer.name}
-                </span>
+                <div key={customer.email} className="flex items-center gap-1 bg-blue-900/30 text-blue-300 px-2 py-1 rounded-full text-xs">
+                  <span>{customer.name || 'No Name'}</span>
+                  {getCustomerSourceBadge(customer.source)}
+                </div>
               ))}
               {selectedCustomers.length > 3 && (
                 <span className="bg-gray-700 text-gray-300 px-2 py-1 rounded-full text-xs">
