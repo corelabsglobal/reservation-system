@@ -16,9 +16,9 @@ import CopyArea from '../components/structure/CopyArea';
 import ClosureDaysManager from '../components/structure/ClosureDaysManager';
 import ReservationTimingManager from '../components/Dashboard/ReservationTimingManager';
 import RestaurantInfoManager from '../components/Dashboard/RestaurantInfoManager';
-import ReservationTableManager from '../components/structure/ReservationTableManager';
 import TableAssignmentManager from '../components/structure/TableAssignmentManager';
 import SideImagesUploader from '../components/Dashboard/SideImagesUploader';
+import CustomersSection from '../components/Dashboard/customers/CustomersTab';
 
 const ProfilePage = () => {
   const [restaurant, setRestaurant] = useState(null);
@@ -814,132 +814,10 @@ const ProfilePage = () => {
 
         {/* Customers Tab */}
         {activeTab === 'customers' && (
-          <div className="mb-6 p-4 shadow-2xl bg-gray-800/90 backdrop-blur-md rounded-xl">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-semibold">Customers</h2>
-              <div className="flex items-center gap-3">
-                <div className="bg-yellow-500/20 px-3 py-1 rounded-full text-yellow-400 text-sm">
-                  Unique: {Array.from(new Set(reservations.map(res => res.email))).length}
-                </div>
-                <div className="bg-blue-500/20 px-3 py-1 rounded-full text-blue-400 text-sm">
-                  Total: {reservations.length}
-                </div>
-                <div className="bg-white-500/20 px-3 py-1 rounded-full text-yellow-400 text-sm flex items-center gap-1">
-                  <button 
-                    onClick={generateCustomerPDF}
-                    className="text-yellow-400 hover:text-yellow-300 transition-colors"
-                    title="Download customer report"
-                  >
-                    <Download size={16} />
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[600px]">
-                <thead>
-                  <tr className="bg-gray-700">
-                    <th className="px-4 py-3 text-left">Customer</th>
-                    <th className="px-4 py-3 text-left">Contact</th>
-                    <th className="px-4 py-3 text-left">Reservations</th>
-                    <th className="px-4 py-3 text-left">Last Visit</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {Object.entries(
-                    reservations.reduce((acc, res) => {
-                      if (!acc[res.email]) {
-                        acc[res.email] = {
-                          name: res.name,
-                          email: res.email,
-                          phone: res.number ? `0${res.number}` : 'N/A',
-                          reservationCount: 0,
-                          lastVisit: '',
-                          reservations: []
-                        };
-                      }
-                      acc[res.email].reservationCount++;
-                      acc[res.email].reservations.push(res);
-                      return acc;
-                    }, {})
-                  )
-                  .sort(([,a], [,b]) => b.reservationCount - a.reservationCount)
-                  .map(([email, customer]) => {
-                    const lastReservation = customer.reservations
-                      .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
-                    
-                    return (
-                      <tr key={email} className="border-b border-gray-700 hover:bg-gray-700/50 transition-all">
-                        <td className="px-4 py-3">
-                          <div className="font-medium">{customer.name}</div>
-                          <div className="text-xs text-gray-400">{customer.email}</div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div>{customer.phone}</div>
-                          {customer.reservationCount > 1 && (
-                            <div className="text-xs text-green-400">
-                              {customer.reservationCount} visits
-                            </div>
-                          )}
-                        </td>
-                        <td className="px-4 py-3">
-                          {lastReservation && (
-                            <>
-                              <div>{new Date(lastReservation.date).toLocaleDateString()}</div>
-                              <div className="text-xs text-gray-400">{lastReservation.time}</div>
-                            </>
-                          )}
-                        </td>
-                        <td className="px-4 py-3">
-                          {customer.reservationCount > 1 ? (
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded">
-                                Regular
-                              </span>
-                            </div>
-                          ) : (
-                            <span className="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded">
-                              New
-                            </span>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Customer Stats Summary */}
-            <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4 mb-3">
-              <div className="bg-gray-700/50 p-4 rounded-lg">
-                <div className="text-gray-400 text-sm">Total Customers</div>
-                <div className="text-2xl font-bold">
-                  {Array.from(new Set(reservations.map(res => res.email))).length}
-                </div>
-              </div>
-              <div className="bg-gray-700/50 p-4 rounded-lg">
-                <div className="text-gray-400 text-sm">Repeat Customers</div>
-                <div className="text-2xl font-bold">
-                  {Object.values(reservations.reduce((acc, res) => {
-                    acc[res.email] = (acc[res.email] || 0) + 1;
-                    return acc;
-                  }, {})).filter(count => count > 1).length}
-                </div>
-              </div>
-              <div className="bg-gray-700/50 p-4 rounded-lg">
-                <div className="text-gray-400 text-sm">New This Month</div>
-                <div className="text-2xl font-bold">
-                  {Array.from(new Set(reservations
-                    .filter(res => new Date(res.date) > new Date(new Date().setDate(new Date().getDate() - 30)))
-                    .map(res => res.email)
-                  )).length}
-                </div>
-              </div>
-            </div>
-            <EmailMarketing restaurantId={restaurant?.id} name={restaurant?.name} />
-          </div>
+          <CustomersSection 
+            restaurant={restaurant} 
+            reservations={reservations} 
+          />
         )}
 
         {/* Insights Tab */}
@@ -1183,47 +1061,6 @@ const ProfilePage = () => {
                 )}
               </div>
             )}
-            {/*activeReservationTab === 'manage' && (
-              <div className="mb-8">
-                <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                  </svg>
-                  Manage Reservations
-                </h3>
-                
-                <ReservationTableManager 
-                  restaurant={restaurant} 
-                  reservations={filteredReservations} 
-                  tables={tables} 
-                  tableTypes={tableTypes} 
-                  onReservationUpdate={() => {
-                  const fetchReservations = async () => {
-                    if (!restaurant) return;
-                    
-                    setLoading(true);
-                    const { data, error } = await supabase
-                      .from('reservations')
-                      .select('*, tables(table_number)')
-                      .eq('restaurant_id', restaurant.id)
-                      .order('created_at', { ascending: false });
-                
-                    if (!error) {
-                      const markedData = data.map(res => ({
-                        ...res,
-                        table_number: res.tables?.table_number,
-                        is_new: lastVisit ? new Date(res.created_at) > new Date(lastVisit) : false
-                      }));
-                      setReservations(markedData);
-                    }
-                    setLoading(false);
-                  };
-                  
-                  if (restaurant) fetchReservations();
-                }}
-                />
-              </div>
-            )*/}
           </div>
         )}
 
