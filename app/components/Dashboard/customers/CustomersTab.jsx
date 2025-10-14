@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import toast from 'react-hot-toast';
-import { Download } from 'lucide-react';
+import { Download, ChevronLeft, ChevronRight } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import CustomerUpload from './CustomerExcelUpload';
 import EmailMarketing from '../../structure/EmailMarketing';
@@ -12,6 +12,8 @@ const CustomersSection = ({ restaurant, reservations }) => {
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   useEffect(() => {
     if (restaurant?.id) {
@@ -74,10 +76,31 @@ const CustomersSection = ({ restaurant, reservations }) => {
     }
   };
 
+  // Filter out duplicate emails and apply search
   const filteredCustomers = useMemo(() => {
-    if (!searchQuery) return customers;
+    let processedCustomers = customers;
 
-    return customers.filter(customer => {
+    // Filter out duplicates by email (keep the first occurrence)
+    const uniqueCustomers = [];
+    const emailMap = new Map();
+
+    processedCustomers.forEach(customer => {
+      if (customer.email) {
+        const normalizedEmail = customer.email.toLowerCase().trim();
+        if (!emailMap.has(normalizedEmail)) {
+          emailMap.set(normalizedEmail, true);
+          uniqueCustomers.push(customer);
+        }
+      } else {
+        // If no email, include the customer
+        uniqueCustomers.push(customer);
+      }
+    });
+
+    // Apply search filter
+    if (!searchQuery) return uniqueCustomers;
+
+    return uniqueCustomers.filter(customer => {
       const searchTerm = searchQuery.toLowerCase();
       return (
         customer.name?.toLowerCase().includes(searchTerm) ||
@@ -86,6 +109,19 @@ const CustomersSection = ({ restaurant, reservations }) => {
       );
     });
   }, [customers, searchQuery]);
+
+  // Pagination
+  const paginatedCustomers = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredCustomers.slice(startIndex, endIndex);
+  }, [filteredCustomers, currentPage, itemsPerPage]);
+
+  const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage);
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
 
   const generateCustomerPDF = () => {
     const doc = new jsPDF();
@@ -102,10 +138,10 @@ const CustomersSection = ({ restaurant, reservations }) => {
     doc.setFontSize(14);
     doc.text('Summary Statistics', 15, 35);
     
-    const uniqueCustomers = customers.length;
-    const reservationCustomers = customers.filter(c => c.source === 'reservation').length;
-    const uploadedCustomers = customers.filter(c => c.source === 'upload').length;
-    const repeatCustomers = customers.filter(c => c.reservation_count > 1).length;
+    const uniqueCustomers = filteredCustomers.length;
+    const reservationCustomers = filteredCustomers.filter(c => c.source === 'reservation').length;
+    const uploadedCustomers = filteredCustomers.filter(c => c.source === 'upload').length;
+    const repeatCustomers = filteredCustomers.filter(c => c.reservation_count > 1).length;
     
     doc.setFontSize(12);
     doc.text(`Total Customers: ${uniqueCustomers}`, 15, 45);
@@ -169,11 +205,11 @@ const CustomersSection = ({ restaurant, reservations }) => {
   };
 
   const stats = useMemo(() => {
-    const totalCustomers = customers.length;
-    const reservationCustomers = customers.filter(c => c.source === 'reservation').length;
-    const uploadedCustomers = customers.filter(c => c.source === 'upload').length;
-    const repeatCustomers = customers.filter(c => c.reservation_count > 1).length;
-    const newThisMonth = customers.filter(c => {
+    const totalCustomers = filteredCustomers.length;
+    const reservationCustomers = filteredCustomers.filter(c => c.source === 'reservation').length;
+    const uploadedCustomers = filteredCustomers.filter(c => c.source === 'upload').length;
+    const repeatCustomers = filteredCustomers.filter(c => c.reservation_count > 1).length;
+    const newThisMonth = filteredCustomers.filter(c => {
       const created = new Date(c.created_at);
       const monthAgo = new Date();
       monthAgo.setDate(monthAgo.getDate() - 30);
@@ -187,7 +223,12 @@ const CustomersSection = ({ restaurant, reservations }) => {
       repeatCustomers,
       newThisMonth
     };
-  }, [customers]);
+  }, [filteredCustomers]);
+
+  // Reset to first page when search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
 
   if (loading) {
     return (
@@ -234,15 +275,34 @@ const CustomersSection = ({ restaurant, reservations }) => {
       {/* Upload Section */}
       <CustomerUpload restaurantId={restaurant?.id} />
 
-      {/* Search */}
-      <div className="mb-6">
+      {/* Search and Controls */}
+      <div className="mb-6 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
         <input
           type="text"
           placeholder="Search customers by name, email, or phone..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+          className="w-full sm:flex-1 px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500"
         />
+        
+        <div className="flex items-center gap-4 w-full sm:w-auto">
+          <div className="text-sm text-gray-400 whitespace-nowrap">
+            Showing {paginatedCustomers.length} of {filteredCustomers.length}
+          </div>
+          <select
+            value={itemsPerPage}
+            onChange={(e) => {
+              setItemsPerPage(Number(e.target.value));
+              setCurrentPage(1);
+            }}
+            className="px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500"
+          >
+            <option value={5}>5 per page</option>
+            <option value={10}>10 per page</option>
+            <option value={20}>20 per page</option>
+            <option value={50}>50 per page</option>
+          </select>
+        </div>
       </div>
 
       {/* Customers Table */}
@@ -259,14 +319,14 @@ const CustomersSection = ({ restaurant, reservations }) => {
             </tr>
           </thead>
           <tbody>
-            {filteredCustomers.length === 0 ? (
+            {paginatedCustomers.length === 0 ? (
               <tr>
                 <td colSpan="6" className="px-4 py-8 text-center text-gray-400">
                   {searchQuery ? 'No customers found matching your search' : 'No customers found'}
                 </td>
               </tr>
             ) : (
-              filteredCustomers
+              paginatedCustomers
                 .sort((a, b) => (b.reservation_count || 0) - (a.reservation_count || 0))
                 .map((customer) => (
                   <tr key={customer.id} className="border-b border-gray-700 hover:bg-gray-700/50 transition-all">
@@ -330,6 +390,59 @@ const CustomersSection = ({ restaurant, reservations }) => {
         </table>
       </div>
 
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex justify-between items-center mt-6 pt-4 border-t border-gray-700">
+          <div className="text-sm text-gray-400">
+            Page {currentPage} of {totalPages} • {filteredCustomers.length} total customers
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="p-2 rounded-lg bg-gray-700 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronLeft size={16} />
+            </button>
+            
+            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+              let pageNum;
+              if (totalPages <= 5) {
+                pageNum = i + 1;
+              } else if (currentPage <= 3) {
+                pageNum = i + 1;
+              } else if (currentPage >= totalPages - 2) {
+                pageNum = totalPages - 4 + i;
+              } else {
+                pageNum = currentPage - 2 + i;
+              }
+
+              return (
+                <button
+                  key={pageNum}
+                  onClick={() => handlePageChange(pageNum)}
+                  className={`px-3 py-1 rounded-lg text-sm transition-colors ${
+                    currentPage === pageNum
+                      ? 'bg-yellow-500 text-white'
+                      : 'bg-gray-700 hover:bg-gray-600 text-gray-300'
+                  }`}
+                >
+                  {pageNum}
+                </button>
+              );
+            })}
+            
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="p-2 rounded-lg bg-gray-700 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronRight size={16} />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Stats Summary */}
       <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <div className="bg-gray-700/50 p-4 rounded-lg">
@@ -354,7 +467,7 @@ const CustomersSection = ({ restaurant, reservations }) => {
       <EmailMarketing 
         restaurantId={restaurant?.id} 
         name={restaurant?.name}
-        customers={customers}
+        customers={filteredCustomers}
       />
     </div>
   );
