@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import toast from 'react-hot-toast';
-import { Upload, X, Download, User, Phone, Mail, CheckCircle2 } from 'lucide-react';
+import { Upload, X, Download, User, Phone, Mail, CheckCircle2, HelpCircle } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import {
   Dialog,
@@ -20,6 +20,7 @@ const CustomerUpload = ({ restaurantId }) => {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadedCustomers, setUploadedCustomers] = useState([]);
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const [showRequirements, setShowRequirements] = useState(false);
 
   const handleFileUpload = async (event) => {
     const file = event.target.files[0];
@@ -279,8 +280,17 @@ const CustomerUpload = ({ restaurantId }) => {
               Upload an Excel or CSV file with customer names, phone numbers, and emails. 
               They will be added to your customer database for email marketing.
             </p>
-            <div className="text-xs text-gray-400 mt-1">
-              Supported formats: Excel (.xlsx, .xls) and CSV (.csv)
+            <div className="flex items-center gap-2 mt-2">
+              <div className="text-xs text-gray-400">
+                Supported formats: Excel (.xlsx, .xls) and CSV (.csv)
+              </div>
+              <button
+                onClick={() => setShowRequirements(!showRequirements)}
+                className="text-gray-400 hover:text-gray-300 transition-colors"
+                title="Show file requirements"
+              >
+                <HelpCircle size={14} />
+              </button>
             </div>
           </div>
           
@@ -306,31 +316,46 @@ const CustomerUpload = ({ restaurantId }) => {
               </Button>
             </div>
             
-            <label className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-400 to-pink-600 hover:from-yellow-500 hover:to-pink-700 rounded-lg cursor-pointer transition-colors text-white font-medium">
-              <Upload size={16} />
-              Upload File
-              <input
-                type="file"
-                accept=".xlsx,.xls,.csv"
-                onChange={handleFileUpload}
-                className="hidden"
-                disabled={isUploading}
-              />
-            </label>
+            <Button
+              asChild
+              className="flex items-center gap-2 bg-gradient-to-r from-yellow-400 to-pink-600 hover:from-yellow-500 hover:to-pink-700 text-white font-medium"
+            >
+              <label className="cursor-pointer">
+                <Upload size={16} />
+                Upload File
+                <input
+                  type="file"
+                  accept=".xlsx,.xls,.csv"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                  disabled={isUploading}
+                />
+              </label>
+            </Button>
           </div>
         </div>
 
-        {/* File Requirements */}
-        <div className="mt-4 p-4 bg-gray-600/30 rounded-lg border border-gray-600">
-          <h4 className="font-medium text-sm mb-2 text-white">File Requirements:</h4>
-          <ul className="text-xs text-gray-300 space-y-1">
-            <li>• Include columns for: <strong className="text-yellow-400">name</strong>, <strong className="text-yellow-400">phone</strong>, and/or <strong className="text-yellow-400">email</strong></li>
-            <li>• Column names can vary (Name, Customer Name, name, etc.)</li>
-            <li>• Phone numbers will be automatically formatted for Ghana</li>
-            <li>• Duplicate customers (same email/phone) will be skipped</li>
-            <li>• Minimum: at least one of name, phone, or email per row</li>
-          </ul>
-        </div>
+        {/* File Requirements - Collapsible */}
+        {showRequirements && (
+          <div className="mt-4 p-4 bg-gray-600/30 rounded-lg border border-gray-600 animate-in fade-in-50">
+            <div className="flex justify-between items-center mb-2">
+              <h4 className="font-medium text-sm text-white">File Requirements:</h4>
+              <button
+                onClick={() => setShowRequirements(false)}
+                className="text-gray-400 hover:text-gray-300 transition-colors"
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <ul className="text-xs text-gray-300 space-y-1">
+              <li>• Include columns for: <strong className="text-yellow-400">name</strong>, <strong className="text-yellow-400">phone</strong>, and/or <strong className="text-yellow-400">email</strong></li>
+              <li>• Column names can vary (Name, Customer Name, name, etc.)</li>
+              <li>• Phone numbers will be automatically formatted for Ghana</li>
+              <li>• Duplicate customers (same email/phone) will be skipped</li>
+              <li>• Minimum: at least one of name, phone, or email per row</li>
+            </ul>
+          </div>
+        )}
       </div>
 
       {/* Upload Confirmation Dialog */}
@@ -476,7 +501,7 @@ const CustomerUpload = ({ restaurantId }) => {
                 variant="outline"
                 onClick={() => setShowUploadModal(false)}
                 disabled={isUploading}
-                className="border-gray-600 text-gray-700 hover:bg-gray-700"
+                className="border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white"
               >
                 Cancel
               </Button>
