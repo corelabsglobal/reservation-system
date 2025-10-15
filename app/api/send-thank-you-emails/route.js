@@ -58,163 +58,217 @@ export async function GET(request) {
           <style>
             body {
               font-family: 'Georgia', serif;
-              background-color: #f0ece3;
+              background-color: #f8f9fa;
               margin: 0;
               padding: 0;
               -webkit-font-smoothing: antialiased;
               -moz-osx-font-smoothing: grayscale;
             }
             .container {
-              max-width: 650px;
-              margin: 30px auto;
+              max-width: 600px;
+              margin: 20px auto;
               background-color: #ffffff;
-              border-radius: 12px;
+              border-radius: 16px;
               overflow: hidden;
-              box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+              box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+              border: 1px solid #e9ecef;
             }
             .header {
-              background: linear-gradient(135deg, #2b2b2b 0%, #1a1a1a 100%);
-              padding: 40px 20px;
+              background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+              padding: 30px 20px;
               text-align: center;
               position: relative;
             }
-            .header-brand {
+            .logo-container {
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 16px;
+              margin-bottom: 20px;
+            }
+            .logo {
+              width: 60px;
+              height: 60px;
+              border-radius: 12px;
+              object-fit: cover;
+              border: 2px solid #d4af37;
+              box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            }
+            .brand-name {
               font-family: 'Cinzel', serif;
-              font-size: 32px;
+              font-size: 24px;
               color: #d4af37;
-              letter-spacing: 2px;
+              letter-spacing: 1.5px;
               margin: 0;
               text-transform: uppercase;
-              text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+              font-weight: 600;
             }
-            .header img {
-              max-width: 140px;
-              margin-top: 15px;
-              border-radius: 8px;
-              border: 2px solid #d4af37;
+            .restaurant-name {
+              font-family: 'Playfair Display', serif;
+              font-size: 18px;
+              color: #ffffff;
+              margin: 8px 0 0 0;
+              font-weight: 400;
+              letter-spacing: 0.5px;
             }
             .divider {
-              height: 2px;
-              background: linear-gradient(to right, transparent, #d4af37, transparent);
+              height: 1px;
+              background: linear-gradient(to right, transparent, rgba(212, 175, 55, 0.3), transparent);
               margin: 0;
             }
             .content {
-              padding: 40px 30px;
-              color: #333333;
-              background-color: #fafafa;
+              padding: 40px 35px;
+              color: #2d3748;
+              background-color: #ffffff;
+              line-height: 1.7;
             }
             h1 {
               font-family: 'Playfair Display', serif;
-              font-size: 28px;
-              color: #1a1a1a;
+              font-size: 26px;
+              color: #1a202c;
               text-align: center;
-              margin: 0 0 20px;
-              letter-spacing: 1px;
+              margin: 0 0 25px;
+              font-weight: 600;
+              letter-spacing: 0.5px;
             }
             p {
-              font-size: 16px;
-              line-height: 1.8;
-              margin: 12px 0;
-              color: #4a4a4a;
+              font-size: 15px;
+              line-height: 1.7;
+              margin: 16px 0;
+              color: #4a5568;
             }
             .greeting {
-              font-size: 18px;
-              font-weight: bold;
-              color: #2b2b2b;
+              font-size: 16px;
+              font-weight: 600;
+              color: #2d3748;
+              margin-bottom: 20px;
+            }
+            .highlight {
+              color: #d4af37;
+              font-weight: 600;
             }
             .signature {
               font-style: italic;
-              color: #666666;
-              margin-top: 25px;
+              color: #718096;
+              margin-top: 30px;
               text-align: center;
-              font-size: 15px;
-              line-height: 1.5;
+              font-size: 14px;
+              line-height: 1.6;
+              padding-top: 20px;
+              border-top: 1px solid #e2e8f0;
             }
             .button {
               display: inline-block;
-              padding: 14px 28px;
+              padding: 14px 32px;
               background: linear-gradient(135deg, #d4af37 0%, #b8972e 100%);
               color: #ffffff;
               text-decoration: none;
-              border-radius: 50px;
-              margin: 20px auto;
-              font-size: 16px;
-              font-weight: bold;
-              text-transform: uppercase;
-              letter-spacing: 1px;
-              box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-              transition: transform 0.2s ease, box-shadow 0.2s ease;
+              border-radius: 8px;
+              margin: 25px auto;
+              font-size: 15px;
+              font-weight: 600;
+              text-transform: none;
+              letter-spacing: 0.5px;
+              box-shadow: 0 2px 8px rgba(212, 175, 55, 0.3);
+              transition: all 0.3s ease;
               text-align: center;
               display: block;
               width: fit-content;
+              border: none;
+              cursor: pointer;
             }
             .button:hover {
-              transform: translateY(-2px);
-              box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+              transform: translateY(-1px);
+              box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4);
+              background: linear-gradient(135deg, #b8972e 0%, #9c7d25 100%);
             }
             .footer {
-              background: linear-gradient(135deg, #2b2b2b 0%, #1a1a1a 100%);
-              color: #d4af37;
+              background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+              color: #cbd5e0;
               text-align: center;
-              padding: 20px;
+              padding: 25px 20px;
               font-size: 13px;
               line-height: 1.6;
             }
             .footer p {
-              margin: 5px 0;
+              margin: 6px 0;
+              color: #cbd5e0;
+              font-size: 13px;
+            }
+            .footer a {
               color: #d4af37;
+              text-decoration: none;
+            }
+            .footer a:hover {
+              text-decoration: underline;
             }
             @media only screen and (max-width: 600px) {
               .container {
-                margin: 15px;
-                border-radius: 8px;
+                margin: 10px;
+                border-radius: 12px;
               }
               .header {
-                padding: 30px 15px;
+                padding: 25px 15px;
               }
-              .header-brand {
-                font-size: 24px;
+              .logo {
+                width: 50px;
+                height: 50px;
+              }
+              .brand-name {
+                font-size: 20px;
+                letter-spacing: 1px;
+              }
+              .restaurant-name {
+                font-size: 16px;
               }
               .content {
-                padding: 25px 20px;
+                padding: 30px 25px;
               }
               h1 {
-                font-size: 24px;
+                font-size: 22px;
+                margin-bottom: 20px;
               }
               p {
                 font-size: 14px;
                 line-height: 1.6;
               }
               .button {
-                padding: 12px 24px;
+                padding: 12px 28px;
                 font-size: 14px;
+                margin: 20px auto;
               }
               .footer {
-                padding: 15px;
+                padding: 20px 15px;
                 font-size: 12px;
               }
             }
           </style>
-          <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet">
         </head>
         <body>
           <div class="container">
             <div class="header">
-              <h1 class="header-brand">DanLoski</h1>
-              <img src="${process.env.RESTAURANT_LOGO_URL || 'https://via.placeholder.com/150'}" alt="${reservation.restaurants.name} Logo" />
+              <div class="logo-container">
+                <img src="${process.env.RESTAURANT_LOGO_URL || 'https://via.placeholder.com/60'}" alt="${reservation.restaurants.name} Logo" class="logo" />
+                <div>
+                  <h1 class="brand-name">DanLoski</h1>
+                  <p class="restaurant-name">${reservation.restaurants.name}</p>
+                </div>
+              </div>
             </div>
             <div class="divider"></div>
             <div class="content">
               <h1>Thank You for Dining with Us</h1>
               <p class="greeting">Dear ${reservation.name},</p>
-              <p>It was our utmost pleasure to welcome you to ${reservation.restaurants.name} on ${reservation.date} at ${reservation.time}. Your presence truly elevated our evening, and we are deeply grateful for choosing to dine with us.</p>
-              <p>We are dedicated to crafting unforgettable experiences, and we sincerely hope your time with us was nothing short of exceptional. We would be honored to welcome you back for another memorable dining experience.</p>
-              <a href="${process.env.RESTAURANT_BOOKING_URL || '#'}" class="button">Reserve Again</a>
-              <p class="signature">Warmest regards,<br>The ${reservation.restaurants.name} Team</p>
+              <p>It was our pleasure to welcome you to <span class="highlight">${reservation.restaurants.name}</span> on ${reservation.date} at ${reservation.time}. Your presence made our evening special, and we're grateful you chose to dine with us.</p>
+              <p>We're committed to creating memorable experiences, and we hope your time with us was exceptional. We would be delighted to welcome you back for another wonderful dining experience.</p>
+              <a href="${process.env.RESTAURANT_BOOKING_URL || '#'}" class="button">Make Another Reservation</a>
+              <p class="signature">Warm regards,<br><strong>The ${reservation.restaurants.name} Team</strong></p>
             </div>
             <div class="footer">
-              <p>${reservation.restaurants.name} | ${reservation.restaurants.owner?.email || ''}</p>
-              <p>We look forward to serving you again.</p>
+              <p><strong>${reservation.restaurants.name}</strong></p>
+              <p>${reservation.restaurants.owner?.email || ''}</p>
+              <p>We look forward to serving you again soon</p>
             </div>
           </div>
         </body>
