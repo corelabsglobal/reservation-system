@@ -243,32 +243,38 @@ const CustomersSection = ({ restaurant, reservations }) => {
   return (
     <div className="mb-6 p-4 shadow-2xl bg-gray-800/90 backdrop-blur-md rounded-xl">
       {/* Header */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 gap-4">
-        <div>
-          <h2 className="text-2xl font-semibold">Customers</h2>
-          <p className="text-gray-400 text-sm mt-1">
-            Manage customers from reservations and uploaded lists
-          </p>
-        </div>
-        
-        <div className="flex items-center gap-3">
-          <div className="bg-yellow-500/20 px-3 py-1 rounded-full text-yellow-400 text-sm">
-            Total: {stats.totalCustomers}
+      <div className="flex flex-col gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="flex-1">
+            <h2 className="text-2xl font-semibold">Customers</h2>
+            <p className="text-gray-400 text-sm mt-1">
+              Manage customers from reservations and uploaded lists
+            </p>
           </div>
-          <div className="bg-blue-500/20 px-3 py-1 rounded-full text-blue-400 text-sm">
-            Reservations: {stats.reservationCustomers}
-          </div>
-          <div className="bg-green-500/20 px-3 py-1 rounded-full text-green-400 text-sm">
-            Uploaded: {stats.uploadedCustomers}
-          </div>
+          
           <button 
             onClick={generateCustomerPDF}
-            className="flex items-center gap-2 px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors w-full sm:w-auto justify-center"
             title="Download customer report"
           >
             <Download size={16} />
-            Export
+            Export PDF
           </button>
+        </div>
+
+        <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
+          <div className="bg-yellow-500/20 px-3 py-2 rounded-full text-yellow-400 text-sm whitespace-nowrap flex-shrink-0">
+            Total: {stats.totalCustomers}
+          </div>
+          <div className="bg-blue-500/20 px-3 py-2 rounded-full text-blue-400 text-sm whitespace-nowrap flex-shrink-0">
+            Reservations: {stats.reservationCustomers}
+          </div>
+          <div className="bg-green-500/20 px-3 py-2 rounded-full text-green-400 text-sm whitespace-nowrap flex-shrink-0">
+            Uploaded: {stats.uploadedCustomers}
+          </div>
+          <div className="bg-purple-500/20 px-3 py-2 rounded-full text-purple-400 text-sm whitespace-nowrap flex-shrink-0">
+            Repeat: {stats.repeatCustomers}
+          </div>
         </div>
       </div>
 
@@ -392,8 +398,8 @@ const CustomersSection = ({ restaurant, reservations }) => {
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex justify-between items-center mt-6 pt-4 border-t border-gray-700">
-          <div className="text-sm text-gray-400">
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6 pt-4 border-t border-gray-700">
+          <div className="text-sm text-gray-400 text-center sm:text-left">
             Page {currentPage} of {totalPages} • {filteredCustomers.length} total customers
           </div>
           <div className="flex items-center gap-2">
