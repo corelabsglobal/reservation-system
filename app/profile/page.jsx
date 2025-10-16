@@ -4,11 +4,9 @@ import { useEffect, useState, useMemo, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import toast from 'react-hot-toast';
-import { Download } from "lucide-react";
 import { jsPDF } from "jspdf";
 import Header from '../components/structure/header';
 import ReservationCard from '../components/structure/ReservationCard';
-import EmailMarketing from '../components/structure/EmailMarketing';
 import SubscriptionManager from '../components/structure/hooks/SubscriptionManager';
 import LuxuryAnalyticsDashboard from '../components/Dashboard/Analytics';
 import CustomerSpendAnalytics from '../components/Dashboard/CustomerSpendAnalytics';
@@ -19,6 +17,7 @@ import RestaurantInfoManager from '../components/Dashboard/RestaurantInfoManager
 import TableAssignmentManager from '../components/structure/TableAssignmentManager';
 import SideImagesUploader from '../components/Dashboard/SideImagesUploader';
 import CustomersSection from '../components/Dashboard/customers/CustomersTab';
+import TableManagement from '../components/Dashboard/manage/TableCreation';
 
 const ProfilePage = () => {
   const [restaurant, setRestaurant] = useState(null);
@@ -1156,173 +1155,7 @@ const ProfilePage = () => {
               />
 
               {/* Manage Table Types Section */}
-              <div className="bg-gray-700/50 p-4 rounded-lg shadow-lg">
-                <div className="flex items-center gap-2 mb-4">
-                  <h3 className="text-xl font-bold text-yellow-400">Manage Table Types</h3>
-                  <div className="group relative">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <div className="absolute hidden group-hover:block bottom-full mb-2 w-64 bg-gray-900 text-white text-sm p-3 rounded-lg shadow-lg">
-                      Define different types of tables in your restaurant (e.g., 2-seater, 4-seater, VIP booth)
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Add New Table Type Form */}
-                  <div className="bg-gray-800 p-4 rounded-lg">
-                    <h4 className="font-semibold mb-3 text-gray-300">Add New Table Type</h4>
-                    <div className="space-y-3">
-                      <input
-                        type="text"
-                        placeholder="Type name (e.g., 2-seater)"
-                        value={newTableType.name}
-                        onChange={(e) => setNewTableType({...newTableType, name: e.target.value})}
-                        className="w-full p-2 bg-gray-700 rounded border border-gray-600 text-white"
-                      />
-                      <input
-                        type="number"
-                        placeholder="Capacity"
-                        min="1"
-                        value={newTableType.capacity}
-                        onChange={(e) => setNewTableType({...newTableType, capacity: parseInt(e.target.value)})}
-                        className="w-full p-2 bg-gray-700 rounded border border-gray-600 text-white"
-                      />
-                      <textarea
-                        placeholder="Description (optional)"
-                        value={newTableType.description}
-                        onChange={(e) => setNewTableType({...newTableType, description: e.target.value})}
-                        className="w-full p-2 bg-gray-700 rounded border border-gray-600 text-white"
-                        rows="2"
-                      />
-                      <button
-                        onClick={addTableType}
-                        className="bg-gradient-to-r from-yellow-400 to-pink-600 px-4 py-2 rounded hover:opacity-90 transition-all text-white font-medium"
-                      >
-                        Add Table Type
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Existing Table Types List */}
-                  <div className="bg-gray-800 p-4 rounded-lg">
-                    <h4 className="font-semibold mb-3 text-gray-300">Existing Table Types</h4>
-                    {tableTypes.length === 0 ? (
-                      <p className="text-gray-400">No table types defined yet</p>
-                    ) : (
-                      <div className="space-y-2 max-h-64 overflow-y-auto custom-scrollbar">
-                        {tableTypes.map(type => (
-                          <div key={type.id} className="flex justify-between items-center bg-gray-700/50 p-3 rounded">
-                            <div>
-                              <span className="font-medium">{type.name}</span> 
-                              <span className="text-sm text-gray-400 ml-2">(Capacity: {type.capacity})</span>
-                              {type.description && (
-                                <p className="text-xs text-gray-400 mt-1">{type.description}</p>
-                              )}
-                            </div>
-                            <button
-                              onClick={() => deleteTableType(type.id)}
-                              className="text-red-400 hover:text-red-300 text-sm"
-                            >
-                              Delete
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Manage Tables Section */}
-              <div className="bg-gray-700/50 p-4 rounded-lg shadow-lg">
-                <div className="flex items-center gap-2 mb-4">
-                  <h3 className="text-xl font-bold text-yellow-400">Manage Tables</h3>
-                  <div className="group relative">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <div className="absolute hidden group-hover:block bottom-full mb-2 w-64 bg-gray-900 text-white text-sm p-3 rounded-lg shadow-lg">
-                      Add and manage individual tables in your restaurant. Assign them to table types.
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Add New Table Form */}
-                  <div className="bg-gray-800 p-4 rounded-lg">
-                    <h4 className="font-semibold mb-3 text-gray-300">Add New Table</h4>
-                    <div className="space-y-3">
-                      <select
-                        value={newTable.table_type_id}
-                        onChange={(e) => setNewTable({...newTable, table_type_id: e.target.value})}
-                        className="w-full p-2 bg-gray-700 rounded border border-gray-600 text-white"
-                      >
-                        <option value="">Select table type</option>
-                        {tableTypes.map(type => (
-                          <option key={type.id} value={type.id}>
-                            {type.name} ({type.capacity} seats)
-                          </option>
-                        ))}
-                      </select>
-                      <input
-                        type="text"
-                        placeholder="Number of tables to create (e.g. '5') or specific name (e.g. 'Window Table 1')"
-                        value={newTable.table_number}
-                        onChange={(e) => setNewTable({...newTable, table_number: e.target.value})}
-                        className="w-full p-2 bg-gray-700 rounded border border-gray-600 text-white"
-                      />
-                      <p className="text-xs text-gray-400 mt-1">
-                        Enter a number to create multiple tables of this type, or a specific name for a single table.
-                      </p>
-                      <input
-                        type="text"
-                        placeholder="Position description (optional)"
-                        value={newTable.position_description}
-                        onChange={(e) => setNewTable({...newTable, position_description: e.target.value})}
-                        className="w-full p-2 bg-gray-700 rounded border border-gray-600 text-white"
-                      />
-                      <button
-                        onClick={addTable}
-                        className="bg-gradient-to-r from-yellow-400 to-pink-600 px-4 py-2 rounded hover:opacity-90 transition-all text-white font-medium"
-                      >
-                        Add Table
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Existing Tables List */}
-                  <div className="bg-gray-800 p-4 rounded-lg">
-                    <h4 className="font-semibold mb-3 text-gray-300">Existing Tables</h4>
-                    {tables.length === 0 ? (
-                      <p className="text-gray-400">No tables added yet</p>
-                    ) : (
-                      <div className="space-y-2 max-h-64 overflow-y-auto custom-scrollbar">
-                        {tables.map(table => (
-                          <div key={table.id} className="flex justify-between items-center bg-gray-700/50 p-3 rounded">
-                            <div>
-                              <span className="font-medium">{table.table_number}</span> 
-                              <span className="text-sm text-gray-400 ml-2">
-                                ({table.table_types.name}, {table.table_types.capacity} seats)
-                              </span>
-                              {table.position_description && (
-                                <p className="text-xs text-gray-400 mt-1">{table.position_description}</p>
-                              )}
-                            </div>
-                            <button
-                              onClick={() => deleteTable(table.id)}
-                              className="text-red-400 hover:text-red-300 text-sm"
-                            >
-                              Delete
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
+              <TableManagement restaurant={restaurant} />
 
               <ClosureDaysManager restaurant={restaurant} />
               <ReservationTimingManager restaurant={restaurant} setRestaurant={setRestaurant} />
