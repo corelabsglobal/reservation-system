@@ -15,7 +15,7 @@ const Sidebar = ({ activeTab, setActiveTab, activeSubTab, setActiveSubTab }) => 
     customers: {
       label: 'Customers',
       icon: '👥',
-      subtabs: ['list', 'analytics']
+      subtabs: ['list']
     },
     insights: {
       label: 'Insights',

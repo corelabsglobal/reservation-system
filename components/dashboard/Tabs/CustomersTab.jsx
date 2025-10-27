@@ -108,7 +108,7 @@ const CustomersTab = ({ activeSubTab, restaurant, reservations }) => {
 
       {/* Sub Navigation */}
       <div className="flex gap-2 mb-6">
-        {['list', 'analytics'].map((tab) => (
+        {['list'].map((tab) => (
           <button
             key={tab}
             className={`px-4 py-2 rounded-lg capitalize transition-all ${
