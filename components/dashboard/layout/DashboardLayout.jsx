@@ -25,7 +25,7 @@ const DashboardLayout = ({
       />
       
       {/* Main Content */}
-      <div className="relative z-10 flex-1 flex flex-col min-h-screen">
+      <div className="relative z-10 flex-1 flex flex-col min-h-screen mt-20">
         <Header />
         
         {/* Subscription Manager */}
