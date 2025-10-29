@@ -35,7 +35,7 @@ const Sidebar = ({ activeTab, setActiveTab, activeSubTab, setActiveSubTab }) => 
     insights: {
       label: 'Insights',
       icon: <FiTrendingUp className="text-lg" />,
-      subtabs: ['spend', 'performance']
+      subtabs: ['spend']
     },
     manage: {
       label: 'Manage',
