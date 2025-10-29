@@ -200,13 +200,13 @@ const CustomerSpendAnalytics = ({ restaurant, reservations }) => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-gray-700/50 p-4 rounded-lg">
           <div className="text-gray-400 text-sm">Total Revenue</div>
-          <div className="text-2xl font-bold">
+          <div className="text-2xl font-bold text-white">
             GHS {customerDetails ? customerDetails.reduce((sum, customer) => sum + (customer.totalSpend || 0), 0).toFixed(2) : '0.00'}
           </div>
         </div>
         <div className="bg-gray-700/50 p-4 rounded-lg">
           <div className="text-gray-400 text-sm">Avg. Customer Spend</div>
-          <div className="text-2xl font-bold">
+          <div className="text-2xl font-bold text-white">
             GHS {customerDetails.length > 0 
               ? (customerDetails.reduce((sum, customer) => sum + customer.totalSpend, 0) / customerDetails.length).toFixed(2)
               : '0.00'}
@@ -214,7 +214,7 @@ const CustomerSpendAnalytics = ({ restaurant, reservations }) => {
         </div>
         <div className="bg-gray-700/50 p-4 rounded-lg">
           <div className="text-gray-400 text-sm">Top 5 Customers</div>
-          <div className="text-2xl font-bold">
+          <div className="text-2xl font-bold text-white">
             {customerDetails.length > 0 
                 ? (
                     (
@@ -227,7 +227,7 @@ const CustomerSpendAnalytics = ({ restaurant, reservations }) => {
         </div>
         <div className="bg-gray-700/50 p-4 rounded-lg">
           <div className="text-gray-400 text-sm">Repeat Customers</div>
-          <div className="text-2xl font-bold">
+          <div className="text-2xl font-bold text-white">
             {customerDetails.filter(c => c.visits > 1).length} / {customerDetails.length}
           </div>
         </div>
@@ -235,7 +235,7 @@ const CustomerSpendAnalytics = ({ restaurant, reservations }) => {
 
       {/* Time Frame Selector */}
       <div className="flex justify-between items-center">
-        <h3 className="text-xl font-semibold">Revenue Analytics</h3>
+        <h3 className="text-xl font-semibold text-white">Revenue Analytics</h3>
         <div className="flex gap-2">
           <button
             onClick={() => setTimeFrame('week')}
@@ -277,7 +277,7 @@ const CustomerSpendAnalytics = ({ restaurant, reservations }) => {
         {/* Top Customers Pie Chart */}
         <div className="bg-gray-700/50 p-4 rounded-lg h-80">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold">Top Customers Contribution</h3>
+            <h3 className="text-lg font-semibold text-white">Top Customers Contribution</h3>
             <button 
               onClick={generateSpendReport}
               className="text-yellow-400 hover:text-yellow-300 transition-colors flex items-center gap-1 text-sm"
@@ -313,11 +313,11 @@ const CustomerSpendAnalytics = ({ restaurant, reservations }) => {
 
         {/* Top Customers Table */}
         <div className="bg-gray-700/50 p-4 rounded-lg">
-          <h3 className="text-lg font-semibold mb-4">Top Spending Customers</h3>
+          <h3 className="text-lg font-semibold mb-4 text-white">Top Spending Customers</h3>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="bg-gray-700">
+                <tr className="bg-gray-700 text-white">
                   <th className="px-4 py-2 text-left">Customer</th>
                   <th className="px-4 py-2 text-left">Visits</th>
                   <th className="px-4 py-2 text-left">Total Spend</th>
@@ -328,12 +328,12 @@ const CustomerSpendAnalytics = ({ restaurant, reservations }) => {
                 {customerDetails.slice(0, 5).map((customer, index) => (
                   <tr key={customer.email} className="border-b border-gray-700 hover:bg-gray-700/50">
                     <td className="px-4 py-3">
-                      <div className="font-medium">{customer.name}</div>
+                      <div className="font-medium text-white">{customer.name}</div>
                       <div className="text-xs text-gray-400">{customer.email}</div>
                     </td>
-                    <td className="px-4 py-3">{customer.visits}</td>
+                    <td className="px-4 py-3 text-white">{customer.visits}</td>
                     <td className="px-4 py-3 text-yellow-400">GHS {customer.totalSpend.toFixed(2)}</td>
-                    <td className="px-4 py-3">GHS {(customer.totalSpend / customer.visits).toFixed(2)}</td>
+                    <td className="px-4 py-3 text-white">GHS {(customer.totalSpend / customer.visits).toFixed(2)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -345,7 +345,7 @@ const CustomerSpendAnalytics = ({ restaurant, reservations }) => {
       {/* Customer Spend Details with Search and Pagination */}
       <div className="bg-gray-700/50 p-4 rounded-lg">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
-          <h3 className="text-lg font-semibold">Customer Spend Details</h3>
+          <h3 className="text-lg font-semibold text-white">Customer Spend Details</h3>
           
           {/* Search Input */}
           <div className="relative w-full sm:w-64">
@@ -382,7 +382,7 @@ const CustomerSpendAnalytics = ({ restaurant, reservations }) => {
         <div className="overflow-x-auto">
           <table className="w-full min-w-[800px]">
             <thead>
-              <tr className="bg-gray-700">
+              <tr className="bg-gray-700 text-white">
                 <th className="px-4 py-2 text-left">Customer</th>
                 <th className="px-4 py-2 text-left">Contact</th>
                 <th className="px-4 py-2 text-left">Visits</th>
@@ -396,16 +396,16 @@ const CustomerSpendAnalytics = ({ restaurant, reservations }) => {
                 paginatedCustomers.map((customer) => (
                   <tr key={customer.email} className="border-b border-gray-700 hover:bg-gray-700/50">
                     <td className="px-4 py-3">
-                      <div className="font-medium">{customer.name}</div>
+                      <div className="font-medium text-white">{customer.name}</div>
                       <div className="text-xs text-gray-400">{customer.email}</div>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 text-white">
                       <div>{customer.phone}</div>
                     </td>
-                    <td className="px-4 py-3">{customer.visits}</td>
+                    <td className="px-4 py-3 text-white">{customer.visits}</td>
                     <td className="px-4 py-3 text-yellow-400">GHS {customer.totalSpend.toFixed(2)}</td>
-                    <td className="px-4 py-3">GHS {(customer.totalSpend / customer.visits).toFixed(2)}</td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 text-white">GHS {(customer.totalSpend / customer.visits).toFixed(2)}</td>
+                    <td className="px-4 py-3 text-white">
                       {customer.lastVisit && new Date(customer.lastVisit).toLocaleDateString()}
                     </td>
                   </tr>
