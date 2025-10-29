@@ -737,7 +737,7 @@ const ManageTab = ({ activeSubTab, restaurant, onUpdateRestaurant }) => {
                         {bookingCostTiers.map(tier => (
                           <div key={tier.id} className="flex justify-between items-center bg-gray-700/50 p-3 rounded">
                             <div>
-                              <span className="font-medium">{tier.min_people}-{tier.max_people} people</span> 
+                              <span className="font-medium text-white">{tier.min_people}-{tier.max_people} people</span> 
                               <span className="text-sm text-gray-400 ml-2">(GHS {tier.cost})</span>
                             </div>
                             <button

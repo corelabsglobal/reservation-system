@@ -195,7 +195,7 @@ const ClosureDaysManager = ({ restaurant }) => {
               <div key={closure.id} className="flex justify-between items-center bg-gray-700/50 p-3 rounded">
                 <div>
                   {closure.is_recurring ? (
-                    <span className="font-medium">
+                    <span className="font-medium text-white">
                       Every {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][closure.day_of_week]}
                     </span>
                   ) : (
