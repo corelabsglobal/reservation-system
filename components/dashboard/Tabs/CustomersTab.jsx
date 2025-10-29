@@ -97,7 +97,7 @@ const CustomersTab = ({ activeSubTab, restaurant, reservations }) => {
   return (
     <div className="mb-6 p-6 shadow-2xl bg-gray-800/90 backdrop-blur-md rounded-xl">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-semibold">Customers</h2>
+        <h2 className="text-2xl font-semibold text-white">Customers</h2>
         <button
           onClick={generateCustomerPDF}
           className="bg-gradient-to-r from-yellow-400 to-pink-600 px-4 py-2 rounded-lg hover:opacity-80 transition-all font-semibold"
