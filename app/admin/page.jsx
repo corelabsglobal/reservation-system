@@ -3,8 +3,8 @@
 import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
-import DashboardLayout from '@/components/Dashboard/Layout/DashboardLayout';
-import DashboardContent from '@/components/Dashboard/DashboardContent';
+import DashboardLayout from '@/components/dashboard/layout/DashboardLayout';
+import DashboardContent from '@/components/dashboard/DashboardContent';
 
 const ProfilePage = () => {
   const [restaurant, setRestaurant] = useState(null);
