@@ -13,22 +13,6 @@ const OverviewTab = ({ activeSubTab, restaurant, reservations }) => {
         </div>
       )}
 
-      {/* Sub Navigation */}
-      <div className="flex gap-2 mb-6">
-        {['dashboard', 'analytics'].map((tab) => (
-          <button
-            key={tab}
-            className={`px-4 py-2 rounded-lg capitalize transition-all ${
-              activeSubTab === tab 
-                ? 'bg-gradient-to-r from-yellow-400 to-pink-600 text-white' 
-                : 'bg-gray-700 hover:bg-gray-600 text-gray-300'
-            }`}
-          >
-            {tab === 'dashboard' ? 'Quick View' : 'Detailed Analytics'}
-          </button>
-        ))}
-      </div>
-
       {/* Content based on sub tab */}
       {activeSubTab === 'dashboard' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
