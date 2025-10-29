@@ -93,7 +93,7 @@ const TableAssignmentManager = ({ restaurant, onUpdate }) => {
             onClick={() => !loading && handleModeChange('automatic')}
           >
             <div className="flex items-center justify-between mb-4">
-              <h4 className="font-semibold text-lg">Automatic Assignment</h4>
+              <h4 className="font-semibold text-lg  text-white">Automatic Assignment</h4>
               {assignmentMode === 'automatic' && (
                 <div className="w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white" viewBox="0 0 20 20" fill="currentColor">
@@ -125,7 +125,7 @@ const TableAssignmentManager = ({ restaurant, onUpdate }) => {
             onClick={() => !loading && handleModeChange('manual')}
           >
             <div className="flex items-center justify-between mb-4">
-              <h4 className="font-semibold text-lg">Manual Assignment</h4>
+              <h4 className="font-semibold text-lg  text-white">Manual Assignment</h4>
               {assignmentMode === 'manual' && (
                 <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white" viewBox="0 0 20 20" fill="currentColor">
