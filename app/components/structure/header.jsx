@@ -79,7 +79,7 @@ export default function Header() {
         {/* Conditionally render Profile Link */}
         {isOwner && (
           <Link
-            href="/profile"
+            href="/admin"
             className="flex items-center gap-2 text-white bg-gradient-to-r from-[#00C6FF] to-[#0072FF] hover:from-[#0072FF] hover:to-[#00C6FF] transition-all text-lg font-medium py-2 px-6 rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-1 duration-300"
           >
             <FiUser size={19} />
@@ -162,7 +162,7 @@ export default function Header() {
               <span>Profile</span>
             </Link>
             {isOwner && (
-              <Link href="/profile" className="flex space-x-2" onClick={() => setMobileMenuOpen(false)}>
+              <Link href="/admin" className="flex space-x-2" onClick={() => setMobileMenuOpen(false)}>
                 <BsFillPeopleFill size={18} />
                 <span>Dashboard</span>
               </Link>
