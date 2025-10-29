@@ -27,11 +27,11 @@ const InsightsTab = ({ activeSubTab, restaurant, reservations }) => {
 
   return (
     <div className="mb-6 p-6 shadow-2xl bg-gray-800/90 backdrop-blur-md rounded-xl">
-      <h2 className="text-2xl font-semibold mb-6 text-gray-100">Business Insights</h2>
+      <h2 className="text-2xl font-semibold mb-6 text-gray-100 text-white">Business Insights</h2>
 
       {/* Sub Navigation */}
       <div className="flex gap-2 mb-6">
-        {['spend', 'performance'].map((tab) => (
+        {['spend'].map((tab) => (
           <button
             key={tab}
             className={`px-4 py-2 rounded-lg capitalize transition-all ${
