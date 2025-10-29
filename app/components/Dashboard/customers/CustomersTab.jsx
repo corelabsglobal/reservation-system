@@ -360,7 +360,7 @@ const CustomersSection = ({ restaurant, reservations }) => {
                         {customer.reservation_count || 0}
                       </div>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 text-white">
                       {customer.last_visit ? (
                         <>
                           <div>{new Date(customer.last_visit).toLocaleDateString()}</div>
