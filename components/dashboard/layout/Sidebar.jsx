@@ -10,13 +10,22 @@ import {
   FiChevronDown,
   FiChevronRight,
   FiX,
-  FiSidebar
+  FiSidebar,
+  FiHome
 } from 'react-icons/fi';
+import { useRouter } from 'next/navigation';
 
 const Sidebar = ({ activeTab, setActiveTab, activeSubTab, setActiveSubTab }) => {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const router = useRouter();
 
   const menuItems = {
+    home: {
+      label: 'Home',
+      icon: <FiHome className="text-lg" />,
+      path: '/',
+      isHome: true
+    },
     overview: {
       label: 'Overview',
       icon: <FiBarChart2 className="text-lg" />,
@@ -45,6 +54,16 @@ const Sidebar = ({ activeTab, setActiveTab, activeSubTab, setActiveSubTab }) => 
   };
 
   const handleTabClick = (key, item) => {
+    // If it's the home item, navigate to '/'
+    if (item.isHome) {
+      router.push(item.path);
+      // Close mobile sidebar when home is clicked
+      if (window.innerWidth < 768) {
+        setIsMobileOpen(false);
+      }
+      return;
+    }
+    
     setActiveTab(key);
     setActiveSubTab(item.subtabs[0]);
     // Close mobile sidebar when a tab is clicked
@@ -129,15 +148,16 @@ const Sidebar = ({ activeTab, setActiveTab, activeSubTab, setActiveSubTab }) => 
                   </span>
                   <span className="font-medium">{item.label}</span>
                 </div>
-                {activeTab === key ? (
-                  <FiChevronDown className="text-sm" />
-                ) : (
-                  <FiChevronRight className="text-sm" />
+                {!item.isHome && (
+                  activeTab === key ? (
+                    <FiChevronDown className="text-sm" />
+                  ) : (
+                    <FiChevronRight className="text-sm" />
+                  )
                 )}
               </button>
 
-              {/* Sub Tabs */}
-              {activeTab === key && (
+              {!item.isHome && activeTab === key && (
                 <div className="ml-4 space-y-1 animate-fadeIn">
                   {item.subtabs.map((subtab) => (
                     <button
