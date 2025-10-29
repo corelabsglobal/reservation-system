@@ -82,7 +82,7 @@ const ReservationsTab = ({
       case 'current':
         return (
           <div className="mb-8">
-            <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+            <h3 className="text-xl font-semibold mb-4 flex items-center gap-2 text-white">
               <span className="flex h-3 w-3 relative">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
@@ -121,7 +121,7 @@ const ReservationsTab = ({
       case 'today':
         return (
           <div className="mb-8">
-            <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+            <h3 className="text-xl font-semibold mb-4 flex items-center gap-2 text-white">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
@@ -172,7 +172,7 @@ const ReservationsTab = ({
       default:
         return (
           <div>
-            <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+            <h3 className="text-xl font-semibold mb-4 flex items-center gap-2 text-white">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
               </svg>
@@ -220,7 +220,7 @@ const ReservationsTab = ({
   return (
     <div className="mb-6 p-6 shadow-2xl bg-gray-800/90 backdrop-blur-md rounded-xl">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-semibold">Reservations</h2>
+        <h2 className="text-2xl font-semibold text-white">Reservations</h2>
         <div className="flex items-center gap-2">
           <button
             onClick={() => {
