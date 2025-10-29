@@ -528,7 +528,7 @@ const ManageTab = ({ activeSubTab, restaurant, onUpdateRestaurant }) => {
                       {tableTypes.map(type => (
                         <div key={type.id} className="flex justify-between items-center bg-gray-700/50 p-3 rounded">
                           <div>
-                            <span className="font-medium">{type.name}</span>
+                            <span className="font-medium  text-white">{type.name}</span>
                             <span className="text-sm text-gray-400 ml-2">(Capacity: {type.capacity})</span>
                             {type.description && (
                               <p className="text-xs text-gray-500 mt-1">{type.description}</p>
@@ -601,7 +601,7 @@ const ManageTab = ({ activeSubTab, restaurant, onUpdateRestaurant }) => {
                       {tables.map(table => (
                         <div key={table.id} className="flex justify-between items-center bg-gray-700/50 p-3 rounded">
                           <div>
-                            <span className="font-medium">Table {table.table_number}</span>
+                            <span className="font-medium text-white">Table {table.table_number}</span>
                             <span className="text-sm text-gray-400 ml-2">({table.table_types?.name})</span>
                             {table.position_description && (
                               <p className="text-xs text-gray-500 mt-1">{table.position_description}</p>
