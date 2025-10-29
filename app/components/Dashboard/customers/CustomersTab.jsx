@@ -246,7 +246,7 @@ const CustomersSection = ({ restaurant, reservations }) => {
       <div className="flex flex-col gap-4 mb-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div className="flex-1">
-            <h2 className="text-2xl font-semibold">Customers</h2>
+            <h2 className="text-2xl font-semibold text-white">Customers</h2>
             <p className="text-gray-400 text-sm mt-1">
               Manage customers from reservations and uploaded lists
             </p>
@@ -254,7 +254,7 @@ const CustomersSection = ({ restaurant, reservations }) => {
           
           <button 
             onClick={generateCustomerPDF}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors w-full sm:w-auto justify-center"
+            className="flex items-center gap-2 px-4 py-2 bg-white hover:bg-gray-600 rounded-lg transition-colors w-full sm:w-auto justify-center"
             title="Download customer report"
           >
             <Download size={16} />
@@ -315,7 +315,7 @@ const CustomersSection = ({ restaurant, reservations }) => {
       <div className="overflow-x-auto">
         <table className="w-full min-w-[600px]">
           <thead>
-            <tr className="bg-gray-700">
+            <tr className="bg-gray-700 text-white">
               <th className="px-4 py-3 text-left">Customer</th>
               <th className="px-4 py-3 text-left">Contact</th>
               <th className="px-4 py-3 text-left">Source</th>
@@ -337,13 +337,13 @@ const CustomersSection = ({ restaurant, reservations }) => {
                 .map((customer) => (
                   <tr key={customer.id} className="border-b border-gray-700 hover:bg-gray-700/50 transition-all">
                     <td className="px-4 py-3">
-                      <div className="font-medium">{customer.name}</div>
+                      <div className="font-medium text-white">{customer.name}</div>
                       {customer.source === 'upload' && (
                         <div className="text-xs text-gray-400">Uploaded customer</div>
                       )}
                     </td>
                     <td className="px-4 py-3">
-                      <div className="text-sm">{customer.email || 'No email'}</div>
+                      <div className="text-sm text-white">{customer.email || 'No email'}</div>
                       <div className="text-xs text-gray-400">{customer.phone || 'No phone'}</div>
                     </td>
                     <td className="px-4 py-3">
@@ -356,7 +356,7 @@ const CustomersSection = ({ restaurant, reservations }) => {
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      <div className="text-center">
+                      <div className="text-center text-white">
                         {customer.reservation_count || 0}
                       </div>
                     </td>
