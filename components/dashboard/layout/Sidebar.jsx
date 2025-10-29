@@ -20,7 +20,7 @@ const Sidebar = ({ activeTab, setActiveTab, activeSubTab, setActiveSubTab }) => 
     overview: {
       label: 'Overview',
       icon: <FiBarChart2 className="text-lg" />,
-      subtabs: ['dashboard', 'analytics']
+      subtabs: ['analytics', 'dashboard']
     },
     reservations: {
       label: 'Reservations',
