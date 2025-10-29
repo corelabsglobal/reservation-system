@@ -774,25 +774,6 @@ const ManageTab = ({ activeSubTab, restaurant, onUpdateRestaurant }) => {
   return (
     <div className="mb-6 p-6 shadow-2xl bg-gray-800/90 backdrop-blur-md rounded-xl">
       <h2 className="text-2xl font-semibold mb-6 text-yellow-400">Manage Restaurant</h2>
-      
-      {/* Sub Navigation */}
-      <div className="flex flex-wrap gap-2 mb-6">
-        {['restaurant', 'tables', 'pricing', 'settings'].map((tab) => (
-          <button
-            key={tab}
-            className={`px-4 py-2 rounded-lg capitalize transition-all ${
-              activeSubTab === tab 
-                ? 'bg-gradient-to-r from-yellow-400 to-pink-600 text-white' 
-                : 'bg-gray-700 hover:bg-gray-600 text-gray-300'
-            }`}
-          >
-            {tab === 'restaurant' ? 'Restaurant Info' : 
-             tab === 'tables' ? 'Tables & Layout' : 
-             tab === 'pricing' ? 'Pricing' : 
-             'Settings'}
-          </button>
-        ))}
-      </div>
 
       {renderSubTabContent()}
     </div>
