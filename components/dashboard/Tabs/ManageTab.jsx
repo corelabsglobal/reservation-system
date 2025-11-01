@@ -8,6 +8,7 @@ import TableAssignmentManager from '@/app/components/structure/TableAssignmentMa
 import ClosureDaysManager from '@/app/components/structure/ClosureDaysManager';
 import ReservationTimingManager from '@/app/components/Dashboard/ReservationTimingManager';
 import RestaurantInfoManager from '@/app/components/Dashboard/RestaurantInfoManager';
+import ReservationLimitsManager from '@/app/components/Dashboard/manage/ReservationLimitsManager';
 
 const ManageTab = ({ activeSubTab, restaurant, onUpdateRestaurant }) => {
   const [newImage, setNewImage] = useState(null);
@@ -765,6 +766,7 @@ const ManageTab = ({ activeSubTab, restaurant, onUpdateRestaurant }) => {
         return (
           <div className="space-y-6">
             <ClosureDaysManager restaurant={restaurant} />
+            <ReservationLimitsManager restaurant={restaurant} />
             <ReservationTimingManager restaurant={restaurant} setRestaurant={onUpdateRestaurant} />
           </div>
         );
