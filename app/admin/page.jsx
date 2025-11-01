@@ -149,8 +149,95 @@ const ProfilePage = () => {
   };
 
   const cancelReservation = async (reservationId) => {
-    // Your existing cancel reservation logic
-    // ... (keep your existing cancelReservation function)
+    try {
+      
+      // First get the reservation details before cancelling
+      const { data: reservation, error: fetchError } = await supabase
+        .from('reservations')
+        .select(`
+          *,
+          restaurants (
+            name,
+            phone,
+            owner:owner_id (
+              email,
+              name
+            )
+          ),
+          users (
+            name,
+            email
+          )
+        `)
+        .eq('id', reservationId)
+        .single();
+
+      if (fetchError) {
+        console.error('Error fetching reservation:', fetchError);
+        throw fetchError;
+      }
+
+      console.log('Fetched reservation data:', reservation);
+
+      // Now cancel the reservation
+      const { error } = await supabase
+        .from('reservations')
+        .update({ cancelled: true })
+        .eq('id', reservationId);
+      
+      if (error) {
+        console.error('Error cancelling reservation:', error);
+        throw error;
+      }
+
+      // Prepare email data
+      const emailData = {
+        reservation: {
+          ...reservation,
+          user_name: reservation.name,
+          user_email: reservation.email,
+          restaurant_name: reservation.restaurants?.name,
+          restaurant_email: reservation.restaurants?.owner?.email,
+          restaurant_phone: reservation.restaurants?.phone,
+          restaurant_address: reservation.restaurants?.address
+        }
+      };
+
+      console.log('Prepared email data:', emailData);
+
+      // Send cancellation email
+      try {
+        console.log('Attempting to send cancellation email...');
+        const response = await fetch('/api/send-cancellation-email', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(emailData),
+        });
+
+        if (!response.ok) {
+          const errorResponse = await response.json();
+          console.error('Failed to send cancellation email. Status:', response.status, 'Response:', errorResponse);
+          throw new Error(`Email API responded with status ${response.status}`);
+        }
+
+        const responseData = await response.json();
+        console.log('Email sent successfully:', responseData);
+      } catch (emailError) {
+        console.error('Error in email sending process:', emailError);
+        throw emailError;
+      }
+
+      // Update local state
+      setReservations(reservations.map(res => 
+        res.id === reservationId ? { ...res, cancelled: true } : res
+      ));
+      toast.success('Reservation cancelled and email sent');
+    } catch (error) {
+      console.error('Complete cancellation error:', error);
+      toast.error(error.message || 'Failed to cancel reservation');
+    }
   };
 
   const handleReservationUpdate = (updatedReservation) => {
