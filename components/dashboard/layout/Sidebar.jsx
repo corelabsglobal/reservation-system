@@ -29,7 +29,7 @@ const Sidebar = ({ activeTab, setActiveTab, activeSubTab, setActiveSubTab }) => 
     overview: {
       label: 'Overview',
       icon: <FiBarChart2 className="text-lg" />,
-      subtabs: ['analytics', 'dashboard']
+      subtabs: ['dashboard', 'analytics']
     },
     reservations: {
       label: 'Reservations',
@@ -54,7 +54,6 @@ const Sidebar = ({ activeTab, setActiveTab, activeSubTab, setActiveSubTab }) => 
   };
 
   const handleTabClick = (key, item) => {
-    // If it's the home item, navigate to '/'
     if (item.isHome) {
       router.push(item.path);
       // Close mobile sidebar when home is clicked
