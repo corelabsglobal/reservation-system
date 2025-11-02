@@ -88,7 +88,7 @@ const DashboardContent = ({
   };
 
   return (
-    <div className="max-w-6xl mx-auto w-full">
+    <div className="max-w-6xl mx-auto w-full px-1 sm:px-4">
       {renderContent()}
     </div>
   );
