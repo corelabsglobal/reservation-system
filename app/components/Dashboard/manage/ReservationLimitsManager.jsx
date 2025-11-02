@@ -9,10 +9,12 @@ const ReservationLimitsManager = ({ restaurant }) => {
   const [loading, setLoading] = useState(true);
   const [newLimit, setNewLimit] = useState({
     date: '',
-    time_slot: '',
+    start_time: '',
+    end_time: '',
     max_reservations: 10
   });
   const [editingLimit, setEditingLimit] = useState(null);
+  const [timeSlots, setTimeSlots] = useState([]);
 
   // Fetch existing reservation limits
   useEffect(() => {
@@ -25,7 +27,7 @@ const ReservationLimitsManager = ({ restaurant }) => {
         .select('*')
         .eq('restaurant_id', restaurant.id)
         .order('date', { ascending: true })
-        .order('time_slot', { ascending: true });
+        .order('start_time', { ascending: true });
 
       if (!error) {
         setReservationLimits(data);
@@ -38,31 +40,44 @@ const ReservationLimitsManager = ({ restaurant }) => {
     fetchReservationLimits();
   }, [restaurant]);
 
-  // Generate time slots based on restaurant hours
-  const generateTimeSlots = () => {
-    const slots = [];
-    const start = restaurant?.reservation_start_time ? parseInt(restaurant.reservation_start_time.split(':')[0]) : 12;
-    const end = restaurant?.reservation_end_time ? parseInt(restaurant.reservation_end_time.split(':')[0]) : 22;
-    const duration = restaurant?.reservation_duration_minutes || 120;
-    
-    for (let hour = start; hour < end; hour++) {
-      for (let minute = 0; minute < 60; minute += duration) {
-        const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+  // Generate time slots from 10 AM to 10 PM with 1-hour intervals
+  useEffect(() => {
+    const generateTimeSlots = () => {
+      const slots = [];
+      const startHour = 10; // 10 AM
+      const endHour = 22;   // 10 PM
+      
+      console.log('Generating time slots from 10 AM to 10 PM');
+      
+      for (let hour = startHour; hour <= endHour; hour++) {
+        // Only add the hour, no minutes
+        const timeString = `${hour.toString().padStart(2, '0')}:00`;
         slots.push(timeString);
       }
-    }
-    return slots;
-  };
+      
+      console.log('Generated slots:', slots);
+      return slots;
+    };
+
+    // Always generate time slots regardless of restaurant data
+    setTimeSlots(generateTimeSlots());
+  }, []); // Empty dependency array - always generate the same slots
 
   // Add a new reservation limit
   const addReservationLimit = async () => {
-    if (!newLimit.date || !newLimit.time_slot) {
-      toast.error('Please select both date and time slot');
+    if (!newLimit.date || !newLimit.start_time || !newLimit.end_time) {
+      toast.error('Please select date, start time, and end time');
       return;
     }
 
     if (newLimit.max_reservations < 1) {
       toast.error('Maximum reservations must be at least 1');
+      return;
+    }
+
+    // Validate that end time is after start time
+    if (newLimit.start_time >= newLimit.end_time) {
+      toast.error('End time must be after start time');
       return;
     }
 
@@ -76,17 +91,16 @@ const ReservationLimitsManager = ({ restaurant }) => {
         .select();
 
       if (error) {
-        if (error.code === '23505') {
-          toast.error('A limit already exists for this date and time slot');
-          return;
-        }
-        throw error;
+        console.error('Insert error:', error);
+        toast.error('Failed to add reservation limit');
+        return;
       }
 
       setReservationLimits([...reservationLimits, data[0]]);
       setNewLimit({
         date: '',
-        time_slot: '',
+        start_time: '',
+        end_time: '',
         max_reservations: 10
       });
       toast.success('Reservation limit added successfully');
@@ -144,7 +158,10 @@ const ReservationLimitsManager = ({ restaurant }) => {
     }
   };
 
-  const timeSlots = generateTimeSlots();
+  // Helper function to format time range
+  const formatTimeRange = (start, end) => {
+    return `${start} - ${end}`;
+  };
 
   return (
     <div className="bg-gray-700/50 p-6 rounded-lg shadow-lg">
@@ -155,7 +172,7 @@ const ReservationLimitsManager = ({ restaurant }) => {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <div className="absolute hidden group-hover:block bottom-full mb-2 w-64 bg-gray-900 text-white text-sm p-3 rounded-lg shadow-lg">
-            Set maximum number of reservations allowed for specific time slots. This overrides the table-based availability.
+            Set maximum number of reservations allowed for specific time periods. This overrides the table-based availability.
           </div>
         </div>
       </div>
@@ -164,7 +181,7 @@ const ReservationLimitsManager = ({ restaurant }) => {
       <div className="bg-gray-800 p-4 rounded-lg mb-6">
         <h4 className="font-semibold mb-3 text-gray-300">Add Reservation Limit</h4>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
           <div>
             <label className="block text-sm text-gray-400 mb-1">Date</label>
             <input
@@ -177,15 +194,29 @@ const ReservationLimitsManager = ({ restaurant }) => {
           </div>
           
           <div>
-            <label className="block text-sm text-gray-400 mb-1">Time Slot</label>
+            <label className="block text-sm text-gray-400 mb-1">Start Time</label>
             <select
-              value={newLimit.time_slot}
-              onChange={(e) => setNewLimit({...newLimit, time_slot: e.target.value})}
+              value={newLimit.start_time}
+              onChange={(e) => setNewLimit({...newLimit, start_time: e.target.value})}
               className="w-full p-2 bg-gray-700 rounded border border-gray-600 text-white"
             >
-              <option value="">Select time slot</option>
+              <option value="">Start time</option>
               {timeSlots.map(slot => (
-                <option key={slot} value={slot}>{slot}</option>
+                <option key={`start-${slot}`} value={slot}>{slot}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm text-gray-400 mb-1">End Time</label>
+            <select
+              value={newLimit.end_time}
+              onChange={(e) => setNewLimit({...newLimit, end_time: e.target.value})}
+              className="w-full p-2 bg-gray-700 rounded border border-gray-600 text-white"
+            >
+              <option value="">End time</option>
+              {timeSlots.map(slot => (
+                <option key={`end-${slot}`} value={slot}>{slot}</option>
               ))}
             </select>
           </div>
@@ -201,6 +232,14 @@ const ReservationLimitsManager = ({ restaurant }) => {
             />
           </div>
         </div>
+
+        {newLimit.start_time && newLimit.end_time && (
+          <div className="mb-4 p-3 bg-gray-700 rounded">
+            <p className="text-sm text-gray-300">
+              Setting limit for: <span className="text-yellow-400">{formatTimeRange(newLimit.start_time, newLimit.end_time)}</span>
+            </p>
+          </div>
+        )}
 
         <button
           onClick={addReservationLimit}
@@ -226,7 +265,10 @@ const ReservationLimitsManager = ({ restaurant }) => {
                   <div className="flex items-center gap-4 flex-1">
                     <div className="flex-1">
                       <span className="font-medium text-white">
-                        {new Date(limit.date).toLocaleDateString()} at {limit.time_slot}
+                        {new Date(limit.date).toLocaleDateString()} 
+                      </span>
+                      <span className="text-sm text-gray-400 ml-2">
+                        {formatTimeRange(limit.start_time, limit.end_time)}
                       </span>
                     </div>
                     <input
@@ -258,9 +300,10 @@ const ReservationLimitsManager = ({ restaurant }) => {
                   <>
                     <div className="flex-1">
                       <span className="font-medium text-white">
-                        {new Date(limit.date).toLocaleDateString()} at {limit.time_slot}
+                        {new Date(limit.date).toLocaleDateString()} 
                       </span>
                       <span className="text-sm text-gray-400 ml-2">
+                        {formatTimeRange(limit.start_time, limit.end_time)}
                         (Max: {limit.max_reservations} reservations)
                       </span>
                     </div>
