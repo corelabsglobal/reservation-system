@@ -116,6 +116,55 @@ export default function RestaurantPage() {
     return now > slotTime;
   };
 
+  const checkReservationLimit = async (date, timeSlot, restaurantId) => {
+    if (!restaurantId) return null;
+
+    const { data: limits, error } = await supabase
+      .from('reservation_limits')
+      .select('*')
+      .eq('restaurant_id', restaurantId)
+      .eq('date', date);
+
+    if (error || !limits?.length) return null;
+
+    const [slotHour, slotMin] = timeSlot.split(':').map(Number);
+    const slotTime = slotHour * 60 + slotMin;
+
+    const matchedLimit = limits.find(limit => {
+      const [startHour, startMin] = limit.start_time.split(':').map(Number);
+      const [endHour, endMin] = limit.end_time.split(':').map(Number);
+      const start = startHour * 60 + startMin;
+      const end = endHour * 60 + endMin;
+      return slotTime >= start && slotTime < end;
+    });
+
+    if (!matchedLimit) return null;
+
+    const { data: currentReservations, error: resErr } = await supabase
+      .from('reservations')
+      .select('id, time')
+      .eq('restaurant_id', restaurantId)
+      .eq('date', date);
+
+    if (resErr) return matchedLimit.max_reservations;
+
+    const withinLimitCount = currentReservations.filter(r => {
+      const [rHour, rMin] = r.time.split(':').map(Number);
+      const rTime = rHour * 60 + rMin;
+      const [startHour, startMin] = matchedLimit.start_time.split(':').map(Number);
+      const [endHour, endMin] = matchedLimit.end_time.split(':').map(Number);
+      const start = startHour * 60 + startMin;
+      const end = endHour * 60 + endMin;
+      return rTime >= start && rTime < end;
+    }).length;
+
+    if (withinLimitCount >= matchedLimit.max_reservations) {
+      return 0; // means full
+    }
+
+    return matchedLimit.max_reservations - withinLimitCount;
+  };
+
   useEffect(() => {
     async function fetchUser() {
       try {
@@ -210,14 +259,6 @@ export default function RestaurantPage() {
           );
           availableTablesForSlots.set(slot, availableTablesForSlot);
         });
-
-        const tableTypeCounts = tableTypes.reduce((acc, type) => {
-          acc[type.id] = {
-            capacity: type.capacity,
-            total: allTables.filter(t => t.table_type_id === type.id).length
-          };
-          return acc;
-        }, {});
 
         const filteredSlots = timeSlots.filter(slot => {
           if (isTimeSlotPassed(slot, selectedDate)) {
@@ -477,6 +518,20 @@ export default function RestaurantPage() {
   };
 
   const handleOpenDialog = async (slot) => {
+    if (!restaurant) return;
+
+    const remaining = await checkReservationLimit(selectedDate, slot, restaurant.id);
+
+    if (remaining === 0) {
+      toast.error("Reservations for this time period are full. Please select another slot.");
+      setNotification({
+        type: 'warning',
+        title: 'Fully Booked',
+        message: 'This time period has reached its reservation limit. Please choose another slot.',
+      });
+      return;
+    }
+
     setSelectedSlot(slot);
     await fetchAvailableTablesForSlot(slot);
     setOpenDialog(true);
