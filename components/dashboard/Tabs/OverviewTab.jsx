@@ -15,23 +15,23 @@ const OverviewTab = ({ activeSubTab, restaurant, reservations }) => {
 
       {/* Content based on sub tab */}
       {activeSubTab === 'dashboard' ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-6">
           {/* Quick Stats Cards */}
-          <div className="bg-gray-800/90 backdrop-blur-md rounded-xl p-6 shadow-2xl">
-            <h3 className="text-lg font-semibold text-gray-300 mb-2">Total Reservations</h3>
-            <p className="text-3xl font-bold text-white">{reservations.length}</p>
+          <div className="bg-gray-800/90 backdrop-blur-md rounded-xl p-4 md:p-6 shadow-2xl">
+            <h3 className="text-base md:text-lg font-semibold text-gray-300 mb-2">Total Reservations</h3>
+            <p className="text-2xl md:text-3xl font-bold text-white">{reservations.length}</p>
           </div>
           
-          <div className="bg-gray-800/90 backdrop-blur-md rounded-xl p-6 shadow-2xl">
-            <h3 className="text-lg font-semibold text-gray-300 mb-2">Today's Reservations</h3>
-            <p className="text-3xl font-bold text-white">
+          <div className="bg-gray-800/90 backdrop-blur-md rounded-xl p-4 md:p-6 shadow-2xl">
+            <h3 className="text-base md:text-lg font-semibold text-gray-300 mb-2">Today's Reservations</h3>
+            <p className="text-2xl md:text-3xl font-bold text-white">
               {reservations.filter(res => res.date === new Date().toISOString().split('T')[0]).length}
             </p>
           </div>
           
-          <div className="bg-gray-800/90 backdrop-blur-md rounded-xl p-6 shadow-2xl">
-            <h3 className="text-lg font-semibold text-gray-300 mb-2">Current Reservations</h3>
-            <p className="text-3xl font-bold text-white">
+          <div className="bg-gray-800/90 backdrop-blur-md rounded-xl p-4 md:p-6 shadow-2xl">
+            <h3 className="text-base md:text-lg font-semibold text-gray-300 mb-2">Current Reservations</h3>
+            <p className="text-2xl md:text-3xl font-bold text-white">
               {reservations.filter(res => {
                 const reservationTime = new Date(`${res.date}T${res.time}`);
                 const now = new Date();
@@ -43,7 +43,7 @@ const OverviewTab = ({ activeSubTab, restaurant, reservations }) => {
           </div>
         </div>
       ) : (
-        <div className="bg-gray-800/90 backdrop-blur-md rounded-xl p-6 shadow-2xl">
+        <div className="bg-gray-800/90 backdrop-blur-md rounded-xl p-4 md:p-6 shadow-2xl">
           <LuxuryAnalyticsDashboard restaurant={restaurant} reservations={reservations} />
         </div>
       )}
