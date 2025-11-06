@@ -465,19 +465,19 @@ const CustomersSection = ({ restaurant, reservations }) => {
       <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <div className="bg-gray-700/50 p-4 rounded-lg">
           <div className="text-gray-400 text-sm">Total Customers</div>
-          <div className="text-2xl font-bold">{stats.totalCustomers}</div>
+          <div className="text-2xl font-bold text-white">{stats.totalCustomers}</div>
         </div>
         <div className="bg-gray-700/50 p-4 rounded-lg">
           <div className="text-gray-400 text-sm">From Reservations</div>
-          <div className="text-2xl font-bold">{stats.reservationCustomers}</div>
+          <div className="text-2xl font-bold text-white">{stats.reservationCustomers}</div>
         </div>
         <div className="bg-gray-700/50 p-4 rounded-lg">
           <div className="text-gray-400 text-sm">From Uploads</div>
-          <div className="text-2xl font-bold">{stats.uploadedCustomers}</div>
+          <div className="text-2xl font-bold text-white">{stats.uploadedCustomers}</div>
         </div>
         <div className="bg-gray-700/50 p-4 rounded-lg">
           <div className="text-gray-400 text-sm">Repeat Customers</div>
-          <div className="text-2xl font-bold">{stats.repeatCustomers}</div>
+          <div className="text-2xl font-bold text-white">{stats.repeatCustomers}</div>
         </div>
       </div>
 
