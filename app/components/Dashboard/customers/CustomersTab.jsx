@@ -7,6 +7,7 @@ import { Download, ChevronLeft, ChevronRight } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import CustomerUpload from './CustomerExcelUpload';
 import EmailMarketing from '../../structure/EmailMarketing';
+import ManualCustomerEntry from './CustomerEntry';
 
 const CustomersSection = ({ restaurant, reservations }) => {
   const [customers, setCustomers] = useState([]);
@@ -14,12 +15,13 @@ const CustomersSection = ({ restaurant, reservations }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   useEffect(() => {
     if (restaurant?.id) {
       fetchCustomers();
     }
-  }, [restaurant]);
+  }, [restaurant, refreshTrigger]);
 
   const fetchCustomers = async () => {
     if (!restaurant?.id) return;
@@ -62,7 +64,7 @@ const CustomersSection = ({ restaurant, reservations }) => {
         ...Object.values(reservationCustomers),
         ...(uploadedCustomers || []).map(c => ({
           ...c,
-          source: 'upload',
+          source: c.source || 'upload',
           reservation_count: 0
         }))
       ];
@@ -74,6 +76,10 @@ const CustomersSection = ({ restaurant, reservations }) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCustomerAdded = () => {
+    setRefreshTrigger(prev => prev + 1);
   };
 
   // Filter out duplicate emails and apply search
@@ -208,6 +214,7 @@ const CustomersSection = ({ restaurant, reservations }) => {
     const totalCustomers = filteredCustomers.length;
     const reservationCustomers = filteredCustomers.filter(c => c.source === 'reservation').length;
     const uploadedCustomers = filteredCustomers.filter(c => c.source === 'upload').length;
+    const manualCustomers = filteredCustomers.filter(c => c.source === 'manual').length;
     const repeatCustomers = filteredCustomers.filter(c => c.reservation_count > 1).length;
     const newThisMonth = filteredCustomers.filter(c => {
       const created = new Date(c.created_at);
@@ -220,6 +227,7 @@ const CustomersSection = ({ restaurant, reservations }) => {
       totalCustomers,
       reservationCustomers,
       uploadedCustomers,
+      manualCustomers,
       repeatCustomers,
       newThisMonth
     };
@@ -279,7 +287,11 @@ const CustomersSection = ({ restaurant, reservations }) => {
       </div>
 
       {/* Upload Section */}
-      <CustomerUpload restaurantId={restaurant?.id} />
+        <ManualCustomerEntry 
+          restaurantId={restaurant?.id} 
+          onCustomerAdded={handleCustomerAdded}
+        />
+        <CustomerUpload restaurantId={restaurant?.id} />
 
       {/* Search and Controls */}
       <div className="mb-6 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
