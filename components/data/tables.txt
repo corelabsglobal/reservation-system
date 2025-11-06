@@ -1,0 +1,141 @@
+{/* Table Type Management */}
+            <div className="bg-gray-700/50 p-6 rounded-lg shadow-lg">
+              <h3 className="text-xl font-bold text-yellow-400 mb-4">Table Types</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Add Table Type Form */}
+                <div className="bg-gray-800 p-4 rounded-lg">
+                  <h4 className="font-semibold mb-3 text-gray-300">Add New Table Type</h4>
+                  <div className="space-y-3">
+                    <input
+                      type="text"
+                      placeholder="Table Type Name"
+                      value={newTableType.name}
+                      onChange={(e) => setNewTableType({...newTableType, name: e.target.value})}
+                      className="w-full p-2 bg-gray-700 rounded border border-gray-600 text-white"
+                    />
+                    <input
+                      type="number"
+                      placeholder="Capacity"
+                      min="1"
+                      value={newTableType.capacity}
+                      onChange={(e) => setNewTableType({...newTableType, capacity: parseInt(e.target.value)})}
+                      className="w-full p-2 bg-gray-700 rounded border border-gray-600 text-white"
+                    />
+                    <textarea
+                      placeholder="Description (optional)"
+                      value={newTableType.description}
+                      onChange={(e) => setNewTableType({...newTableType, description: e.target.value})}
+                      className="w-full p-2 bg-gray-700 rounded border border-gray-600 text-white"
+                      rows="2"
+                    />
+                    <button
+                      onClick={addTableType}
+                      className="bg-gradient-to-r from-yellow-400 to-pink-600 px-4 py-2 rounded hover:opacity-90 transition-all text-white font-medium w-full"
+                    >
+                      Add Table Type
+                    </button>
+                  </div>
+                </div>
+
+                {/* Table Types List */}
+                <div className="bg-gray-800 p-4 rounded-lg">
+                  <h4 className="font-semibold mb-3 text-gray-300">Current Table Types</h4>
+                  {tableTypes.length === 0 ? (
+                    <p className="text-gray-400">No table types defined</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {tableTypes.map(type => (
+                        <div key={type.id} className="flex justify-between items-center bg-gray-700/50 p-3 rounded">
+                          <div>
+                            <span className="font-medium  text-white">{type.name}</span>
+                            <span className="text-sm text-gray-400 ml-2">(Capacity: {type.capacity})</span>
+                            {type.description && (
+                              <p className="text-xs text-gray-500 mt-1">{type.description}</p>
+                            )}
+                          </div>
+                          <button
+                            onClick={() => deleteTableType(type.id)}
+                            className="text-red-400 hover:text-red-300 text-sm"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Table Management */}
+            <div className="bg-gray-700/50 p-6 rounded-lg shadow-lg">
+              <h3 className="text-xl font-bold text-yellow-400 mb-4">Manage Tables</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Add Table Form */}
+                <div className="bg-gray-800 p-4 rounded-lg">
+                  <h4 className="font-semibold mb-3 text-gray-300">Add New Table(s)</h4>
+                  <div className="space-y-3">
+                    <select
+                      value={newTable.table_type_id}
+                      onChange={(e) => setNewTable({...newTable, table_type_id: e.target.value})}
+                      className="w-full p-2 bg-gray-700 rounded border border-gray-600 text-white"
+                    >
+                      <option value="">Select Table Type</option>
+                      {tableTypes.map(type => (
+                        <option key={type.id} value={type.id}>
+                          {type.name} (Capacity: {type.capacity})
+                        </option>
+                      ))}
+                    </select>
+                    <input
+                      type="text"
+                      placeholder="Table Number (or quantity for multiple)"
+                      value={newTable.table_number}
+                      onChange={(e) => setNewTable({...newTable, table_number: e.target.value})}
+                      className="w-full p-2 bg-gray-700 rounded border border-gray-600 text-white"
+                    />
+                    <textarea
+                      placeholder="Position Description (optional)"
+                      value={newTable.position_description}
+                      onChange={(e) => setNewTable({...newTable, position_description: e.target.value})}
+                      className="w-full p-2 bg-gray-700 rounded border border-gray-600 text-white"
+                      rows="2"
+                    />
+                    <button
+                      onClick={addTable}
+                      className="bg-gradient-to-r from-yellow-400 to-pink-600 px-4 py-2 rounded hover:opacity-90 transition-all text-white font-medium w-full"
+                    >
+                      Add Table(s)
+                    </button>
+                  </div>
+                </div>
+
+                {/* Tables List */}
+                <div className="bg-gray-800 p-4 rounded-lg">
+                  <h4 className="font-semibold mb-3 text-gray-300">Current Tables</h4>
+                  {tables.length === 0 ? (
+                    <p className="text-gray-400">No tables defined</p>
+                  ) : (
+                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                      {tables.map(table => (
+                        <div key={table.id} className="flex justify-between items-center bg-gray-700/50 p-3 rounded">
+                          <div>
+                            <span className="font-medium text-white">Table {table.table_number}</span>
+                            <span className="text-sm text-gray-400 ml-2">({table.table_types?.name})</span>
+                            {table.position_description && (
+                              <p className="text-xs text-gray-500 mt-1">{table.position_description}</p>
+                            )}
+                          </div>
+                          <button
+                            onClick={() => deleteTable(table.id)}
+                            className="text-red-400 hover:text-red-300 text-sm"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
