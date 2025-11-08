@@ -5,110 +5,117 @@ import { supabase } from '@/lib/supabaseClient';
 import toast from 'react-hot-toast';
 
 const TableManagement = ({ restaurant }) => {
-  const [tableTypes, setTableTypes] = useState([]);
   const [tables, setTables] = useState([]);
+  const [tableTypes, setTableTypes] = useState([]); // Track existing types
   const [loading, setLoading] = useState(false);
-  const [activeSection, setActiveSection] = useState('create');
   
-  // Combined form state for creating tables
-  const [newTableForm, setNewTableForm] = useState({
-    // Table type fields
-    typeName: '',
+  // Form state with custom capacity option
+  const [newTable, setNewTable] = useState({
+    name: '',
     capacity: 2,
+    customCapacity: '',
     description: '',
-    // Table fields
-    tableNumber: '',
     quantity: 1,
-    positionDescription: '',
-    // Whether to create a new type or use existing
-    useExistingType: false,
-    existingTypeId: ''
+    useCustomCapacity: false
   });
 
-  // Fetch table data
+  // Fetch tables and table types
   useEffect(() => {
     if (restaurant) {
-      fetchTableData();
+      fetchTables();
+      fetchTableTypes();
     }
   }, [restaurant]);
 
-  const fetchTableData = async () => {
+  const fetchTables = async () => {
     try {
-      // Fetch table types
-      const { data: typesData, error: typesError } = await supabase
-        .from('table_types')
-        .select('*')
-        .eq('restaurant_id', restaurant.id)
-        .order('name');
-
-      if (typesError) throw typesError;
-      setTableTypes(typesData || []);
-
-      // Fetch tables
-      const { data: tablesData, error: tablesError } = await supabase
+      const { data: tablesData, error } = await supabase
         .from('tables')
         .select('*, table_types(*)')
         .eq('restaurant_id', restaurant.id)
         .order('table_number');
 
-      if (tablesError) throw tablesError;
+      if (error) throw error;
       setTables(tablesData || []);
 
     } catch (error) {
-      console.error('Error fetching table data:', error);
-      toast.error('Failed to load table data');
+      console.error('Error fetching tables:', error);
+      toast.error('Failed to load tables');
     }
   };
 
-  // Create table type and tables in one go
-  const createTableWithType = async () => {
+  const fetchTableTypes = async () => {
+    try {
+      const { data: typesData, error } = await supabase
+        .from('table_types')
+        .select('*')
+        .eq('restaurant_id', restaurant.id)
+        .order('capacity');
+
+      if (error) throw error;
+      setTableTypes(typesData || []);
+
+    } catch (error) {
+      console.error('Error fetching table types:', error);
+    }
+  };
+
+  // Get available capacities from existing table types
+  const getAvailableCapacities = () => {
+    const capacities = tableTypes.map(type => type.capacity);
+    const uniqueCapacities = [...new Set(capacities)].sort((a, b) => a - b);
+    
+    // Add common capacities if they don't exist
+    const commonCapacities = [2, 4, 6, 8, 10, 12];
+    commonCapacities.forEach(cap => {
+      if (!uniqueCapacities.includes(cap)) {
+        uniqueCapacities.push(cap);
+      }
+    });
+    
+    return uniqueCapacities.sort((a, b) => a - b);
+  };
+
+  // Smart table creation - handles types automatically in background
+  const createTable = async () => {
     if (!restaurant) {
       toast.error('Restaurant information not loaded');
+      return;
+    }
+
+    if (!newTable.name.trim()) {
+      toast.error('Please enter a table name/number');
+      return;
+    }
+
+    const finalCapacity = newTable.useCustomCapacity 
+      ? parseInt(newTable.customCapacity) 
+      : newTable.capacity;
+
+    if (!finalCapacity || finalCapacity < 1 || finalCapacity > 50) {
+      toast.error('Please enter a valid capacity between 1 and 50');
       return;
     }
 
     setLoading(true);
 
     try {
-      let tableTypeId = newTableForm.existingTypeId;
+      // First, find or create an appropriate table type
+      const tableTypeId = await findOrCreateTableType(finalCapacity);
 
-      // Create new table type if not using existing one
-      if (!newTableForm.useExistingType) {
-        if (!newTableForm.typeName.trim()) {
-          toast.error('Please enter a table type name');
-          setLoading(false);
-          return;
-        }
-
-        const { data: typeData, error: typeError } = await supabase
-          .from('table_types')
-          .insert([{
-            name: newTableForm.typeName.trim(),
-            capacity: newTableForm.capacity,
-            description: newTableForm.description.trim(),
-            restaurant_id: restaurant.id
-          }])
-          .select()
-          .single();
-
-        if (typeError) throw typeError;
-        tableTypeId = typeData.id;
-        setTableTypes(prev => [...prev, typeData]);
-      }
-
-      // Create tables
+      // Create the actual tables
       const tablesToCreate = [];
-      const quantity = newTableForm.quantity || 1;
+      const quantity = newTable.quantity || 1;
 
       for (let i = 0; i < quantity; i++) {
-        const tableNumber = quantity > 1 
-          ? `${newTableForm.tableNumber}${i + 1}`
-          : newTableForm.tableNumber;
+        const tableName = quantity > 1 
+          ? `${newTable.name}${i + 1}`
+          : newTable.name;
 
         tablesToCreate.push({
           table_type_id: tableTypeId,
-          table_number: tableNumber,
-          position_description: newTableForm.positionDescription.trim(),
+          table_number: tableName,
+          position_description: newTable.description.trim(),
           restaurant_id: restaurant.id,
           is_available: true
         });
@@ -124,16 +131,17 @@ const TableManagement = ({ restaurant }) => {
       setTables(prev => [...prev, ...createdTables]);
       
       // Reset form
-      setNewTableForm({
-        typeName: '',
-        capacity: 2,
+      setNewTable({
+        name: '',
+        capacity: finalCapacity, // Keep the last used capacity
+        customCapacity: '',
         description: '',
-        tableNumber: '',
         quantity: 1,
-        positionDescription: '',
-        useExistingType: false,
-        existingTypeId: ''
+        useCustomCapacity: false
       });
+
+      // Refresh table types in case we created a new one
+      await fetchTableTypes();
 
       toast.success(`Successfully created ${quantity} table${quantity > 1 ? 's' : ''}`);
       
@@ -145,36 +153,51 @@ const TableManagement = ({ restaurant }) => {
     }
   };
 
-  // Delete table type
-  const deleteTableType = async (typeId) => {
-    try {
-      // Check if any tables are using this type
-      const { count, error: countError } = await supabase
-        .from('tables')
-        .select('*', { count: 'exact', head: true })
-        .eq('table_type_id', typeId);
+  // Helper function to handle table types automatically
+  const findOrCreateTableType = async (capacity) => {
+    // Create a type name based on capacity for consistency
+    const typeName = `${capacity}-Seater`;
+    
+    // Check if this type already exists
+    const { data: existingType, error: fetchError } = await supabase
+      .from('table_types')
+      .select('id')
+      .eq('restaurant_id', restaurant.id)
+      .eq('capacity', capacity)
+      .single(); // Only match by capacity, not name
 
-      if (countError) throw countError;
-
-      if (count > 0) {
-        toast.error('Cannot delete table type - tables are assigned to it');
-        return;
-      }
-
-      const { error } = await supabase
-        .from('table_types')
-        .delete()
-        .eq('id', typeId);
-
-      if (error) throw error;
-
-      setTableTypes(prev => prev.filter(type => type.id !== typeId));
-      toast.success('Table type deleted successfully');
-
-    } catch (error) {
-      console.error('Error deleting table type:', error);
-      toast.error('Failed to delete table type');
+    if (!fetchError && existingType) {
+      return existingType.id;
     }
+
+    // Create new type if it doesn't exist
+    const { data: newType, error: createError } = await supabase
+      .from('table_types')
+      .insert([{
+        name: typeName,
+        capacity: capacity,
+        description: `Table for ${capacity} people`,
+        restaurant_id: restaurant.id
+      }])
+      .select()
+      .single();
+
+    if (createError) {
+      // If there's a conflict, try to find the type again
+      if (createError.code === '23505') { // Unique violation
+        const { data: conflictedType } = await supabase
+          .from('table_types')
+          .select('id')
+          .eq('restaurant_id', restaurant.id)
+          .eq('capacity', capacity)
+          .single();
+        
+        if (conflictedType) return conflictedType.id;
+      }
+      throw createError;
+    }
+    
+    return newType.id;
   };
 
   // Delete table
@@ -209,6 +232,8 @@ const TableManagement = ({ restaurant }) => {
     }
   };
 
+  const availableCapacities = getAvailableCapacities();
+
   return (
     <div className="bg-gray-700/50 p-6 rounded-lg shadow-lg">
       {/* Header */}
@@ -219,274 +244,166 @@ const TableManagement = ({ restaurant }) => {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <div className="absolute hidden group-hover:block bottom-full mb-2 w-80 bg-gray-900 text-white text-sm p-3 rounded-lg shadow-lg z-10">
-            Manage your restaurant tables. Create new tables with their types, or manage existing ones.
+            Add tables by name and capacity. Choose from existing seat options or enter a custom number.
           </div>
         </div>
       </div>
 
-      {/* Navigation Tabs */}
-      <div className="flex mb-6 bg-gray-800 rounded-lg p-1">
-        <button
-          onClick={() => setActiveSection('create')}
-          className={`flex-1 py-2 px-4 rounded-md transition-all ${
-            activeSection === 'create' 
-              ? 'bg-gradient-to-r from-yellow-400 to-pink-600 text-white' 
-              : 'text-gray-300 hover:text-white'
-          }`}
-        >
-          Create Tables
-        </button>
-        <button
-          onClick={() => setActiveSection('manage')}
-          className={`flex-1 py-2 px-4 rounded-md transition-all ${
-            activeSection === 'manage' 
-              ? 'bg-gradient-to-r from-yellow-400 to-pink-600 text-white' 
-              : 'text-gray-300 hover:text-white'
-          }`}
-        >
-          Manage Existing
-        </button>
-      </div>
-
-      {/* Create Tables Section */}
-      {activeSection === 'create' && (
-        <div className="space-y-6">
-          {/* Use Existing Type Toggle */}
-          <div className="flex items-center gap-3 mb-4">
-            <label className="flex items-center cursor-pointer">
-              <div className="relative">
-                <input
-                  type="checkbox"
-                  checked={newTableForm.useExistingType}
-                  onChange={(e) => setNewTableForm({
-                    ...newTableForm,
-                    useExistingType: e.target.checked,
-                    existingTypeId: e.target.checked ? (tableTypes[0]?.id || '') : ''
-                  })}
-                  className="sr-only"
-                />
-                <div className={`block w-10 h-6 rounded-full transition-colors ${
-                  newTableForm.useExistingType ? 'bg-yellow-500' : 'bg-gray-600'
-                }`}></div>
-                <div className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${
-                  newTableForm.useExistingType ? 'transform translate-x-4' : ''
-                }`}></div>
-              </div>
+      {/* Quick Add Section - Always visible */}
+      <div className="bg-gray-800 p-4 rounded-lg mb-6">
+        <h4 className="font-semibold text-gray-300 mb-4">Add New Tables</h4>
+        
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-gray-300 mb-1">
+              Table Name/Number *
             </label>
-            <span className="text-gray-300">Use existing table type</span>
+            <input
+              type="text"
+              placeholder="e.g., 1, A1, Window Table"
+              value={newTable.name}
+              onChange={(e) => setNewTable({ ...newTable, name: e.target.value })}
+              className="w-full p-3 bg-gray-700 rounded-lg border border-gray-600 text-white placeholder-gray-400 focus:ring-2 focus:ring-yellow-400 focus:border-transparent"
+            />
           </div>
-
-          {/* Table Type Selection/Creation */}
-          {newTableForm.useExistingType ? (
-            <div className="bg-gray-800 p-4 rounded-lg">
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Select Table Type
-              </label>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">
+              Seats *
+            </label>
+            <div className="space-y-2">
               <select
-                value={newTableForm.existingTypeId}
-                onChange={(e) => setNewTableForm({ ...newTableForm, existingTypeId: e.target.value })}
+                value={newTable.useCustomCapacity ? 'custom' : newTable.capacity}
+                onChange={(e) => {
+                  if (e.target.value === 'custom') {
+                    setNewTable({ ...newTable, useCustomCapacity: true });
+                  } else {
+                    setNewTable({ 
+                      ...newTable, 
+                      capacity: parseInt(e.target.value),
+                      useCustomCapacity: false 
+                    });
+                  }
+                }}
                 className="w-full p-3 bg-gray-700 rounded-lg border border-gray-600 text-white focus:ring-2 focus:ring-yellow-400 focus:border-transparent"
               >
-                <option value="">Choose a table type...</option>
-                {tableTypes.map(type => (
-                  <option key={type.id} value={type.id}>
-                    {type.name} ({type.capacity} seats)
-                  </option>
+                {availableCapacities.map(num => (
+                  <option key={num} value={num}>{num} people</option>
                 ))}
+                <option value="custom">Custom number...</option>
               </select>
-              {tableTypes.length === 0 && (
-                <p className="text-sm text-gray-400 mt-2">
-                  No table types available. Please create a new table type first.
-                </p>
-              )}
-            </div>
-          ) : (
-            <div className="bg-gray-800 p-4 rounded-lg space-y-4">
-              <h4 className="font-semibold text-gray-300">New Table Type</h4>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">
-                    Type Name *
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g., 2-Seater, VIP Booth, Family Table"
-                    value={newTableForm.typeName}
-                    onChange={(e) => setNewTableForm({ ...newTableForm, typeName: e.target.value })}
-                    className="w-full p-3 bg-gray-700 rounded-lg border border-gray-600 text-white placeholder-gray-400 focus:ring-2 focus:ring-yellow-400 focus:border-transparent"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">
-                    Capacity *
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="50"
-                    value={newTableForm.capacity}
-                    onChange={(e) => setNewTableForm({ ...newTableForm, capacity: parseInt(e.target.value) || 1 })}
-                    className="w-full p-3 bg-gray-700 rounded-lg border border-gray-600 text-white focus:ring-2 focus:ring-yellow-400 focus:border-transparent"
-                  />
-                </div>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">
-                  Description (Optional)
-                </label>
-                <textarea
-                  placeholder="Brief description of this table type..."
-                  value={newTableForm.description}
-                  onChange={(e) => setNewTableForm({ ...newTableForm, description: e.target.value })}
-                  rows="2"
-                  className="w-full p-3 bg-gray-700 rounded-lg border border-gray-600 text-white placeholder-gray-400 focus:ring-2 focus:ring-yellow-400 focus:border-transparent"
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Table Details */}
-          <div className="bg-gray-800 p-4 rounded-lg space-y-4">
-            <h4 className="font-semibold text-gray-300">Table Details</h4>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">
-                  Table Number/Name *
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g., 1, A1, Window Table"
-                  value={newTableForm.tableNumber}
-                  onChange={(e) => setNewTableForm({ ...newTableForm, tableNumber: e.target.value })}
-                  className="w-full p-3 bg-gray-700 rounded-lg border border-gray-600 text-white placeholder-gray-400 focus:ring-2 focus:ring-yellow-400 focus:border-transparent"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">
-                  Quantity
-                </label>
+              {newTable.useCustomCapacity && (
                 <input
                   type="number"
                   min="1"
-                  max="20"
-                  value={newTableForm.quantity}
-                  onChange={(e) => setNewTableForm({ ...newTableForm, quantity: parseInt(e.target.value) || 1 })}
-                  className="w-full p-3 bg-gray-700 rounded-lg border border-gray-600 text-white focus:ring-2 focus:ring-yellow-400 focus:border-transparent"
+                  max="50"
+                  placeholder="Enter number of seats"
+                  value={newTable.customCapacity}
+                  onChange={(e) => setNewTable({ ...newTable, customCapacity: e.target.value })}
+                  className="w-full p-3 bg-gray-700 rounded-lg border border-gray-600 text-white placeholder-gray-400 focus:ring-2 focus:ring-yellow-400 focus:border-transparent"
                 />
-                <p className="text-xs text-gray-400 mt-1">
-                  Create multiple tables of this type (will be numbered sequentially)
-                </p>
-              </div>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">
-                Position Description (Optional)
-              </label>
-              <input
-                type="text"
-                placeholder="e.g., Near window, Corner spot, Main hall"
-                value={newTableForm.positionDescription}
-                onChange={(e) => setNewTableForm({ ...newTableForm, positionDescription: e.target.value })}
-                className="w-full p-3 bg-gray-700 rounded-lg border border-gray-600 text-white placeholder-gray-400 focus:ring-2 focus:ring-yellow-400 focus:border-transparent"
-              />
+              )}
             </div>
           </div>
-
-          {/* Create Button */}
-          <button
-            onClick={createTableWithType}
-            disabled={loading || !newTableForm.tableNumber || 
-              (!newTableForm.useExistingType && !newTableForm.typeName) ||
-              (newTableForm.useExistingType && !newTableForm.existingTypeId)}
-            className="w-full bg-gradient-to-r from-yellow-400 to-pink-600 py-3 px-6 rounded-lg hover:opacity-90 transition-all text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? 'Creating...' : `Create ${newTableForm.quantity > 1 ? `${newTableForm.quantity} Tables` : 'Table'}`}
-          </button>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">
+              Quantity
+            </label>
+            <select
+              value={newTable.quantity}
+              onChange={(e) => setNewTable({ ...newTable, quantity: parseInt(e.target.value) })}
+              className="w-full p-3 bg-gray-700 rounded-lg border border-gray-600 text-white focus:ring-2 focus:ring-yellow-400 focus:border-transparent"
+            >
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
+                <option key={num} value={num}>{num}</option>
+              ))}
+            </select>
+          </div>
         </div>
-      )}
 
-      {/* Manage Existing Section */}
-      {activeSection === 'manage' && (
-        <div className="space-y-6">
-          {/* Table Types Management */}
-          <div className="bg-gray-800 p-4 rounded-lg">
-            <h4 className="font-semibold text-gray-300 mb-4">Table Types</h4>
-            {tableTypes.length === 0 ? (
-              <p className="text-gray-400 text-center py-4">No table types defined yet</p>
-            ) : (
-              <div className="space-y-3 max-h-80 overflow-y-auto custom-scrollbar">
-                {tableTypes.map(type => {
-                  const tablesOfThisType = tables.filter(table => table.table_type_id === type.id);
-                  return (
-                    <div key={type.id} className="bg-gray-700/50 p-4 rounded-lg">
-                      <div className="flex justify-between items-start mb-2">
-                        <div>
-                          <span className="font-medium text-white">{type.name}</span>
-                          <span className="text-sm text-gray-400 ml-2">
-                            ({type.capacity} seats)
-                          </span>
-                          {type.description && (
-                            <p className="text-sm text-gray-400 mt-1">{type.description}</p>
-                          )}
-                        </div>
-                        <button
-                          onClick={() => deleteTableType(type.id)}
-                          disabled={tablesOfThisType.length > 0}
-                          className="text-red-400 hover:text-red-300 text-sm disabled:text-gray-600 disabled:cursor-not-allowed"
-                          title={tablesOfThisType.length > 0 ? 'Cannot delete - tables are assigned' : 'Delete table type'}
-                        >
-                          Delete
-                        </button>
-                      </div>
-                      <div className="text-xs text-gray-400">
-                        {tablesOfThisType.length} table{tablesOfThisType.length !== 1 ? 's' : ''} of this type
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+        <div className="mt-4">
+          <label className="block text-sm font-medium text-gray-300 mb-1">
+            Location Notes (Optional)
+          </label>
+          <input
+            type="text"
+            placeholder="e.g., Near window, Corner spot, Main hall"
+            value={newTable.description}
+            onChange={(e) => setNewTable({ ...newTable, description: e.target.value })}
+            className="w-full p-3 bg-gray-700 rounded-lg border border-gray-600 text-white placeholder-gray-400 focus:ring-2 focus:ring-yellow-400 focus:border-transparent"
+          />
+        </div>
+
+        <button
+          onClick={createTable}
+          disabled={loading || !newTable.name.trim() || 
+            (newTable.useCustomCapacity && (!newTable.customCapacity || parseInt(newTable.customCapacity) < 1))}
+          className="w-full mt-4 bg-gradient-to-r from-yellow-400 to-pink-600 py-3 px-6 rounded-lg hover:opacity-90 transition-all text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {loading ? 'Creating...' : `Add ${newTable.quantity > 1 ? `${newTable.quantity} Tables` : 'Table'}`}
+        </button>
+      </div>
+
+      {/* Current Tables - Always visible */}
+      <div className="bg-gray-800 p-4 rounded-lg">
+        <h4 className="font-semibold text-gray-300 mb-4">
+          Current Tables ({tables.length})
+        </h4>
+        
+        {tables.length === 0 ? (
+          <div className="text-center py-8">
+            <div className="text-gray-400 mb-2">No tables yet</div>
+            <div className="text-sm text-gray-500">Add your first table using the form above</div>
           </div>
-
-          {/* Tables Management */}
-          <div className="bg-gray-800 p-4 rounded-lg">
-            <h4 className="font-semibold text-gray-300 mb-4">All Tables</h4>
-            {tables.length === 0 ? (
-              <p className="text-gray-400 text-center py-4">No tables added yet</p>
-            ) : (
-              <div className="space-y-3 max-h-80 overflow-y-auto custom-scrollbar">
-                {tables.map(table => (
-                  <div key={table.id} className="bg-gray-700/50 p-4 rounded-lg">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <span className="font-medium text-white">{table.table_number}</span>
-                        <span className="text-sm text-gray-400 ml-2">
-                          ({table.table_types.name}, {table.table_types.capacity} seats)
-                        </span>
-                        {table.position_description && (
-                          <p className="text-sm text-gray-400 mt-1">{table.position_description}</p>
-                        )}
-                      </div>
-                      <button
-                        onClick={() => deleteTable(table.id)}
-                        className="text-red-400 hover:text-red-300 text-sm"
-                      >
-                        Delete
-                      </button>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto custom-scrollbar">
+            {tables.map(table => (
+              <div key={table.id} className="bg-gray-700/50 p-4 rounded-lg border border-gray-600">
+                <div className="flex justify-between items-start mb-2">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="font-bold text-white text-lg">{table.table_number}</span>
+                      <span className="text-sm bg-yellow-500 text-black px-2 py-1 rounded-full font-medium">
+                        {table.table_types.capacity} seats
+                      </span>
                     </div>
+                    
+                    <div className="text-sm text-gray-300 mb-2">
+                      {table.table_types.name}
+                    </div>
+                    
+                    {table.position_description && (
+                      <div className="text-sm text-gray-400 flex items-center gap-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        {table.position_description}
+                      </div>
+                    )}
                   </div>
-                ))}
+                  
+                  <button
+                    onClick={() => deleteTable(table.id)}
+                    className="text-red-400 hover:text-red-300 p-1 rounded transition-colors"
+                    title="Delete table"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </div>
+                
+                <div className="text-xs text-gray-500 mt-2">
+                  Added {new Date(table.created_at).toLocaleDateString()}
+                </div>
               </div>
-            )}
+            ))}
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };
