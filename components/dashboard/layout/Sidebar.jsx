@@ -63,12 +63,18 @@ const Sidebar = ({ activeTab, setActiveTab, activeSubTab, setActiveSubTab }) => 
       return;
     }
     
-    setActiveTab(key);
-    setActiveSubTab(item.subtabs[0]);
-    // Close mobile sidebar when a tab is clicked
-    if (window.innerWidth < 768) {
-      setIsMobileOpen(false);
+    // Toggle the active tab - if it's already active, collapse it
+    if (activeTab === key) {
+      setActiveTab(null);
+    } else {
+      setActiveTab(key);
+      // Only set the first subtab if this is a new tab selection AND no subtab is selected yet
+      // OR if you want to always reset to first subtab when changing main tabs, keep this:
+      // setActiveSubTab(item.subtabs[0]);
     }
+    
+    // Don't close sidebar on mobile when clicking main tabs
+    // This allows users to see the dropdown
   };
 
   const handleSubTabClick = (subtab) => {
@@ -156,6 +162,7 @@ const Sidebar = ({ activeTab, setActiveTab, activeSubTab, setActiveSubTab }) => 
                 )}
               </button>
 
+              {/* Sub Tabs - Show when main tab is active */}
               {!item.isHome && activeTab === key && (
                 <div className="ml-4 space-y-1 animate-fadeIn">
                   {item.subtabs.map((subtab) => (
