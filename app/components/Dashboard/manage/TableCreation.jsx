@@ -6,8 +6,10 @@ import toast from 'react-hot-toast';
 
 const TableManagement = ({ restaurant }) => {
   const [tables, setTables] = useState([]);
-  const [tableTypes, setTableTypes] = useState([]); // Track existing types
+  const [tableTypes, setTableTypes] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [editingTableId, setEditingTableId] = useState(null);
+  const [editingTableName, setEditingTableName] = useState('');
   
   // Form state with custom capacity option
   const [newTable, setNewTable] = useState({
@@ -74,6 +76,59 @@ const TableManagement = ({ restaurant }) => {
     });
     
     return uniqueCapacities.sort((a, b) => a - b);
+  };
+
+  // Start editing a table name
+  const startEditing = (table) => {
+    setEditingTableId(table.id);
+    setEditingTableName(table.table_number);
+  };
+
+  // Cancel editing
+  const cancelEditing = () => {
+    setEditingTableId(null);
+    setEditingTableName('');
+  };
+
+  // Save edited table name
+  const saveTableName = async (tableId) => {
+    if (!editingTableName.trim()) {
+      toast.error('Table name cannot be empty');
+      return;
+    }
+
+    const existingTable = tables.find(
+      table => table.table_number === editingTableName.trim() && table.id !== tableId
+    );
+
+    if (existingTable) {
+      toast.error('A table with this name already exists');
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('tables')
+        .update({ table_number: editingTableName.trim() })
+        .eq('id', tableId);
+
+      if (error) throw error;
+
+      // Update local state
+      setTables(prev => prev.map(table => 
+        table.id === tableId 
+          ? { ...table, table_number: editingTableName.trim() }
+          : table
+      ));
+
+      toast.success('Table name updated successfully');
+      setEditingTableId(null);
+      setEditingTableName('');
+
+    } catch (error) {
+      console.error('Error updating table name:', error);
+      toast.error('Failed to update table name');
+    }
   };
 
   // Smart table creation - handles types automatically in background
@@ -244,7 +299,7 @@ const TableManagement = ({ restaurant }) => {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <div className="absolute hidden group-hover:block bottom-full mb-2 w-80 bg-gray-900 text-white text-sm p-3 rounded-lg shadow-lg z-10">
-            Add tables by name and capacity. Choose from existing seat options or enter a custom number.
+            Add tables by name and capacity. Choose from existing seat options or enter a custom number. Click on table names to edit them.
           </div>
         </div>
       </div>
@@ -364,7 +419,61 @@ const TableManagement = ({ restaurant }) => {
                 <div className="flex justify-between items-start mb-2">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="font-bold text-white text-lg">{table.table_number}</span>
+                      {editingTableId === table.id ? (
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            value={editingTableName}
+                            onChange={(e) => setEditingTableName(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                saveTableName(table.id);
+                              } else if (e.key === 'Escape') {
+                                cancelEditing();
+                              }
+                            }}
+                            className="p-1 bg-gray-600 border border-yellow-400 rounded text-white text-lg font-bold w-32"
+                            autoFocus
+                          />
+                          <button
+                            onClick={() => saveTableName(table.id)}
+                            className="text-green-400 hover:text-green-300 p-1"
+                            title="Save"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={cancelEditing}
+                            className="text-gray-400 hover:text-gray-300 p-1"
+                            title="Cancel"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <span 
+                            className="font-bold text-white text-lg cursor-pointer hover:text-yellow-400 transition-colors"
+                            onClick={() => startEditing(table)}
+                            title="Click to edit table name"
+                          >
+                            {table.table_number}
+                          </span>
+                          <button
+                            onClick={() => startEditing(table)}
+                            className="text-gray-400 hover:text-yellow-400 p-1 transition-colors"
+                            title="Edit table name"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                          </button>
+                        </div>
+                      )}
                       <span className="text-sm bg-yellow-500 text-black px-2 py-1 rounded-full font-medium">
                         {table.table_types.capacity} seats
                       </span>
