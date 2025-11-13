@@ -527,7 +527,7 @@ export default function RestaurantPage() {
       setNotification({
         type: 'warning',
         title: 'Fully Booked',
-        message: 'This time period has reached its reservation limit. Please choose another slot.',
+        message: `This time period has reached its reservation limit. Contact restaurant on ${restaurant.phone}.`,
       });
       return;
     }
