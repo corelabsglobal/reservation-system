@@ -34,8 +34,12 @@ const TableAssignmentModal = ({
     try {
       // Get tables that can accommodate the reservation's party size
       const suitableTables = tables.filter(table => {
-        const tableType = tableTypes.find(type => type.id === table.table_type_id);
-        return tableType && tableType.capacity >= reservation.people;
+      const tableType = tableTypes.find(type => type.id === table.table_type_id);
+        return (
+          tableType && 
+          tableType.capacity >= reservation.people &&
+          !table.is_deleted
+        );
       });
 
       // Check which of these tables are available at the reservation time
