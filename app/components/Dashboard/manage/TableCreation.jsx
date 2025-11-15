@@ -281,7 +281,7 @@ const TableManagement = ({ restaurant }) => {
 
         // Update local state to remove the table
         setTables(prev => prev.filter(table => table.id !== tableId));
-        toast.success('Table deleted temporarily');
+        toast.success('Table deleted successfully');
         
       } else {
         // If no active reservations, check if table has any reservations at all
