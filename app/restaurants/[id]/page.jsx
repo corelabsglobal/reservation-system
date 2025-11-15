@@ -217,16 +217,20 @@ export default function RestaurantPage() {
               id,
               table_number,
               is_available,
+              is_deleted,
               position_description
             )
           `)
-          .eq("restaurant_id", actualRestaurantId);
+          .eq("restaurant_id", actualRestaurantId)
+          .eq("tables.is_deleted", false);
 
         if (tableError) throw tableError;
         
         setTableTypes(tableData);
         const tables = tableData.flatMap(type => 
-          type.tables.map(table => ({ ...table, table_type_id: type.id }))
+          type.tables
+            .filter(table => !table.is_deleted)
+            .map(table => ({ ...table, table_type_id: type.id }))
         );
         setAllTables(tables);
 
@@ -341,7 +345,7 @@ export default function RestaurantPage() {
       // First, find tables with exact capacity match
       let suitableTables = allTables.filter(table => {
         const tableType = tableTypes.find(t => t.id === table.table_type_id);
-        return !bookedTableIds.has(table.id) && 
+        return !table.is_deleted && !bookedTableIds.has(table.id) && 
               tableType?.capacity === partySize;
       });
 
