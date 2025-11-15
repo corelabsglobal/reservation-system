@@ -174,7 +174,7 @@ const TableManagement = ({ restaurant }) => {
           position_description: newTable.description.trim(),
           restaurant_id: restaurant.id,
           is_available: true,
-          is_deleted: false // Explicitly set to false for new tables
+          is_deleted: false
         });
       }
 
@@ -190,7 +190,7 @@ const TableManagement = ({ restaurant }) => {
       // Reset form
       setNewTable({
         name: '',
-        capacity: finalCapacity, // Keep the last used capacity
+        capacity: finalCapacity,
         customCapacity: '',
         description: '',
         quantity: 1,
@@ -241,7 +241,7 @@ const TableManagement = ({ restaurant }) => {
 
     if (createError) {
       // If there's a conflict, try to find the type again
-      if (createError.code === '23505') { // Unique violation
+      if (createError.code === '23505') {
         const { data: conflictedType } = await supabase
           .from('table_types')
           .select('id')
