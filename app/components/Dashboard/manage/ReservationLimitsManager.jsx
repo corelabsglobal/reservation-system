@@ -61,7 +61,7 @@ const ReservationLimitsManager = ({ restaurant }) => {
 
     // Always generate time slots regardless of restaurant data
     setTimeSlots(generateTimeSlots());
-  }, []); // Empty dependency array - always generate the same slots
+  }, []);
 
   // Add a new reservation limit
   const addReservationLimit = async () => {
