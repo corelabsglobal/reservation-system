@@ -73,7 +73,6 @@ const RestaurantInfoManager = ({ restaurant, setRestaurant }) => {
       // Script is already loaded
       setGoogleMapsLoaded(true);
     } else {
-      // Script is loading, wait for it
       existingScript.onload = () => {
         setGoogleMapsLoaded(true);
       };
@@ -136,7 +135,6 @@ const RestaurantInfoManager = ({ restaurant, setRestaurant }) => {
     try {
       setIsLoadingSuggestions(true);
       
-      // Use Google Maps Geocoding API directly
       const geocoder = new window.google.maps.Geocoder();
       
       // Add component restrictions to limit results to Ghana
@@ -218,19 +216,12 @@ const RestaurantInfoManager = ({ restaurant, setRestaurant }) => {
         updated_at: new Date().toISOString()
       };
 
-      // Handle location updates based on your Supabase schema
       if (location) {
-        // Choose one of these based on your schema:
         
-        // Option 1: If location is stored as JSONB
         updates.location = {
           latitude: location.lat,
           longitude: location.lng
         };
-        
-        // OR Option 2: If stored as separate columns
-        // updates.latitude = location.lat;
-        // updates.longitude = location.lng;
       }
 
       const { data, error } = await supabase
