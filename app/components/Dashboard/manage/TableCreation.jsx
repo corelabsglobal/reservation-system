@@ -336,7 +336,7 @@ const TableManagement = ({ restaurant }) => {
         </div>
       </div>
 
-      {/* Quick Add Section - Always visible */}
+      {/* Quick Add Section */}
       <div className="bg-gray-800 p-4 rounded-lg mb-6">
         <h4 className="font-semibold text-gray-300 mb-4">Add New Tables</h4>
         
@@ -433,7 +433,7 @@ const TableManagement = ({ restaurant }) => {
         </button>
       </div>
 
-      {/* Current Tables - Always visible */}
+      {/* Current Tables */}
       <div className="bg-gray-800 p-4 rounded-lg">
         <h4 className="font-semibold text-gray-300 mb-4">
           Current Tables ({tables.length})
