@@ -35,6 +35,7 @@ const TableManagement = ({ restaurant }) => {
         .from('tables')
         .select('*, table_types(*)')
         .eq('restaurant_id', restaurant.id)
+        .eq('is_deleted', false) // Only fetch non-deleted tables
         .order('table_number');
 
       if (error) throw error;
@@ -172,7 +173,8 @@ const TableManagement = ({ restaurant }) => {
           table_number: tableName,
           position_description: newTable.description.trim(),
           restaurant_id: restaurant.id,
-          is_available: true
+          is_available: true,
+          is_deleted: false // Explicitly set to false for new tables
         });
       }
 
@@ -255,31 +257,60 @@ const TableManagement = ({ restaurant }) => {
     return newType.id;
   };
 
-  // Delete table
+  // Delete table with soft delete logic
   const deleteTable = async (tableId) => {
     try {
-      // Check if table has reservations
-      const { count, error: reservationError } = await supabase
+      // Check if table has active reservations (non-cancelled)
+      const { data: reservations, error: reservationError } = await supabase
         .from('reservations')
-        .select('*', { count: 'exact', head: true })
+        .select('id, cancelled')
         .eq('table_id', tableId);
 
       if (reservationError) throw reservationError;
 
-      if (count > 0) {
-        toast.error('Cannot delete table - it has existing reservations');
-        return;
+      const hasActiveReservations = reservations?.some(res => !res.cancelled);
+
+      if (hasActiveReservations) {
+        // If table has active reservations, perform soft delete
+        const { error } = await supabase
+          .from('tables')
+          .update({ is_deleted: true })
+          .eq('id', tableId);
+
+        if (error) throw error;
+
+        // Update local state to remove the table
+        setTables(prev => prev.filter(table => table.id !== tableId));
+        toast.success('Table deleted temporarily');
+        
+      } else {
+        // If no active reservations, check if table has any reservations at all
+        const hasAnyReservations = reservations && reservations.length > 0;
+
+        if (hasAnyReservations) {
+          // Table has only cancelled reservations - still soft delete for data integrity
+          const { error } = await supabase
+            .from('tables')
+            .update({ is_deleted: true })
+            .eq('id', tableId);
+
+          if (error) throw error;
+
+          setTables(prev => prev.filter(table => table.id !== tableId));
+          toast.success('Table archived successfully');
+        } else {
+          // Table has no reservations at all - perform hard delete
+          const { error } = await supabase
+            .from('tables')
+            .delete()
+            .eq('id', tableId);
+
+          if (error) throw error;
+
+          setTables(prev => prev.filter(table => table.id !== tableId));
+          toast.success('Table deleted');
+        }
       }
-
-      const { error } = await supabase
-        .from('tables')
-        .delete()
-        .eq('id', tableId);
-
-      if (error) throw error;
-
-      setTables(prev => prev.filter(table => table.id !== tableId));
-      toast.success('Table deleted successfully');
 
     } catch (error) {
       console.error('Error deleting table:', error);
@@ -300,6 +331,7 @@ const TableManagement = ({ restaurant }) => {
           </svg>
           <div className="absolute hidden group-hover:block bottom-full mb-2 w-80 bg-gray-900 text-white text-sm p-3 rounded-lg shadow-lg z-10">
             Add tables by name and capacity. Choose from existing seat options or enter a custom number. Click on table names to edit them.
+            Tables with active reservations will be archived instead of permanently deleted.
           </div>
         </div>
       </div>
