@@ -137,7 +137,7 @@ const SideImagesUploader = ({ restaurant, onUpdate }) => {
         </div>
       </div>
 
-      {/* Upload Section - Fixed for mobile */}
+      {/* Upload Section */}
       <div className="mb-6">
         <label className="block text-sm font-medium text-gray-300 mb-2">
           Upload Images (Max 6)
@@ -155,7 +155,7 @@ const SideImagesUploader = ({ restaurant, onUpdate }) => {
             className="w-full p-3 bg-gray-600 rounded-lg text-white focus:ring-2 focus:ring-yellow-400 disabled:opacity-50 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-yellow-500 file:text-gray-900 hover:file:bg-yellow-400"
           />
           
-          {/* Loading indicator positioned absolutely to not affect layout */}
+          {/* Loading indicator */}
           {uploading && (
             <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center bg-gray-700/90 px-3 py-1 rounded-lg">
               <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-yellow-500 mr-2"></div>
@@ -240,7 +240,7 @@ const SideImagesUploader = ({ restaurant, onUpdate }) => {
         </div>
       )}
 
-      {/* Delete Confirmation Dialog using Shadcn UI */}
+      {/* Delete Confirmation Dialog */}
       <Dialog open={deletingIndex !== null} onOpenChange={(open) => !open && cancelRemoveImage()}>
         <DialogContent className="sm:max-w-md bg-gray-800 border-gray-700">
           <DialogHeader>
