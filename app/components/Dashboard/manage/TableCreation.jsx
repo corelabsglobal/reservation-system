@@ -321,7 +321,7 @@ const TableManagement = ({ restaurant }) => {
   const availableCapacities = getAvailableCapacities();
 
   return (
-    <div className="bg-gray-700/50 p-6 rounded-lg shadow-lg">
+    <div className="bg-gray-700/50 p-4 sm:p-6 rounded-lg shadow-lg">
       {/* Header */}
       <div className="flex items-center gap-2 mb-6">
         <h3 className="text-xl font-bold text-yellow-400">Table Management</h3>
@@ -445,14 +445,14 @@ const TableManagement = ({ restaurant }) => {
             <div className="text-sm text-gray-500">Add your first table using the form above</div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto custom-scrollbar">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 max-h-96 overflow-y-auto custom-scrollbar">
             {tables.map(table => (
-              <div key={table.id} className="bg-gray-700/50 p-4 rounded-lg border border-gray-600">
-                <div className="flex justify-between items-start mb-2">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
+              <div key={table.id} className="bg-gray-700/50 p-3 sm:p-4 rounded-lg border border-gray-600">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 mb-2">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-col xs:flex-row xs:items-center gap-2 mb-2">
                       {editingTableId === table.id ? (
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 w-full">
                           <input
                             type="text"
                             value={editingTableName}
@@ -464,81 +464,85 @@ const TableManagement = ({ restaurant }) => {
                                 cancelEditing();
                               }
                             }}
-                            className="p-1 bg-gray-600 border border-yellow-400 rounded text-white text-lg font-bold w-32"
+                            className="flex-1 p-2 bg-gray-600 border border-yellow-400 rounded text-white font-bold text-base min-w-0"
                             autoFocus
                           />
-                          <button
-                            onClick={() => saveTableName(table.id)}
-                            className="text-green-400 hover:text-green-300 p-1"
-                            title="Save"
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            </svg>
-                          </button>
-                          <button
-                            onClick={cancelEditing}
-                            className="text-gray-400 hover:text-gray-300 p-1"
-                            title="Cancel"
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                          </button>
+                          <div className="flex gap-1">
+                            <button
+                              onClick={() => saveTableName(table.id)}
+                              className="text-green-400 hover:text-green-300 p-1"
+                              title="Save"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              </svg>
+                            </button>
+                            <button
+                              onClick={cancelEditing}
+                              className="text-gray-400 hover:text-gray-300 p-1"
+                              title="Cancel"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                          </div>
                         </div>
                       ) : (
-                        <div className="flex items-center gap-2">
-                          <span 
-                            className="font-bold text-white text-lg cursor-pointer hover:text-yellow-400 transition-colors"
-                            onClick={() => startEditing(table)}
-                            title="Click to edit table name"
-                          >
-                            {table.table_number}
-                          </span>
-                          <button
-                            onClick={() => startEditing(table)}
-                            className="text-gray-400 hover:text-yellow-400 p-1 transition-colors"
-                            title="Edit table name"
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                            </svg>
-                          </button>
+                        <div className="flex items-center gap-2 w-full">
+                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                            <span 
+                              className="font-bold text-white text-base sm:text-lg cursor-pointer hover:text-yellow-400 transition-colors truncate"
+                              onClick={() => startEditing(table)}
+                              title="Click to edit table name"
+                            >
+                              {table.table_number}
+                            </span>
+                            <button
+                              onClick={() => startEditing(table)}
+                              className="text-gray-400 hover:text-yellow-400 p-1 transition-colors flex-shrink-0"
+                              title="Edit table name"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                              </svg>
+                            </button>
+                          </div>
+                          
+                          {/* Seat badge - now properly contained */}
+                          <div className="flex-shrink-0">
+                            <span className="inline-block text-xs sm:text-sm bg-yellow-500 text-black px-2 py-1 rounded-full font-medium whitespace-nowrap">
+                              {table.table_types.capacity} seats
+                            </span>
+                          </div>
                         </div>
                       )}
-                      <span className="text-sm bg-yellow-500 text-black px-2 py-1 rounded-full font-medium">
-                        {table.table_types.capacity} seats
-                      </span>
                     </div>
                     
-                    <div className="text-sm text-gray-300 mb-2">
+                    <div className="text-sm text-gray-300 mb-2 truncate">
                       {table.table_types.name}
                     </div>
                     
                     {table.position_description && (
-                      <div className="text-sm text-gray-400 flex items-center gap-1">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <div className="text-sm text-gray-400 flex items-center gap-1 truncate">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
-                        {table.position_description}
+                        <span className="truncate">{table.position_description}</span>
                       </div>
                     )}
                   </div>
                   
                   <button
                     onClick={() => deleteTable(table.id)}
-                    className="text-red-400 hover:text-red-300 p-1 rounded transition-colors"
+                    className="text-red-400 hover:text-red-300 p-1 rounded transition-colors self-start sm:self-center flex-shrink-0"
                     title="Delete table"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                     </svg>
                   </button>
-                </div>
-                
-                <div className="text-xs text-gray-500 mt-2">
-                  Added {new Date(table.created_at).toLocaleDateString()}
                 </div>
               </div>
             ))}
