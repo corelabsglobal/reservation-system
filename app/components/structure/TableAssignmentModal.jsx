@@ -54,7 +54,7 @@ const TableAssignmentModal = ({
       if (error) throw error;
 
       const conflictingTableIds = conflictingReservations.map(reservation => reservation.table_id);
-      // Exclude the current table (if already assigned) from conflicting tables
+      // Exclude the current table from conflicting tables
       const filteredConflictingTableIds = conflictingTableIds.filter(
         tableId => tableId !== reservation.table_id
       );
