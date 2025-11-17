@@ -26,9 +26,8 @@ const CustomerUpload = ({ restaurantId }) => {
     const file = event.target.files[0];
     if (!file) return;
 
-    // Accept both Excel and CSV files
     if (!file.name.match(/\.(xlsx|xls|csv)$/)) {
-      toast.error('Please upload an Excel file (.xlsx, .xls) or CSV file (.csv)');
+      toast.error('Please upload an Excel or CSV file');
       return;
     }
 
@@ -36,8 +35,8 @@ const CustomerUpload = ({ restaurantId }) => {
 
     try {
       const data = await readFile(file);
-      
-      if (data.length === 0) {
+
+      if (!data || data.length === 0) {
         toast.error('No valid customer data found in the file');
         return;
       }
@@ -45,13 +44,11 @@ const CustomerUpload = ({ restaurantId }) => {
       setUploadedCustomers(data);
       setShowUploadModal(true);
       toast.success(`Found ${data.length} customers in the file`);
-
-    } catch (error) {
-      console.error('Error reading file:', error);
-      toast.error('Error reading file: ' + error.message);
+    } catch (err) {
+      console.error('File read error:', err);
+      toast.error('Error reading file: ' + (err.message || err));
     } finally {
       setIsUploading(false);
-      // Reset the file input
       event.target.value = '';
     }
   };
@@ -64,32 +61,20 @@ const CustomerUpload = ({ restaurantId }) => {
         try {
           let jsonData = [];
 
-          const safe = (v) => {
-            if (v === undefined || v === null) return '';
-            if (typeof v === 'object') {
-              if ('v' in v) return v.v?.toString() ?? '';
-              return '';
-            }
-            return v.toString();
-          };
+          const safe = (v) => (v === undefined || v === null ? '' : v.toString());
 
           if (file.name.match(/\.(xlsx|xls)$/)) {
-            // Handle Excel files
             const data = new Uint8Array(e.target.result);
             const workbook = XLSX.read(data, { type: 'array' });
 
-            // Get first sheet
             const sheetName = workbook.SheetNames[0];
             const worksheet = workbook.Sheets[sheetName];
 
-            // Convert to JSON with defaults
-            jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+            jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: '', raw: false });
           } else if (file.name.match(/\.csv$/)) {
-            const csvText = e.target.result;
-            jsonData = parseCSV(csvText);
+            jsonData = parseCSV(e.target.result);
           }
 
-          // Normalize headers: lowercase + trim
           const normalizedData = jsonData.map((row) => {
             const normalizedRow = {};
             for (const key in row) {
@@ -98,17 +83,13 @@ const CustomerUpload = ({ restaurantId }) => {
             return normalizedRow;
           });
 
-          // Map to customer objects
           const customers = normalizedData
-            .map((row, index) => {
+            .map((row) => {
               const name = row.name || row['customer name'] || '';
               const phoneRaw = row.phone || row.number || row.tel || '';
               const email = row.email || row['email address'] || row['e-mail'] || '';
 
-              if (!name && !phoneRaw && !email) {
-                console.warn(`Skipping row ${index + 1}: No valid customer data`);
-                return null;
-              }
+              if (!name && !phoneRaw && !email) return null;
 
               return {
                 name: name.trim(),
@@ -116,88 +97,62 @@ const CustomerUpload = ({ restaurantId }) => {
                 email: email.toLowerCase().trim(),
               };
             })
-            .filter((c) => c !== null);
+            .filter(Boolean);
 
           resolve(customers);
-        } catch (error) {
-          reject(error);
+        } catch (err) {
+          reject(err);
         }
       };
 
-      reader.onerror = (error) => reject(error);
+      reader.onerror = (err) => reject(err);
 
-      if (file.name.match(/\.(xlsx|xls)$/)) {
-        reader.readAsArrayBuffer(file);
-      } else {
-        reader.readAsText(file);
-      }
+      if (file.name.match(/\.(xlsx|xls)$/)) reader.readAsArrayBuffer(file);
+      else reader.readAsText(file);
     });
   };
 
   const parseCSV = (csvText) => {
-    const lines = csvText.split('\n').filter(line => line.trim());
+    const lines = csvText.replace(/\r\n/g, '\n').split('\n').filter(l => l.trim());
     if (lines.length === 0) return [];
-    
-    // Parse headers
-    const headers = lines[0].split(',').map(header => header.trim().replace(/"/g, ''));
-    
-    // Parse data rows
+
+    const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
     const data = [];
+
     for (let i = 1; i < lines.length; i++) {
       const line = lines[i];
       const values = [];
       let current = '';
       let inQuotes = false;
-      
-      // Manual CSV parsing to handle quoted values with commas
+
       for (let j = 0; j < line.length; j++) {
         const char = line[j];
-        
-        if (char === '"') {
-          inQuotes = !inQuotes;
-        } else if (char === ',' && !inQuotes) {
-          values.push(current.trim().replace(/"/g, ''));
+        if (char === '"') inQuotes = !inQuotes;
+        else if (char === ',' && !inQuotes) {
+          values.push(current.trim().replace(/^"|"$/g, ''));
           current = '';
-        } else {
-          current += char;
-        }
+        } else current += char;
       }
-      values.push(current.trim().replace(/"/g, ''));
-      
-      // Create object from headers and values
+      values.push(current.trim().replace(/^"|"$/g, ''));
+
+      while (values.length < headers.length) values.push('');
+
       const row = {};
-      headers.forEach((header, index) => {
-        if (values[index] !== undefined) {
-          row[header] = values[index];
-        }
-      });
-      
+      headers.forEach((header, idx) => (row[header] = values[idx]));
       data.push(row);
     }
-    
+
     return data;
   };
 
   const formatPhoneNumber = (phone) => {
     if (!phone) return '';
-    
-    // Remove all non-digit characters
     const digits = phone.replace(/\D/g, '');
-    
-    if (digits.length === 0) return '';
-    
-    // Format Ghanaian numbers
-    if (digits.startsWith('233') && digits.length === 12) {
-      return '0' + digits.substring(3);
-    } else if (digits.startsWith('+233') && digits.length === 13) {
-      return '0' + digits.substring(4);
-    } else if (digits.startsWith('0') && digits.length === 10) {
-      return digits;
-    } else if (digits.length === 9) {
-      return '0' + digits;
-    }
-    
-    // Return original if no specific formatting applied
+    if (!digits) return '';
+    if (digits.startsWith('233') && digits.length === 12) return '0' + digits.slice(3);
+    if (digits.startsWith('+233') && digits.length === 13) return '0' + digits.slice(4);
+    if (digits.startsWith('0') && digits.length === 10) return digits;
+    if (digits.length === 9) return '0' + digits;
     return digits;
   };
 
@@ -208,41 +163,29 @@ const CustomerUpload = ({ restaurantId }) => {
     }
 
     setIsUploading(true);
-
     try {
-      // Prepare customers for insertion
-      const customersToInsert = uploadedCustomers.map(customer => ({
+      const customersToInsert = uploadedCustomers.map(c => ({
         restaurant_id: restaurantId,
-        name: customer.name,
-        phone: customer.phone,
-        email: customer.email,
-        source: 'upload'
+        name: c.name,
+        phone: c.phone,
+        email: c.email,
+        source: 'upload',
       }));
 
-      // Insert customers
       const { data, error } = await supabase
         .from('customers')
-        .upsert(customersToInsert, {
-          onConflict: 'restaurant_id,email,phone',
-          ignoreDuplicates: false
-        })
+        .upsert(customersToInsert, { onConflict: 'restaurant_id,email,phone', ignoreDuplicates: false })
         .select();
 
-      if (error) {
-        console.error('Error saving customers:', error);
-        throw error;
-      }
+      if (error) throw error;
 
-      toast.success(`Successfully added ${data.length} customers to your database`);
-      setShowUploadModal(false);
+      toast.success(`Successfully added ${data.length} customers`);
       setUploadedCustomers([]);
-      
-      // Refresh the page to show updated customer list
+      setShowUploadModal(false);
       window.location.reload();
-
-    } catch (error) {
-      console.error('Error saving customers:', error);
-      toast.error('Failed to save customers: ' + error.message);
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to save customers: ' + (err.message || err));
     } finally {
       setIsUploading(false);
     }
