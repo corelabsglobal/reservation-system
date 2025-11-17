@@ -11,7 +11,10 @@ const ClosureDaysManager = ({ restaurant }) => {
     date: '',
     reason: '',
     is_recurring: false,
-    day_of_week: null
+    day_of_week: null,
+    is_all_day: true,
+    start_time: '09:00',
+    end_time: '17:00'
   });
 
   // Fetch existing closure days
@@ -44,14 +47,31 @@ const ClosureDaysManager = ({ restaurant }) => {
         return;
     }
 
+    // Validate time range if not all day
+    if (!newClosure.is_all_day) {
+      if (!newClosure.start_time || !newClosure.end_time) {
+        toast.error('Please provide both start and end times');
+        return;
+      }
+      if (newClosure.start_time >= newClosure.end_time) {
+        toast.error('End time must be after start time');
+        return;
+      }
+    }
+
     try {
+      const closureData = {
+        ...newClosure,
+        date: newClosure.date || null,
+        restaurant_id: restaurant.id,
+        // Set times to null if all day closure
+        start_time: newClosure.is_all_day ? null : newClosure.start_time,
+        end_time: newClosure.is_all_day ? null : newClosure.end_time
+      };
+
       const { data, error } = await supabase
         .from('restaurant_closures')
-        .insert([{ 
-          ...newClosure,
-          date: newClosure.date || null,
-          restaurant_id: restaurant.id
-        }])
+        .insert([closureData])
         .select();
 
       if (error) throw error;
@@ -61,12 +81,15 @@ const ClosureDaysManager = ({ restaurant }) => {
         date: '',
         reason: '',
         is_recurring: false,
-        day_of_week: null
+        day_of_week: null,
+        is_all_day: true,
+        start_time: '09:00',
+        end_time: '17:00'
       });
-      toast.success('Closure day added successfully');
+      toast.success('Closure period added successfully');
     } catch (error) {
       console.error('Error adding closure:', error);
-      toast.error(error.message || 'Failed to add closure day');
+      toast.error(error.message || 'Failed to add closure period');
     }
   };
 
@@ -81,10 +104,10 @@ const ClosureDaysManager = ({ restaurant }) => {
       if (error) throw error;
 
       setClosures(closures.filter(closure => closure.id !== id));
-      toast.success('Closure day removed successfully');
+      toast.success('Closure period removed successfully');
     } catch (error) {
       console.error('Error deleting closure:', error);
-      toast.error(error.message || 'Failed to remove closure day');
+      toast.error(error.message || 'Failed to remove closure period');
     }
   };
 
@@ -98,23 +121,61 @@ const ClosureDaysManager = ({ restaurant }) => {
     });
   };
 
+  // Toggle all day closure
+  const toggleAllDay = (isAllDay) => {
+    setNewClosure({
+      ...newClosure,
+      is_all_day: isAllDay
+    });
+  };
+
+  // Format time for display
+  const formatTimeDisplay = (closure) => {
+    if (closure.is_all_day) return 'All day';
+    
+    const formatTime = (timeString) => {
+      if (!timeString) return '';
+      const [hours, minutes] = timeString.split(':');
+      const hour = parseInt(hours);
+      const ampm = hour >= 12 ? 'PM' : 'AM';
+      const displayHour = hour % 12 || 12;
+      return `${displayHour}:${minutes} ${ampm}`;
+    };
+
+    return `${formatTime(closure.start_time)} - ${formatTime(closure.end_time)}`;
+  };
+
+  // Format closure for display
+  const formatClosureDisplay = (closure) => {
+    if (closure.is_recurring) {
+      return `Every ${['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][closure.day_of_week]}`;
+    } else {
+      return new Date(closure.date).toLocaleDateString('en-US', { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      });
+    }
+  };
+
   return (
     <div className="bg-gray-700/50 p-4 rounded-lg shadow-lg">
       <div className="flex items-center gap-2 mb-4">
-        <h3 className="text-xl font-bold text-yellow-400">Manage Closure Days</h3>
+        <h3 className="text-xl font-bold text-yellow-400">Manage Closure Periods</h3>
         <div className="group relative">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <div className="absolute hidden group-hover:block bottom-full mb-2 w-64 bg-gray-900 text-white text-sm p-3 rounded-lg shadow-lg">
-            Set days when your restaurant will be closed. You can add specific dates (like holidays) or recurring days (like Sundays).
+          <div className="absolute hidden group-hover:block bottom-full mb-2 w-80 bg-gray-900 text-white text-sm p-3 rounded-lg shadow-lg">
+            Set periods when your restaurant will be closed. You can set all-day closures or specific time periods. Outside these periods, the restaurant will be open.
           </div>
         </div>
       </div>
 
       {/* Add New Closure Form */}
       <div className="bg-gray-800 p-4 rounded-lg mb-6">
-        <h4 className="font-semibold mb-3 text-gray-300">Add Closure Day</h4>
+        <h4 className="font-semibold mb-3 text-gray-300">Add Closure Period</h4>
         
         <div className="flex gap-3 mb-4">
           <button
@@ -162,11 +223,53 @@ const ClosureDaysManager = ({ restaurant }) => {
           </div>
         )}
 
+        {/* Time Period Selection */}
+        <div className="mb-4">
+          <label className="block text-sm text-gray-400 mb-2">Closure Period</label>
+          <div className="flex gap-3 mb-3">
+            <button
+              onClick={() => toggleAllDay(true)}
+              className={`px-3 py-2 rounded-md text-sm flex-1 ${newClosure.is_all_day ? 'bg-yellow-500 text-white' : 'bg-gray-700 text-gray-300'}`}
+            >
+              All Day
+            </button>
+            <button
+              onClick={() => toggleAllDay(false)}
+              className={`px-3 py-2 rounded-md text-sm flex-1 ${!newClosure.is_all_day ? 'bg-yellow-500 text-white' : 'bg-gray-700 text-gray-300'}`}
+            >
+              Specific Time
+            </button>
+          </div>
+
+          {!newClosure.is_all_day && (
+            <div className="grid grid-cols-2 gap-3 mt-2">
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">Start Time</label>
+                <input
+                  type="time"
+                  value={newClosure.start_time}
+                  onChange={(e) => setNewClosure({...newClosure, start_time: e.target.value})}
+                  className="w-full p-2 bg-gray-700 rounded border border-gray-600 text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">End Time</label>
+                <input
+                  type="time"
+                  value={newClosure.end_time}
+                  onChange={(e) => setNewClosure({...newClosure, end_time: e.target.value})}
+                  className="w-full p-2 bg-gray-700 rounded border border-gray-600 text-white"
+                />
+              </div>
+            </div>
+          )}
+        </div>
+
         <div className="mb-3">
           <label className="block text-sm text-gray-400 mb-1">Reason (optional)</label>
           <input
             type="text"
-            placeholder="E.g., Holiday, Maintenance, etc."
+            placeholder="E.g., Holiday, Maintenance, Private Event, etc."
             value={newClosure.reason}
             onChange={(e) => setNewClosure({...newClosure, reason: e.target.value})}
             className="w-full p-2 bg-gray-700 rounded border border-gray-600 text-white"
@@ -177,7 +280,7 @@ const ClosureDaysManager = ({ restaurant }) => {
           onClick={addClosure}
           className="bg-gradient-to-r from-yellow-400 to-pink-600 px-4 py-2 rounded hover:opacity-90 transition-all text-white font-medium"
         >
-          Add Closure Day
+          Add Closure Period
         </button>
       </div>
 
@@ -188,36 +291,43 @@ const ClosureDaysManager = ({ restaurant }) => {
         {loading ? (
           <p className="text-gray-400">Loading...</p>
         ) : closures.length === 0 ? (
-          <p className="text-gray-400">No closure days scheduled</p>
+          <p className="text-gray-400">No closure periods scheduled</p>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-3">
             {closures.map(closure => (
-              <div key={closure.id} className="flex justify-between items-center bg-gray-700/50 p-3 rounded">
-                <div>
-                  {closure.is_recurring ? (
-                    <span className="font-medium text-white">
-                      Every {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][closure.day_of_week]}
-                    </span>
-                  ) : (
-                    <span className="font-medium">
-                      {new Date(closure.date).toLocaleDateString('en-US', { 
-                        weekday: 'long', 
-                        year: 'numeric', 
-                        month: 'long', 
-                        day: 'numeric' 
-                      })}
-                    </span>
-                  )}
-                  {closure.reason && (
-                    <p className="text-xs text-gray-400 mt-1">Reason: {closure.reason}</p>
-                  )}
+              <div key={closure.id} className="bg-gray-700/50 p-4 rounded">
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="font-medium text-white">
+                        {formatClosureDisplay(closure)}
+                      </span>
+                      {closure.is_recurring && (
+                        <span className="text-xs bg-blue-500 text-white px-2 py-1 rounded">Recurring</span>
+                      )}
+                    </div>
+                    
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className={`text-sm ${closure.is_all_day ? 'text-yellow-400' : 'text-blue-400'}`}>
+                        {formatTimeDisplay(closure)}
+                      </span>
+                      {!closure.is_all_day && (
+                        <span className="text-xs text-gray-400">(Open outside these hours)</span>
+                      )}
+                    </div>
+
+                    {closure.reason && (
+                      <p className="text-sm text-gray-400">Reason: {closure.reason}</p>
+                    )}
+                  </div>
+                  
+                  <button
+                    onClick={() => deleteClosure(closure.id)}
+                    className="text-red-400 hover:text-red-300 text-sm ml-4"
+                  >
+                    Remove
+                  </button>
                 </div>
-                <button
-                  onClick={() => deleteClosure(closure.id)}
-                  className="text-red-400 hover:text-red-300 text-sm"
-                >
-                  Remove
-                </button>
               </div>
             ))}
           </div>
