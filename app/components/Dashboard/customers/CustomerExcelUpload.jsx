@@ -59,18 +59,31 @@ const CustomerUpload = ({ restaurantId }) => {
 
       reader.onload = () => {
         try {
-          const result = reader.result;
-          let jsonData = [];
+          let result = reader.result;
 
+          // Handle weird ProgressEvent case
+          if (result instanceof ProgressEvent && result.target) {
+            result = result.target.result;
+          }
+
+          let jsonData = [];
           const safe = (v) => (v === undefined || v === null ? '' : v.toString());
 
           if (file.name.match(/\.(xlsx|xls)$/)) {
-            const data = new Uint8Array(result);
-            const workbook = XLSX.read(data, { type: 'array' });
+            // If result is string, convert to binary
+            let data;
+            if (typeof result === 'string') {
+              const buffer = new ArrayBuffer(result.length);
+              const view = new Uint8Array(buffer);
+              for (let i = 0; i < result.length; i++) view[i] = result.charCodeAt(i) & 0xFF;
+              data = view;
+            } else {
+              data = new Uint8Array(result);
+            }
 
+            const workbook = XLSX.read(data, { type: 'array' });
             const sheetName = workbook.SheetNames[0];
             const worksheet = workbook.Sheets[sheetName];
-
             jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: '', raw: false });
           } else if (file.name.match(/\.csv$/)) {
             jsonData = parseCSV(result);
@@ -78,9 +91,7 @@ const CustomerUpload = ({ restaurantId }) => {
 
           const normalizedData = jsonData.map((row) => {
             const normalizedRow = {};
-            for (const key in row) {
-              normalizedRow[key.trim().toLowerCase()] = safe(row[key]);
-            }
+            for (const key in row) normalizedRow[key.trim().toLowerCase()] = safe(row[key]);
             return normalizedRow;
           });
 
@@ -89,9 +100,7 @@ const CustomerUpload = ({ restaurantId }) => {
               const name = row.name || row['customer name'] || '';
               const phoneRaw = row.phone || row.number || row.tel || '';
               const email = row.email || row['email address'] || row['e-mail'] || '';
-
               if (!name && !phoneRaw && !email) return null;
-
               return {
                 name: name.trim(),
                 phone: phoneRaw ? formatPhoneNumber(phoneRaw) : '',
@@ -108,8 +117,16 @@ const CustomerUpload = ({ restaurantId }) => {
 
       reader.onerror = (err) => reject(err);
 
-      if (file.name.match(/\.(xlsx|xls)$/)) reader.readAsArrayBuffer(file);
-      else reader.readAsText(file);
+      if (file.name.match(/\.(xlsx|xls)$/)) {
+        // Try readAsArrayBuffer first; if fails on tablet, you could switch to readAsBinaryString
+        try {
+          reader.readAsArrayBuffer(file);
+        } catch {
+          reader.readAsBinaryString(file);
+        }
+      } else {
+        reader.readAsText(file);
+      }
     });
   };
 
