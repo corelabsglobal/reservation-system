@@ -57,14 +57,15 @@ const CustomerUpload = ({ restaurantId }) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
 
-      reader.onload = (e) => {
+      reader.onload = () => {
         try {
+          const result = reader.result;
           let jsonData = [];
 
           const safe = (v) => (v === undefined || v === null ? '' : v.toString());
 
           if (file.name.match(/\.(xlsx|xls)$/)) {
-            const data = new Uint8Array(e.target.result);
+            const data = new Uint8Array(result);
             const workbook = XLSX.read(data, { type: 'array' });
 
             const sheetName = workbook.SheetNames[0];
@@ -72,7 +73,7 @@ const CustomerUpload = ({ restaurantId }) => {
 
             jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: '', raw: false });
           } else if (file.name.match(/\.csv$/)) {
-            jsonData = parseCSV(e.target.result);
+            jsonData = parseCSV(result);
           }
 
           const normalizedData = jsonData.map((row) => {
