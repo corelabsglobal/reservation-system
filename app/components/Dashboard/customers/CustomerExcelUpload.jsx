@@ -59,15 +59,14 @@ const CustomerUpload = ({ restaurantId }) => {
   const readFile = (file) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      
+
       reader.onload = (e) => {
         try {
           let jsonData = [];
-          
+
           const safe = (v) => {
             if (v === undefined || v === null) return '';
             if (typeof v === 'object') {
-              // Excel sometimes returns { t: 's', v: undefined }
               if ('v' in v) return v.v?.toString() ?? '';
               return '';
             }
@@ -78,77 +77,55 @@ const CustomerUpload = ({ restaurantId }) => {
             // Handle Excel files
             const data = new Uint8Array(e.target.result);
             const workbook = XLSX.read(data, { type: 'array' });
-            
+
             // Get first sheet
             const sheetName = workbook.SheetNames[0];
             const worksheet = workbook.Sheets[sheetName];
-            
-            // Convert to JSON
-            jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+            // Convert to JSON with defaults
+            jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
           } else if (file.name.match(/\.csv$/)) {
-            // Handle CSV files
             const csvText = e.target.result;
             jsonData = parseCSV(csvText);
           }
-          
-          // Validate and transform data
-          const customers = jsonData
-          .map((row, index) => {
-            const rawName =
-              row.name ||
-              row.Name ||
-              row['Customer Name'] ||
-              row['customer name'] ||
-              row['CUSTOMER NAME'] ||
-              '';
 
-            const rawPhone =
-              row.phone ||
-              row.Phone ||
-              row.number ||
-              row.Number ||
-              row['Phone Number'] ||
-              row['phone number'] ||
-              row['PHONE NUMBER'] ||
-              row.tel ||
-              row.Tel ||
-              row.TEL ||
-              '';
-
-            const rawEmail =
-              row.email ||
-              row.Email ||
-              row['Email Address'] ||
-              row['email address'] ||
-              row['EMAIL ADDRESS'] ||
-              row['E-mail'] ||
-              '';
-
-            // Sanitize everything
-            const name = safe(rawName).trim();
-            const phoneRaw = safe(rawPhone);
-            const email = safe(rawEmail).toLowerCase().trim();
-
-            if (!name && !phoneRaw && !email) {
-              console.warn(`Skipping row ${index + 1}: No valid customer data`);
-              return null;
+          // Normalize headers: lowercase + trim
+          const normalizedData = jsonData.map((row) => {
+            const normalizedRow = {};
+            for (const key in row) {
+              normalizedRow[key.trim().toLowerCase()] = safe(row[key]);
             }
+            return normalizedRow;
+          });
 
-            return {
-              name,
-              phone: phoneRaw ? formatPhoneNumber(phoneRaw) : '',
-              email,
-            };
-          })
-          .filter((c) => c !== null);
+          // Map to customer objects
+          const customers = normalizedData
+            .map((row, index) => {
+              const name = row.name || row['customer name'] || '';
+              const phoneRaw = row.phone || row.number || row.tel || '';
+              const email = row.email || row['email address'] || row['e-mail'] || '';
+
+              if (!name && !phoneRaw && !email) {
+                console.warn(`Skipping row ${index + 1}: No valid customer data`);
+                return null;
+              }
+
+              return {
+                name: name.trim(),
+                phone: phoneRaw ? formatPhoneNumber(phoneRaw) : '',
+                email: email.toLowerCase().trim(),
+              };
+            })
+            .filter((c) => c !== null);
+
           resolve(customers);
         } catch (error) {
           reject(error);
         }
       };
-      
+
       reader.onerror = (error) => reject(error);
-      
+
       if (file.name.match(/\.(xlsx|xls)$/)) {
         reader.readAsArrayBuffer(file);
       } else {
