@@ -64,6 +64,16 @@ const CustomerUpload = ({ restaurantId }) => {
         try {
           let jsonData = [];
           
+          const safe = (v) => {
+            if (v === undefined || v === null) return '';
+            if (typeof v === 'object') {
+              // Excel sometimes returns { t: 's', v: undefined }
+              if ('v' in v) return v.v?.toString() ?? '';
+              return '';
+            }
+            return v.toString();
+          };
+
           if (file.name.match(/\.(xlsx|xls)$/)) {
             // Handle Excel files
             const data = new Uint8Array(e.target.result);
@@ -83,26 +93,54 @@ const CustomerUpload = ({ restaurantId }) => {
           
           // Validate and transform data
           const customers = jsonData
-            .map((row, index) => {
-              // Handle different column name variations
-              const name = row.name || row.Name || row['Customer Name'] || row['customer name'] || row['CUSTOMER NAME'] || '';
-              const phone = row.phone || row.Phone || row.number || row.Number || row['Phone Number'] || row['phone number'] || row['PHONE NUMBER'] || row.tel || row.Tel || row.TEL || '';
-              const email = row.email || row.Email || row['Email Address'] || row['email address'] || row['EMAIL ADDRESS'] || row['E-mail'] || '';
+          .map((row, index) => {
+            const rawName =
+              row.name ||
+              row.Name ||
+              row['Customer Name'] ||
+              row['customer name'] ||
+              row['CUSTOMER NAME'] ||
+              '';
 
-              // Skip if no valid data
-              if (!name && !phone && !email) {
-                console.warn(`Skipping row ${index + 1}: No valid customer data`);
-                return null;
-              }
+            const rawPhone =
+              row.phone ||
+              row.Phone ||
+              row.number ||
+              row.Number ||
+              row['Phone Number'] ||
+              row['phone number'] ||
+              row['PHONE NUMBER'] ||
+              row.tel ||
+              row.Tel ||
+              row.TEL ||
+              '';
 
-              return {
-                name: name ? name.toString().trim() : '',
-                phone: phone ? formatPhoneNumber(phone.toString()) : '',
-                email: email ? email.toString().toLowerCase().trim() : ''
-              };
-            })
-            .filter(customer => customer !== null);
+            const rawEmail =
+              row.email ||
+              row.Email ||
+              row['Email Address'] ||
+              row['email address'] ||
+              row['EMAIL ADDRESS'] ||
+              row['E-mail'] ||
+              '';
 
+            // Sanitize everything
+            const name = safe(rawName).trim();
+            const phoneRaw = safe(rawPhone);
+            const email = safe(rawEmail).toLowerCase().trim();
+
+            if (!name && !phoneRaw && !email) {
+              console.warn(`Skipping row ${index + 1}: No valid customer data`);
+              return null;
+            }
+
+            return {
+              name,
+              phone: phoneRaw ? formatPhoneNumber(phoneRaw) : '',
+              email,
+            };
+          })
+          .filter((c) => c !== null);
           resolve(customers);
         } catch (error) {
           reject(error);
