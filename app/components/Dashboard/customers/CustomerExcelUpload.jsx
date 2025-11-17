@@ -96,7 +96,7 @@ const CustomerUpload = ({ restaurantId }) => {
               }
 
               return {
-                name: name.toString().trim(),
+                name: name ? name.toString().trim() : '',
                 phone: phone ? formatPhoneNumber(phone.toString()) : '',
                 email: email ? email.toString().toLowerCase().trim() : ''
               };
