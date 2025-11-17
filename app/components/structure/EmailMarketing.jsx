@@ -472,7 +472,7 @@ const EmailMarketing = ({ restaurantId, name, customers: propCustomers = [] }) =
                       onChange={handleSelectAll}
                       className="mr-2"
                     />
-                    <span className="text-sm">Select all customers</span>
+                    <span className="text-sm text-white">Select all customers</span>
                   </div>
                   <span className="text-xs text-gray-400">{customers.length} total</span>
                 </div>
@@ -490,7 +490,7 @@ const EmailMarketing = ({ restaurantId, name, customers: propCustomers = [] }) =
                         className="mr-2"
                       />
                       <div>
-                        <div className="text-sm">{customer.name || 'No Name'}</div>
+                        <div className="text-sm text-white">{customer.name || 'No Name'}</div>
                         <div className="text-xs text-gray-400">{customer.email}</div>
                       </div>
                     </div>
