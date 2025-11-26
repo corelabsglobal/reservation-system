@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import toast from 'react-hot-toast';
-import { Download, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Download, ChevronLeft, ChevronRight, Smartphone, Mail, Users, Repeat } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import CustomerUpload from './CustomerExcelUpload';
 import EmailMarketing from '../../structure/EmailMarketing';
@@ -16,6 +16,17 @@ const CustomersSection = ({ restaurant, reservations }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     if (restaurant?.id) {
@@ -266,32 +277,68 @@ const CustomersSection = ({ restaurant, reservations }) => {
             title="Download customer report"
           >
             <Download size={16} />
-            Export PDF
+            <span className="hidden sm:inline">Export PDF</span>
           </button>
         </div>
 
-        <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
-          <div className="bg-yellow-500/20 px-3 py-2 rounded-full text-yellow-400 text-sm whitespace-nowrap flex-shrink-0">
-            Total: {stats.totalCustomers}
+        {/* Mobile Stats Cards */}
+        {isMobile ? (
+          <div className="grid grid-cols-2 gap-3">
+            <div className="bg-yellow-500/20 p-3 rounded-lg flex items-center gap-2">
+              <Users size={16} className="text-yellow-400" />
+              <div>
+                <div className="text-white font-semibold">{stats.totalCustomers}</div>
+                <div className="text-yellow-400 text-xs">Total</div>
+              </div>
+            </div>
+            <div className="bg-blue-500/20 p-3 rounded-lg flex items-center gap-2">
+              <Mail size={16} className="text-blue-400" />
+              <div>
+                <div className="text-white font-semibold">{stats.reservationCustomers}</div>
+                <div className="text-blue-400 text-xs">Reservations</div>
+              </div>
+            </div>
+            <div className="bg-green-500/20 p-3 rounded-lg flex items-center gap-2">
+              <Smartphone size={16} className="text-green-400" />
+              <div>
+                <div className="text-white font-semibold">{stats.uploadedCustomers}</div>
+                <div className="text-green-400 text-xs">Uploaded</div>
+              </div>
+            </div>
+            <div className="bg-purple-500/20 p-3 rounded-lg flex items-center gap-2">
+              <Repeat size={16} className="text-purple-400" />
+              <div>
+                <div className="text-white font-semibold">{stats.repeatCustomers}</div>
+                <div className="text-purple-400 text-xs">Repeat</div>
+              </div>
+            </div>
           </div>
-          <div className="bg-blue-500/20 px-3 py-2 rounded-full text-blue-400 text-sm whitespace-nowrap flex-shrink-0">
-            Reservations: {stats.reservationCustomers}
+        ) : (
+          <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
+            <div className="bg-yellow-500/20 px-3 py-2 rounded-full text-yellow-400 text-sm whitespace-nowrap flex-shrink-0">
+              Total: {stats.totalCustomers}
+            </div>
+            <div className="bg-blue-500/20 px-3 py-2 rounded-full text-blue-400 text-sm whitespace-nowrap flex-shrink-0">
+              Reservations: {stats.reservationCustomers}
+            </div>
+            <div className="bg-green-500/20 px-3 py-2 rounded-full text-green-400 text-sm whitespace-nowrap flex-shrink-0">
+              Uploaded: {stats.uploadedCustomers}
+            </div>
+            <div className="bg-purple-500/20 px-3 py-2 rounded-full text-purple-400 text-sm whitespace-nowrap flex-shrink-0">
+              Repeat: {stats.repeatCustomers}
+            </div>
           </div>
-          <div className="bg-green-500/20 px-3 py-2 rounded-full text-green-400 text-sm whitespace-nowrap flex-shrink-0">
-            Uploaded: {stats.uploadedCustomers}
-          </div>
-          <div className="bg-purple-500/20 px-3 py-2 rounded-full text-purple-400 text-sm whitespace-nowrap flex-shrink-0">
-            Repeat: {stats.repeatCustomers}
-          </div>
-        </div>
+        )}
       </div>
 
       {/* Upload Section */}
+      <div className="space-y-4 mb-6">
         <ManualCustomerEntry 
           restaurantId={restaurant?.id} 
           onCustomerAdded={handleCustomerAdded}
         />
         <CustomerUpload restaurantId={restaurant?.id} />
+      </div>
 
       {/* Search and Controls */}
       <div className="mb-6 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
@@ -300,12 +347,12 @@ const CustomersSection = ({ restaurant, reservations }) => {
           placeholder="Search customers by name, email, or phone..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full sm:flex-1 px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+          className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500"
         />
         
-        <div className="flex items-center gap-4 w-full sm:w-auto">
+        <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end">
           <div className="text-sm text-gray-400 whitespace-nowrap">
-            Showing {paginatedCustomers.length} of {filteredCustomers.length}
+            {paginatedCustomers.length} of {filteredCustomers.length}
           </div>
           <select
             value={itemsPerPage}
@@ -315,98 +362,164 @@ const CustomersSection = ({ restaurant, reservations }) => {
             }}
             className="px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500"
           >
-            <option value={5}>5 per page</option>
-            <option value={10}>10 per page</option>
-            <option value={20}>20 per page</option>
-            <option value={50}>50 per page</option>
+            <option value={5}>5</option>
+            <option value={10}>10</option>
+            <option value={20}>20</option>
+            <option value={50}>50</option>
           </select>
         </div>
       </div>
 
-      {/* Customers Table */}
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[600px]">
-          <thead>
-            <tr className="bg-gray-700 text-white">
-              <th className="px-4 py-3 text-left">Customer</th>
-              <th className="px-4 py-3 text-left">Contact</th>
-              <th className="px-4 py-3 text-left">Source</th>
-              <th className="px-4 py-3 text-left">Visits</th>
-              <th className="px-4 py-3 text-left">Last Visit</th>
-              <th className="px-4 py-3 text-left">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {paginatedCustomers.length === 0 ? (
-              <tr>
-                <td colSpan="6" className="px-4 py-8 text-center text-gray-400">
-                  {searchQuery ? 'No customers found matching your search' : 'No customers found'}
-                </td>
-              </tr>
-            ) : (
-              paginatedCustomers
-                .sort((a, b) => (b.reservation_count || 0) - (a.reservation_count || 0))
-                .map((customer) => (
-                  <tr key={customer.id} className="border-b border-gray-700 hover:bg-gray-700/50 transition-all">
-                    <td className="px-4 py-3">
-                      <div className="font-medium text-white">{customer.name}</div>
-                      {customer.source === 'upload' && (
-                        <div className="text-xs text-gray-400">Uploaded customer</div>
-                      )}
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="text-sm text-white">{customer.email || 'No email'}</div>
-                      <div className="text-xs text-gray-400">{customer.phone || 'No phone'}</div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className={`px-2 py-1 rounded-full text-xs ${
-                        customer.source === 'reservation' 
-                          ? 'bg-blue-500/20 text-blue-400' 
-                          : 'bg-green-500/20 text-green-400'
-                      }`}>
-                        {customer.source === 'reservation' ? 'Reservation' : 'Upload'}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="text-center text-white">
-                        {customer.reservation_count || 0}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-white">
-                      {customer.last_visit ? (
-                        <>
-                          <div>{new Date(customer.last_visit).toLocaleDateString()}</div>
-                          <div className="text-xs text-gray-400">
-                            {customer.source === 'reservation' ? 'Reserved' : 'Added'}
-                          </div>
-                        </>
-                      ) : (
-                        <span className="text-gray-400">-</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3">
-                      {customer.reservation_count > 1 ? (
-                        <div className="flex items-center gap-2">
+      {/* Customers List/Table */}
+      {isMobile ? (
+        /* Mobile Card View */
+        <div className="space-y-3">
+          {paginatedCustomers.length === 0 ? (
+            <div className="px-4 py-8 text-center text-gray-400">
+              {searchQuery ? 'No customers found matching your search' : 'No customers found'}
+            </div>
+          ) : (
+            paginatedCustomers
+              .sort((a, b) => (b.reservation_count || 0) - (a.reservation_count || 0))
+              .map((customer) => (
+                <div key={customer.id} className="bg-gray-700/50 rounded-lg p-4 border border-gray-600">
+                  <div className="flex justify-between items-start mb-3">
+                    <div className="flex-1">
+                      <h3 className="font-medium text-white text-lg mb-1">{customer.name}</h3>
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className={`px-2 py-1 rounded-full text-xs ${
+                          customer.source === 'reservation' 
+                            ? 'bg-blue-500/20 text-blue-400' 
+                            : 'bg-green-500/20 text-green-400'
+                        }`}>
+                          {customer.source === 'reservation' ? 'Reservation' : 'Upload'}
+                        </span>
+                        {customer.reservation_count > 1 ? (
                           <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded">
                             Regular
                           </span>
+                        ) : customer.source === 'reservation' ? (
+                          <span className="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded">
+                            New
+                          </span>
+                        ) : (
+                          <span className="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded">
+                            Uploaded
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-white font-bold text-lg">{customer.reservation_count || 0}</div>
+                      <div className="text-gray-400 text-xs">visits</div>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center gap-2">
+                      <Mail size={14} className="text-gray-400" />
+                      <span className="text-white">{customer.email || 'No email'}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Smartphone size={14} className="text-gray-400" />
+                      <span className="text-white">{customer.phone || 'No phone'}</span>
+                    </div>
+                    {customer.last_visit && (
+                      <div className="text-gray-400 text-xs">
+                        Last visit: {new Date(customer.last_visit).toLocaleDateString()}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))
+          )}
+        </div>
+      ) : (
+        /* Desktop Table View */
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[600px]">
+            <thead>
+              <tr className="bg-gray-700 text-white">
+                <th className="px-4 py-3 text-left">Customer</th>
+                <th className="px-4 py-3 text-left">Contact</th>
+                <th className="px-4 py-3 text-left">Source</th>
+                <th className="px-4 py-3 text-left">Visits</th>
+                <th className="px-4 py-3 text-left">Last Visit</th>
+                <th className="px-4 py-3 text-left">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {paginatedCustomers.length === 0 ? (
+                <tr>
+                  <td colSpan="6" className="px-4 py-8 text-center text-gray-400">
+                    {searchQuery ? 'No customers found matching your search' : 'No customers found'}
+                  </td>
+                </tr>
+              ) : (
+                paginatedCustomers
+                  .sort((a, b) => (b.reservation_count || 0) - (a.reservation_count || 0))
+                  .map((customer) => (
+                    <tr key={customer.id} className="border-b border-gray-700 hover:bg-gray-700/50 transition-all">
+                      <td className="px-4 py-3">
+                        <div className="font-medium text-white">{customer.name}</div>
+                        {customer.source === 'upload' && (
+                          <div className="text-xs text-gray-400">Uploaded customer</div>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="text-sm text-white">{customer.email || 'No email'}</div>
+                        <div className="text-xs text-gray-400">{customer.phone || 'No phone'}</div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`px-2 py-1 rounded-full text-xs ${
+                          customer.source === 'reservation' 
+                            ? 'bg-blue-500/20 text-blue-400' 
+                            : 'bg-green-500/20 text-green-400'
+                        }`}>
+                          {customer.source === 'reservation' ? 'Reservation' : 'Upload'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="text-center text-white">
+                          {customer.reservation_count || 0}
                         </div>
-                      ) : customer.source === 'reservation' ? (
-                        <span className="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded">
-                          New
-                        </span>
-                      ) : (
-                        <span className="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded">
-                          Uploaded
-                        </span>
-                      )}
-                    </td>
-                  </tr>
-                ))
-            )}
-          </tbody>
-        </table>
-      </div>
+                      </td>
+                      <td className="px-4 py-3 text-white">
+                        {customer.last_visit ? (
+                          <>
+                            <div>{new Date(customer.last_visit).toLocaleDateString()}</div>
+                            <div className="text-xs text-gray-400">
+                              {customer.source === 'reservation' ? 'Reserved' : 'Added'}
+                            </div>
+                          </>
+                        ) : (
+                          <span className="text-gray-400">-</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        {customer.reservation_count > 1 ? (
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded">
+                              Regular
+                            </span>
+                          </div>
+                        ) : customer.source === 'reservation' ? (
+                          <span className="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded">
+                            New
+                          </span>
+                        ) : (
+                          <span className="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded">
+                            Uploaded
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {/* Pagination */}
       {totalPages > 1 && (
@@ -461,25 +574,27 @@ const CustomersSection = ({ restaurant, reservations }) => {
         </div>
       )}
 
-      {/* Stats Summary */}
-      <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div className="bg-gray-700/50 p-4 rounded-lg">
-          <div className="text-gray-400 text-sm">Total Customers</div>
-          <div className="text-2xl font-bold text-white">{stats.totalCustomers}</div>
+      {/* Desktop Stats Summary */}
+      {!isMobile && (
+        <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div className="bg-gray-700/50 p-4 rounded-lg">
+            <div className="text-gray-400 text-sm">Total Customers</div>
+            <div className="text-2xl font-bold text-white">{stats.totalCustomers}</div>
+          </div>
+          <div className="bg-gray-700/50 p-4 rounded-lg">
+            <div className="text-gray-400 text-sm">From Reservations</div>
+            <div className="text-2xl font-bold text-white">{stats.reservationCustomers}</div>
+          </div>
+          <div className="bg-gray-700/50 p-4 rounded-lg">
+            <div className="text-gray-400 text-sm">From Uploads</div>
+            <div className="text-2xl font-bold text-white">{stats.uploadedCustomers}</div>
+          </div>
+          <div className="bg-gray-700/50 p-4 rounded-lg">
+            <div className="text-gray-400 text-sm">Repeat Customers</div>
+            <div className="text-2xl font-bold text-white">{stats.repeatCustomers}</div>
+          </div>
         </div>
-        <div className="bg-gray-700/50 p-4 rounded-lg">
-          <div className="text-gray-400 text-sm">From Reservations</div>
-          <div className="text-2xl font-bold text-white">{stats.reservationCustomers}</div>
-        </div>
-        <div className="bg-gray-700/50 p-4 rounded-lg">
-          <div className="text-gray-400 text-sm">From Uploads</div>
-          <div className="text-2xl font-bold text-white">{stats.uploadedCustomers}</div>
-        </div>
-        <div className="bg-gray-700/50 p-4 rounded-lg">
-          <div className="text-gray-400 text-sm">Repeat Customers</div>
-          <div className="text-2xl font-bold text-white">{stats.repeatCustomers}</div>
-        </div>
-      </div>
+      )}
 
       {/* Email Marketing */}
       <EmailMarketing 
