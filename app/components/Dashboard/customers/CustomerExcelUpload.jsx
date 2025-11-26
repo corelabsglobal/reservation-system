@@ -118,7 +118,6 @@ const CustomerUpload = ({ restaurantId }) => {
       reader.onerror = (err) => reject(err);
 
       if (file.name.match(/\.(xlsx|xls)$/)) {
-        // Try readAsArrayBuffer first; if fails on tablet, you could switch to readAsBinaryString
         try {
           reader.readAsArrayBuffer(file);
         } catch {
