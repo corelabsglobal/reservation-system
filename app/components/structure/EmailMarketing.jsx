@@ -24,6 +24,7 @@ const EmailMarketing = ({ restaurantId, name, customers: propCustomers = [] }) =
   const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [selectedDate, setSelectedDate] = useState('');
+  const [restaurantEmail, setRestaurantEmail] = useState('');
   const [emailStats, setEmailStats] = useState({
     sent: 0,
     delivered: 0,
@@ -106,6 +107,41 @@ const EmailMarketing = ({ restaurantId, name, customers: propCustomers = [] }) =
     };
 
     fetchCustomers();
+  }, [restaurantId]);
+
+  useEffect(() => {
+    if (!restaurantId) return;
+
+    const fetchRestaurantEmail = async () => {
+      try {
+        const { data: restaurant, error: restaurantError } = await supabase
+          .from('restaurants')
+          .select('owner_id')
+          .eq('id', restaurantId)
+          .single();
+
+        if (restaurantError) throw restaurantError;
+
+        if (restaurant && restaurant.owner_id) {
+          const { data: user, error: userError } = await supabase
+            .from('users')
+            .select('email')
+            .eq('owner_id', restaurant.owner_id)
+            .single();
+
+          if (userError) throw userError;
+
+          if (user) {
+            setRestaurantEmail(user.email);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching restaurant email:', error);
+        toast.error('Failed to fetch restaurant email');
+      }
+    };
+
+    fetchRestaurantEmail();
   }, [restaurantId]);
 
   useEffect(() => {
@@ -331,6 +367,7 @@ const EmailMarketing = ({ restaurantId, name, customers: propCustomers = [] }) =
             message: emailContent.body,
             restaurant_name: name,
             restaurant_id: restaurantId,
+            restaurant_email: restaurantEmail,
             reservation_date: selectedDate 
           };
 
