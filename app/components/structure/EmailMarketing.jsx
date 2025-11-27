@@ -490,7 +490,7 @@ const EmailMarketing = ({ restaurantId, name, customers: propCustomers = [] }) =
               {selectedCustomers.length > 0 ? (
                 <span className="text-blue-300">{selectedCustomers.length} selected</span>
               ) : (
-                <span>Select customers</span>
+                <span className='text-white'>Select customers</span>
               )}
               <ChevronDown size={16} className={`transition-transform ${showCustomerDropdown ? 'rotate-180' : ''}`} />
             </button>
