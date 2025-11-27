@@ -25,6 +25,7 @@ const EmailMarketing = ({ restaurantId, name, customers: propCustomers = [] }) =
   const [showPreview, setShowPreview] = useState(false);
   const [selectedDate, setSelectedDate] = useState('');
   const [restaurantEmail, setRestaurantEmail] = useState('');
+  const [restaurantPhone, setRestaurantPhone] = useState('');
   const [emailStats, setEmailStats] = useState({
     sent: 0,
     delivered: 0,
@@ -112,7 +113,7 @@ const EmailMarketing = ({ restaurantId, name, customers: propCustomers = [] }) =
   useEffect(() => {
     if (!restaurantId) return;
 
-    const fetchRestaurantEmail = async () => {
+    const fetchRestaurantContactInfo = async () => {
       try {
         const { data: restaurant, error: restaurantError } = await supabase
           .from('restaurants')
@@ -125,7 +126,7 @@ const EmailMarketing = ({ restaurantId, name, customers: propCustomers = [] }) =
         if (restaurant && restaurant.owner_id) {
           const { data: user, error: userError } = await supabase
             .from('users')
-            .select('email')
+            .select('email, phone')
             .eq('owner_id', restaurant.owner_id)
             .single();
 
@@ -133,15 +134,16 @@ const EmailMarketing = ({ restaurantId, name, customers: propCustomers = [] }) =
 
           if (user) {
             setRestaurantEmail(user.email);
+            setRestaurantPhone(user.phone || '');
           }
         }
       } catch (error) {
-        console.error('Error fetching restaurant email:', error);
-        toast.error('Failed to fetch restaurant email');
+        console.error('Error fetching restaurant contact info:', error);
+        toast.error('Failed to fetch restaurant contact information');
       }
     };
 
-    fetchRestaurantEmail();
+    fetchRestaurantContactInfo();
   }, [restaurantId]);
 
   useEffect(() => {
@@ -368,6 +370,7 @@ const EmailMarketing = ({ restaurantId, name, customers: propCustomers = [] }) =
             restaurant_name: name,
             restaurant_id: restaurantId,
             restaurant_email: restaurantEmail,
+            restaurant_phone: restaurantPhone,
             reservation_date: selectedDate 
           };
 
@@ -702,6 +705,8 @@ const EmailMarketing = ({ restaurantId, name, customers: propCustomers = [] }) =
           emailContent={emailContent}
           restaurantName={name}
           restaurantId={restaurantId}
+          restaurantEmail={restaurantEmail}
+          restaurantPhone={restaurantPhone}
           onClose={() => setShowPreview(false)}
         />
       )}
