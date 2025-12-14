@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabaseClient";
 import toast, { Toaster } from "react-hot-toast";
 import emailjs from '@emailjs/browser';
 import { generateTimeSlots } from "@/utils/timeSlots";
+import { sendReservationEmail } from "@/utils/email";
 import DateSelector from "@/app/components/restaurants/DateSelector";
 import PartySizeSelector from "@/app/components/restaurants/PartySizeSelector";
 import TimeSlotsGrid from "@/app/components/restaurants/TimeSlotsGrid";
@@ -717,18 +718,18 @@ export default function RestaurantPage() {
   
       await Promise.all([
         emailjs.send(
-        process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID,
-        process.env.NEXT_PUBLIC_EMAILJS_RESTAURANT_TEMPLATE_ID,
-        restaurantEmailParams,
-        process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY
-      ),
-      emailjs.send(
-        process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID,
-        process.env.NEXT_PUBLIC_EMAILJS_CUSTOMER_TEMPLATE_ID,
-        customerEmailParams,
-        process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY
-      )
-    ]);
+          process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID,
+          process.env.NEXT_PUBLIC_EMAILJS_RESTAURANT_TEMPLATE_ID,
+          restaurantEmailParams,
+          process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY
+        ),
+        emailjs.send(
+          process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID,
+          process.env.NEXT_PUBLIC_EMAILJS_CUSTOMER_TEMPLATE_ID,
+          customerEmailParams,
+          process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY
+        )
+      ]);
 
     setNotification({
       type: 'success',
