@@ -731,52 +731,52 @@ export default function RestaurantPage() {
         )
       ]);
 
-    setNotification({
-      type: 'success',
-      title: 'Reservation Successful',
-      message: 'Your reservation is confirmed! Confirmation emails have been sent.'
-    });
-
-    const { data: newReservations } = await supabase
-      .from("reservations")
-      .select("time, date, user_id, table_id, people")
-      .eq("restaurant_id", restaurant.id)
-      .eq("date", selectedDate);
-
-    setReservations(newReservations);
-
-    const updatedAvailableSlots = timeSlots.filter(slot => {
-      const reservationsForSlot = newReservations.filter(r => r.time === slot);
-      const bookedTablesForSlot = new Set(reservationsForSlot.map(r => r.table_id));
-      
-      if (fallbackMode) return true;
-      
-      return allTables.some(table => {
-        const tableType = tableTypes.find(t => t.id === table.table_type_id);
-        return !bookedTablesForSlot.has(table.id) && tableType?.capacity >= partySize;
+      setNotification({
+        type: 'success',
+        title: 'Reservation Successful',
+        message: 'Your reservation is confirmed! Confirmation emails have been sent.'
       });
-    });
 
-    setAvailableSlots(updatedAvailableSlots);
-    
-    setReservations([...reservations, reservationData]);
-    localStorage.setItem("reservationToken", reservationToken);
-    localStorage.setItem("reservationEmail", email);
+      const { data: newReservations } = await supabase
+        .from("reservations")
+        .select("time, date, user_id, table_id, people")
+        .eq("restaurant_id", restaurant.id)
+        .eq("date", selectedDate);
 
-    setTimeout(() => {
-      router.push(userId === "guest" ? "/guests" : "/reservations");
-    }, 2200);
+      setReservations(newReservations);
 
-  } catch (error) {
-    console.error('Reservation error:', error);
-    setNotification({
-      type: 'error',
-      title: 'Booking Failed',
-      message: error.message || 'An error occurred while processing your reservation'
-    });
-  } finally {
-    setIsLoading(false);
-  }
+      const updatedAvailableSlots = timeSlots.filter(slot => {
+        const reservationsForSlot = newReservations.filter(r => r.time === slot);
+        const bookedTablesForSlot = new Set(reservationsForSlot.map(r => r.table_id));
+        
+        if (fallbackMode) return true;
+        
+        return allTables.some(table => {
+          const tableType = tableTypes.find(t => t.id === table.table_type_id);
+          return !bookedTablesForSlot.has(table.id) && tableType?.capacity >= partySize;
+        });
+      });
+
+      setAvailableSlots(updatedAvailableSlots);
+      
+      setReservations([...reservations, reservationData]);
+      localStorage.setItem("reservationToken", reservationToken);
+      localStorage.setItem("reservationEmail", email);
+
+      setTimeout(() => {
+        router.push(userId === "guest" ? "/guests" : "/reservations");
+      }, 2200);
+
+    } catch (error) {
+      console.error('Reservation error:', error);
+      setNotification({
+        type: 'error',
+        title: 'Booking Failed',
+        message: error.message || 'An error occurred while processing your reservation'
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
