@@ -37,7 +37,7 @@ export async function POST(request) {
       to,
       subject,
       html: htmlContent,
-      reply_to: templateData.restaurant_email || 'kbtechnologies2@gmail.com'
+      reply_to: templateData.restaurant_email || 'noreply@info.danloski.com'
     });
 
     if (error) {
