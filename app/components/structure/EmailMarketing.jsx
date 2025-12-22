@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
-import emailjs from '@emailjs/browser';
 import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
 import { Paperclip, Send, Users, ChevronDown } from 'lucide-react';
+import {  uploadToCloudinary, sendBatchMarketingEmails } from '@/utils/resend';
 import EmailPreview from '../Dashboard/EmailPreview';
 
 const EmailMarketing = ({ restaurantId, name, customers: propCustomers = [] }) => {
@@ -31,16 +31,6 @@ const EmailMarketing = ({ restaurantId, name, customers: propCustomers = [] }) =
     delivered: 0,
     opened: 0
   });
-
-  useEffect(() => {
-    setServiceId(process.env.NEXT_PUBLIC_EMAILJS_MARKETING_SERVICE_ID);
-    setTemplateId(process.env.NEXT_PUBLIC_EMAILJS_MARKETING_TEMPLATE_ID);
-    setPublicKey(process.env.NEXT_PUBLIC_EMAILJS_MARKETING_PUBLIC_KEY);
-    
-    if (publicKey) {
-      emailjs.init(publicKey);
-    }
-  }, [publicKey]);
 
   useEffect(() => {
     if (!restaurantId) return;
@@ -252,32 +242,39 @@ const EmailMarketing = ({ restaurantId, name, customers: propCustomers = [] }) =
     setEmailContent({ ...emailContent, attachment: null });
   };
 
+  const fileToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        const base64 = reader.result.split(',')[1];
+        resolve(base64);
+      };
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
   const uploadAttachment = async (file) => {
     if (!file) return null;
     
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${Date.now()}.${fileExt}`;
-    const filePath = `email-attachments/${fileName}`;
-
-    const { data, error } = await supabase
-      .storage
-      .from('email-attachments')
-      .upload(filePath, file);
-
-    if (error) {
-      console.error('Error uploading attachment:', error);
+    try {
+      toast.loading('Processing attachment...');
+      const base64Content = await fileToBase64(file);
+      
+      return {
+        content: base64Content,
+        name: file.name,
+        type: file.type || 'application/octet-stream'
+      };
+    } catch (error) {
+      console.error('Attachment processing failed:', error);
+      toast.dismiss();
+      toast.error('Failed to process attachment');
       throw error;
     }
-
-    const { data: { publicUrl } } = supabase
-      .storage
-      .from('email-attachments')
-      .getPublicUrl(filePath);
-
-    return publicUrl;
   };
 
-  const saveCampaignToDB = async (subject, body, attachmentUrl) => {
+  const saveCampaignToDB = async (subject, body, attachmentFilename) => {
     const { data, error } = await supabase
       .from('email_campaigns')
       .insert([
@@ -285,7 +282,7 @@ const EmailMarketing = ({ restaurantId, name, customers: propCustomers = [] }) =
           restaurant_id: restaurantId,
           subject,
           body,
-          attachment_url: attachmentUrl,
+          attachment_url: attachmentFilename,
           sent_count: selectedCustomers.length
         }
       ])
@@ -337,10 +334,10 @@ const EmailMarketing = ({ restaurantId, name, customers: propCustomers = [] }) =
 
     try {
       // Upload attachment if exists
-      let attachmentUrl = null;
+      let attachmentData = null;
       if (emailContent.attachment) {
         try {
-          attachmentUrl = await uploadAttachment(emailContent.attachment);
+          attachmentData = await uploadAttachment(emailContent.attachment);
         } catch (error) {
           console.error('Attachment upload failed:', error);
           toast.error('Failed to upload attachment');
@@ -351,34 +348,42 @@ const EmailMarketing = ({ restaurantId, name, customers: propCustomers = [] }) =
       const campaignId = await saveCampaignToDB(
         emailContent.subject,
         emailContent.body,
-        attachmentUrl
+        emailContent.attachment ? emailContent.attachment.name : null
       );
 
       // Save recipients to database
       await saveRecipientsToDB(campaignId, selectedCustomers);
 
+      // Prepare recipients for batch sending
+      const recipients = selectedCustomers.map(customer => ({
+        email: customer.email,
+        templateData: {
+          to_name: customer.name,
+          to_email: customer.email,
+          subject: emailContent.subject,
+          message: emailContent.body,
+          restaurant_name: name,
+          restaurant_id: restaurantId,
+          restaurant_email: restaurantEmail,
+          restaurant_phone: restaurantPhone,
+          reservation_date: selectedDate
+        }
+      }));
+
+      // Send batch emails via Resend
+      const result = await sendBatchMarketingEmails(recipients, emailContent.subject, attachmentData);
+      
       let successfulSends = 0;
       let successfulDeliveries = 0;
 
-      for (const customer of selectedCustomers) {
-        try {
-          const templateParams = {
-            to_name: customer.name,
-            to_email: customer.email,
-            subject: emailContent.subject,
-            message: emailContent.body,
-            restaurant_name: name,
-            restaurant_id: restaurantId,
-            restaurant_email: restaurantEmail,
-            restaurant_phone: restaurantPhone,
-            reservation_date: selectedDate 
-          };
-
-          // Send email
-          await emailjs.send(serviceId, templateId, templateParams);
+      // Process results and update database
+      for (const [index, customer] of selectedCustomers.entries()) {
+        const emailResult = result.results?.[index];
+        
+        if (emailResult?.success) {
           successfulSends++;
-
-          // Mark as sent in database
+          
+          // Mark as sent and delivered in database
           await supabase
             .from('campaign_recipients')
             .update({ 
@@ -389,27 +394,28 @@ const EmailMarketing = ({ restaurantId, name, customers: propCustomers = [] }) =
             .eq('customer_email', customer.email);
 
           successfulDeliveries++;
-
+          
           // Update stats in real-time
           setEmailStats(prev => ({
             ...prev,
             sent: prev.sent + 1,
             delivered: prev.delivered + 1
           }));
-
-        } catch (error) {
-          console.error(`Failed to send email to ${customer.email}:`, error);
+        } else {
+          // Mark as failed
           await supabase
             .from('campaign_recipients')
             .update({ 
               sent_at: new Date().toISOString(),
-              delivered: false 
+              delivered: false,
+              error: emailResult?.error || 'Failed to send'
             })
             .eq('campaign_id', campaignId)
             .eq('customer_email', customer.email);
         }
       }
 
+      // Update campaign stats
       await supabase
         .from('email_campaigns')
         .update({ 
@@ -419,12 +425,14 @@ const EmailMarketing = ({ restaurantId, name, customers: propCustomers = [] }) =
 
       toast.success(`Successfully sent ${successfulSends} of ${selectedCustomers.length} emails`);
       
+      // Reset form
       setEmailContent({
         subject: '',
         body: '',
         attachment: null
       });
       setSelectedCustomers([]);
+      setSelectedDate('');
 
     } catch (error) {
       console.error('Failed to complete email campaign:', error);
