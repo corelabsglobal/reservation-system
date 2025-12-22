@@ -4,9 +4,8 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import toast, { Toaster } from "react-hot-toast";
-import emailjs from '@emailjs/browser';
 import { generateTimeSlots } from "@/utils/timeSlots";
-import { sendReservationEmail } from "@/utils/email";
+import { sendReservationEmails } from "@/utils/email";
 import DateSelector from "@/app/components/restaurants/DateSelector";
 import PartySizeSelector from "@/app/components/restaurants/PartySizeSelector";
 import TimeSlotsGrid from "@/app/components/restaurants/TimeSlotsGrid";
@@ -610,7 +609,7 @@ export default function RestaurantPage() {
   const saveReservation = async () => {
     const reservationToken = crypto.randomUUID();
     setIsLoading(true);
-  
+
     try {
       const [
         { data: ownerData, error: ownerError },
@@ -627,11 +626,11 @@ export default function RestaurantPage() {
           .eq('id', restaurant.id)
           .single()
       ]);
-  
+
       if (ownerError || restaurantError) {
         throw new Error('Could not verify restaurant details');
       }
-  
+
       if (!ownerData?.email || !email) {
         throw new Error('Missing required email addresses');
       }
@@ -648,7 +647,7 @@ export default function RestaurantPage() {
       } else if (restaurant.table_assignment_mode === 'manual') {
         tableInfo = "";
       }
-  
+
       const reservationData = {
         restaurant_id: restaurant.id,
         time: selectedSlot,
@@ -665,12 +664,13 @@ export default function RestaurantPage() {
         booking_cost: bookingCost,
         table_id: restaurant.table_assignment_mode !== 'manual' && !fallbackMode ? selectedTable : null
       };
-  
+
       const { error: dbError } = await supabase.from("reservations").insert([reservationData]);
       if (dbError) throw new Error(`Database error: ${dbError.message}`);
-  
+
       const dashboardLink = `https://danloski.com/profile?tab=reservations`;
       
+      // CREATE EMAIL PARAMS
       const restaurantEmailParams = {
         to_email: ownerData.email,
         restaurant_name: restaurantData.name,
@@ -693,7 +693,7 @@ export default function RestaurantPage() {
         assignment_mode: restaurant.table_assignment_mode === 'manual' ? 'manual' : 'automatic',
         requires_table_assignment: restaurant.table_assignment_mode === 'manual' ? 'YES' : 'NO'
       };
-  
+
       const customerEmailParams = {
         to_email: email,
         restaurant_email: ownerData.email,
@@ -713,30 +713,30 @@ export default function RestaurantPage() {
         current_year: new Date().getFullYear().toString(),
         table_type: tableInfo
       };
-  
+
       console.log('Sending emails with params:', { restaurantEmailParams, customerEmailParams });
-  
-      await Promise.all([
-        emailjs.send(
-          process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID,
-          process.env.NEXT_PUBLIC_EMAILJS_RESTAURANT_TEMPLATE_ID,
-          restaurantEmailParams,
-          process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY
-        ),
-        emailjs.send(
-          process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID,
-          process.env.NEXT_PUBLIC_EMAILJS_CUSTOMER_TEMPLATE_ID,
-          customerEmailParams,
-          process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY
-        )
-      ]);
 
-      setNotification({
-        type: 'success',
-        title: 'Reservation Successful',
-        message: 'Your reservation is confirmed! Confirmation emails have been sent.'
-      });
+      // SEND EMAILS WITH RESEND
+      try {
+        await sendReservationEmails(restaurantEmailParams, customerEmailParams);
+        
+        setNotification({
+          type: 'success',
+          title: 'Reservation Successful',
+          message: 'Your reservation is confirmed! Confirmation emails have been sent.'
+        });
+      } catch (emailError) {
+        console.warn('Email sending failed, but reservation was saved:', emailError);
+        
+        // Reservation is saved even if emails fail
+        setNotification({
+          type: 'success',
+          title: 'Reservation Saved',
+          message: 'Your reservation is confirmed! Email notifications failed but your booking is saved.'
+        });
+      }
 
+      // UPDATE RESERVATIONS LIST
       const { data: newReservations } = await supabase
         .from("reservations")
         .select("time, date, user_id, table_id, people")
@@ -745,6 +745,7 @@ export default function RestaurantPage() {
 
       setReservations(newReservations);
 
+      // UPDATE AVAILABLE SLOTS
       const updatedAvailableSlots = timeSlots.filter(slot => {
         const reservationsForSlot = newReservations.filter(r => r.time === slot);
         const bookedTablesForSlot = new Set(reservationsForSlot.map(r => r.table_id));
@@ -759,10 +760,12 @@ export default function RestaurantPage() {
 
       setAvailableSlots(updatedAvailableSlots);
       
+      // UPDATE LOCAL STATE AND STORAGE
       setReservations([...reservations, reservationData]);
       localStorage.setItem("reservationToken", reservationToken);
       localStorage.setItem("reservationEmail", email);
 
+      // REDIRECT AFTER DELAY
       setTimeout(() => {
         router.push(userId === "guest" ? "/guests" : "/reservations");
       }, 2200);
