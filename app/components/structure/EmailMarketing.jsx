@@ -258,7 +258,6 @@ const EmailMarketing = ({ restaurantId, name, customers: propCustomers = [] }) =
     if (!file) return null;
     
     try {
-      toast.loading('Processing attachment...');
       const base64Content = await fileToBase64(file);
       
       return {
@@ -268,7 +267,6 @@ const EmailMarketing = ({ restaurantId, name, customers: propCustomers = [] }) =
       };
     } catch (error) {
       console.error('Attachment processing failed:', error);
-      toast.dismiss();
       toast.error('Failed to process attachment');
       throw error;
     }
