@@ -33,7 +33,7 @@ export async function POST(request) {
     }
 
     const { data, error } = await resend.emails.send({
-      from: 'Danloski Reservations <noreply@danloski.com>',
+      from: 'Danloski Reservations <noreply@info.danloski.com>',
       to,
       subject,
       html: htmlContent,
