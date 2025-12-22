@@ -196,7 +196,7 @@ const getMarketingTemplate = (templateData) => `
 
 export async function POST(request) {
   try {
-    const { recipients, subject } = await request.json();
+    const { recipients, subject, attachment, attachmentName, attachmentType } = await request.json();
 
     if (!recipients || !Array.isArray(recipients) || recipients.length === 0 || !subject) {
       return NextResponse.json(
@@ -216,13 +216,27 @@ export async function POST(request) {
           subject: subject
         });
 
-        const { data, error } = await resend.emails.send({
+        // Prepare email data
+        const emailData = {
           from: fromEmail,
           to: recipient.email,
           subject: subject,
           html: html,
           reply_to: recipient.templateData.restaurant_email || fromEmail,
-        });
+        };
+
+        // Add attachment if provided 
+        if (attachment && attachmentName) {
+          emailData.attachments = [
+            {
+              filename: attachmentName,
+              content: attachment,
+              contentType: attachmentType || 'application/octet-stream'
+            }
+          ];
+        }
+
+        const { data, error } = await resend.emails.send(emailData);
 
         if (error) {
           console.error(`Failed to send to ${recipient.email}:`, error);
