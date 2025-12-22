@@ -123,10 +123,6 @@ const getMarketingTemplate = (templateData) => `
       text-decoration: none;
     }
     
-    .social-icons {
-      margin: 20px 0;
-    }
-    
     /* Responsive */
     @media screen and (max-width: 600px) {
       .header, .content, .footer {
@@ -209,57 +205,47 @@ export async function POST(request) {
       );
     }
 
-    // Limit batch size to prevent overwhelming the API
-    const MAX_BATCH_SIZE = 50;
-    const batches = [];
-    
-    for (let i = 0; i < recipients.length; i += MAX_BATCH_SIZE) {
-      batches.push(recipients.slice(i, i + MAX_BATCH_SIZE));
-    }
-
     const results = [];
     const errors = [];
 
-    for (const batch of batches) {
-      const batchPromises = batch.map(async (recipient) => {
-        try {
-          const html = getMarketingTemplate({
-            ...recipient.templateData,
-            subject: subject
-          });
+    // Send emails sequentially to avoid rate limiting
+    for (const recipient of recipients) {
+      try {
+        const html = getMarketingTemplate({
+          ...recipient.templateData,
+          subject: subject
+        });
 
-          const { data, error } = await resend.emails.send({
-            from: fromEmail,
-            to: recipient.email,
-            subject: subject,
-            html: html,
-            reply_to: recipient.templateData.restaurant_email || fromEmail,
-          });
+        const { data, error } = await resend.emails.send({
+          from: fromEmail,
+          to: recipient.email,
+          subject: subject,
+          html: html,
+          reply_to: recipient.templateData.restaurant_email || fromEmail,
+        });
 
-          if (error) {
-            errors.push({
-              email: recipient.email,
-              error: error.message
-            });
-            return { success: false, email: recipient.email, error: error.message };
-          }
-
-          return { success: true, email: recipient.email, data };
-        } catch (error) {
+        if (error) {
+          console.error(`Failed to send to ${recipient.email}:`, error);
           errors.push({
             email: recipient.email,
             error: error.message
           });
-          return { success: false, email: recipient.email, error: error.message };
+          results.push({ success: false, email: recipient.email, error: error.message });
+        } else {
+          console.log(`Successfully sent to ${recipient.email}`);
+          results.push({ success: true, email: recipient.email, data });
         }
-      });
 
-      const batchResults = await Promise.all(batchPromises);
-      results.push(...batchResults);
-      
-      // Add a small delay between batches to avoid rate limiting
-      if (batches.indexOf(batch) < batches.length - 1) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Small delay between emails to avoid rate limiting
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+      } catch (error) {
+        console.error(`Error sending to ${recipient.email}:`, error);
+        errors.push({
+          email: recipient.email,
+          error: error.message
+        });
+        results.push({ success: false, email: recipient.email, error: error.message });
       }
     }
 
@@ -272,10 +258,10 @@ export async function POST(request) {
       summary: {
         total: recipients.length,
         successful: successful.length,
-        failed: failed.length,
-        errors: errors.length > 0 ? errors : undefined
+        failed: failed.length
       },
-      results: results
+      results: results,
+      errors: errors.length > 0 ? errors : undefined
     });
 
   } catch (error) {
