@@ -18,6 +18,7 @@ import NotFound from "@/components/ui/NotFound";
 import Reviews from "@/app/components/restaurants/Reviews";
 import dynamic from 'next/dynamic';
 import RestaurantHeader from "@/app/components/restaurants/Header";
+import PaymentRequiredModal from "@/app/components/restaurants/PaymentVerification";
 
 const MapWithNoSSR = dynamic(
   () => import('../../components/restaurants/Map'),
@@ -55,6 +56,7 @@ export default function RestaurantPage() {
   const [closureDays, setClosureDays] = useState([]);
   const [activeTab, setActiveTab] = useState('reserve');
   const [showLoading, setShowLoading] = useState(true);
+  const [hasValidSubscription, setHasValidSubscription] = useState(null);
   
   const isDateClosed = (date) => {
     const dateObj = new Date(date);
@@ -475,6 +477,50 @@ export default function RestaurantPage() {
     if (restaurant) fetchBookingCostTiers();
   }, [restaurant]);
 
+  useEffect(() => {
+    const checkPaymentStatus = async () => {
+      if (!restaurant?.id) return;
+
+      try {
+        const { data, error } = await supabase
+          .from("payments")
+          .select("created_at")
+          .eq("restaurant_id", restaurant.id)
+          .eq("status", "success")
+          .order("created_at", { ascending: true })
+          .limit(1);
+
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          const firstPaymentDate = new Date(data[0].created_at);
+          const today = new Date();
+          const nextPaymentDate = new Date(
+            firstPaymentDate.getFullYear() + 1,
+            firstPaymentDate.getMonth(),
+            firstPaymentDate.getDate()
+          );
+          
+          // Check if subscription is still valid
+          if (today < nextPaymentDate) {
+            setHasValidSubscription(true);
+            return;
+          }
+        }
+        // If no payment or subscription expired
+        setHasValidSubscription(false);
+        
+      } catch (error) {
+        console.error("Error checking payment status:", error);
+        setHasValidSubscription(false);
+      }
+    };
+
+    if (restaurant) {
+      checkPaymentStatus();
+    }
+  }, [restaurant]);
+
   const getBookingCost = (people) => {
     if (bookingCostTiers.length === 0) {
       return restaurant?.booking_cost || 0;
@@ -791,6 +837,9 @@ export default function RestaurantPage() {
 
   if (loading) {
     return <LoadingAnimation />
+  }
+  if (hasValidSubscription === false) {
+    return <PaymentRequiredModal />
   }
   if (!restaurant) return (
     <NotFound />
