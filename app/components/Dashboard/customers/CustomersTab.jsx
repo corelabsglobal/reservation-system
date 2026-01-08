@@ -18,6 +18,12 @@ const CustomersSection = ({ restaurant, reservations }) => {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
 
+  const normalizeText = (value = '') =>
+    value.toString().toLowerCase().trim();
+
+  const normalizePhone = (value = '') =>
+    value.toString().replace(/\D/g, '');
+
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
@@ -93,37 +99,37 @@ const CustomersSection = ({ restaurant, reservations }) => {
     setRefreshTrigger(prev => prev + 1);
   };
 
-  // Filter out duplicate emails and apply search
   const filteredCustomers = useMemo(() => {
-    let processedCustomers = customers;
+    if (!customers.length) return [];
 
-    // Filter out duplicates by email (keep the first occurrence)
-    const uniqueCustomers = [];
-    const emailMap = new Map();
+    const search = normalizeText(searchQuery);
+    const searchDigits = normalizePhone(searchQuery);
 
-    processedCustomers.forEach(customer => {
-      if (customer.email) {
-        const normalizedEmail = customer.email.toLowerCase().trim();
-        if (!emailMap.has(normalizedEmail)) {
-          emailMap.set(normalizedEmail, true);
-          uniqueCustomers.push(customer);
-        }
-      } else {
-        // If no email, include the customer
-        uniqueCustomers.push(customer);
-      }
-    });
+    const searched = !search
+      ? customers
+      : customers.filter((customer) => {
+          const name = normalizeText(customer.name);
+          const email = normalizeText(customer.email);
+          const phone = normalizePhone(customer.phone);
 
-    // Apply search filter
-    if (!searchQuery) return uniqueCustomers;
+          return (
+            name.includes(search) ||
+            email.includes(search) ||
+            (searchDigits && phone.includes(searchDigits))
+          );
+        });
 
-    return uniqueCustomers.filter(customer => {
-      const searchTerm = searchQuery.toLowerCase();
-      return (
-        customer.name?.toLowerCase().includes(searchTerm) ||
-        customer.email?.toLowerCase().includes(searchTerm) ||
-        customer.phone?.includes(searchQuery.replace(/\D/g, ''))
-      );
+    const seen = new Set();
+
+    return searched.filter((customer) => {
+      const key =
+        normalizeText(customer.email) ||
+        normalizePhone(customer.phone) ||
+        customer.id;
+
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
     });
   }, [customers, searchQuery]);
 
