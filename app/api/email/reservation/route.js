@@ -33,11 +33,11 @@ export async function POST(request) {
     }
 
     const { data, error } = await resend.emails.send({
-      from: 'Danloski Reservations <noreply@info.danloski.com>',
+      from: 'Danloski Reservations <noreply@send.danloski.com>',
       to,
       subject,
       html: htmlContent,
-      reply_to: templateData.restaurant_email || 'noreply@info.danloski.com'
+      reply_to: templateData.restaurant_email || 'noreply@send.danloski.com'
     });
 
     if (error) {
