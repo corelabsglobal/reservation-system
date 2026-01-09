@@ -218,7 +218,7 @@ export async function POST(request) {
 
         // Prepare email data
         const emailData = {
-          from: fromEmail,
+          from: `${recipient.templateData.restaurant_name} <${fromEmail}>`,
           to: recipient.email,
           subject: subject,
           html: html,
