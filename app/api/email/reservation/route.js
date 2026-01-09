@@ -33,7 +33,7 @@ export async function POST(request) {
     }
 
     const { data, error } = await resend.emails.send({
-      from: 'Danloski Reservations <noreply@info.danloski.com>',
+      from: `${templateData.restaurant_name} <noreply@info.danloski.com>`,
       to,
       subject,
       html: htmlContent,
