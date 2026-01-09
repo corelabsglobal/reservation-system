@@ -838,9 +838,9 @@ export default function RestaurantPage() {
   if (loading) {
     return <LoadingAnimation />
   }
-  if (hasValidSubscription === false) {
+  {/*if (hasValidSubscription === false) {
     return <PaymentRequiredModal />
-  }
+  }*/}
   if (!restaurant) return (
     <NotFound />
   )
