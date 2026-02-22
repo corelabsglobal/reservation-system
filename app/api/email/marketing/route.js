@@ -11,8 +11,11 @@ const getMarketingTemplate = (templateData) => `
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <meta name="supported-color-schemes" content="light">
   <title>${templateData.subject}</title>
   <style type="text/css">
+    :root { color-scheme: light; }
     /* Base Styles */
     body {
       margin: 0;
@@ -21,6 +24,7 @@ const getMarketingTemplate = (templateData) => `
       font-family: 'Helvetica Neue', Arial, sans-serif;
       color: #333333;
       line-height: 1.6;
+      color-scheme: light;
     }
     
     /* Email Container */
@@ -32,23 +36,24 @@ const getMarketingTemplate = (templateData) => `
     
     /* Luxury Header */
     .header {
-      background: linear-gradient(135deg, #1a1a1a 0%, #3a3a3a 100%);
+      background-color: #1a1a1a !important;
+      background: linear-gradient(135deg, #1a1a1a 0%, #3a3a3a 100%) !important;
       padding: 40px 30px;
       text-align: center;
       border-bottom: 8px solid #c9a769;
     }
-    
+
     .header h1 {
-      color: white;
+      color: #ffffff !important;
       font-size: 28px;
       font-weight: 300;
       letter-spacing: 2px;
       margin: 0;
       text-transform: uppercase;
     }
-    
+
     .header .subtitle {
-      color: #c9a769;
+      color: #c9a769 !important;
       font-size: 14px;
       letter-spacing: 4px;
       margin-top: 10px;
@@ -143,9 +148,9 @@ const getMarketingTemplate = (templateData) => `
 <body>
   <div class="email-container">
     <!-- Luxury Header -->
-    <div class="header">
-      <h1>${templateData.restaurant_name}</h1>
-      <div class="subtitle">Exclusive Invitation</div>
+    <div class="header" style="background-color: #1a1a1a; background: linear-gradient(135deg, #1a1a1a 0%, #3a3a3a 100%); padding: 40px 30px; text-align: center; border-bottom: 8px solid #c9a769;">
+      <h1 style="color: #ffffff; font-size: 28px; font-weight: 300; letter-spacing: 2px; margin: 0; text-transform: uppercase;">${templateData.restaurant_name}</h1>
+      <div class="subtitle" style="color: #c9a769; font-size: 14px; letter-spacing: 4px; margin-top: 10px; text-transform: uppercase;">Exclusive Invitation</div>
     </div>
     
     <!-- Main Content -->
