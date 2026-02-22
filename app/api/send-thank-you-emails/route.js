@@ -54,8 +54,11 @@ export async function GET(request) {
         <head>
           <meta charset="UTF-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <meta name="color-scheme" content="light">
+          <meta name="supported-color-schemes" content="light">
           <title>Thank You for Dining with Us</title>
           <style>
+            :root { color-scheme: light; }
             body {
               font-family: 'Georgia', serif;
               background-color: #f8f9fa;
@@ -63,6 +66,7 @@ export async function GET(request) {
               padding: 0;
               -webkit-font-smoothing: antialiased;
               -moz-osx-font-smoothing: grayscale;
+              color-scheme: light;
             }
             .container {
               max-width: 600px;
@@ -74,7 +78,8 @@ export async function GET(request) {
               border: 1px solid #e9ecef;
             }
             .header {
-              background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+              background-color: #1a1a1a !important;
+              background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%) !important;
               padding: 30px 20px;
               text-align: center;
               position: relative;
@@ -97,7 +102,7 @@ export async function GET(request) {
             .brand-name {
               font-family: 'Cinzel', serif;
               font-size: 24px;
-              color: #d4af37;
+              color: #d4af37 !important;
               letter-spacing: 1.5px;
               margin: 0;
               text-transform: uppercase;
@@ -106,7 +111,7 @@ export async function GET(request) {
             .restaurant-name {
               font-family: 'Playfair Display', serif;
               font-size: 18px;
-              color: #ffffff;
+              color: #ffffff !important;
               margin: 8px 0 0 0;
               font-weight: 400;
               letter-spacing: 0.5px;
@@ -247,12 +252,12 @@ export async function GET(request) {
         </head>
         <body>
           <div class="container">
-            <div class="header">
-              <div class="logo-container">
-                <img src="${process.env.RESTAURANT_LOGO_URL || 'https://via.placeholder.com/60'}" alt="${reservation.restaurants.name} Logo" class="logo" />
+            <div class="header" style="background-color: #1a1a1a; background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%); padding: 30px 20px; text-align: center;">
+              <div class="logo-container" style="display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 20px;">
+                <img src="${process.env.RESTAURANT_LOGO_URL || 'https://via.placeholder.com/60'}" alt="${reservation.restaurants.name} Logo" class="logo" style="width: 60px; height: 60px; border-radius: 12px; object-fit: cover; border: 2px solid #d4af37;" />
                 <div>
-                  <h1 class="brand-name">DanLoski</h1>
-                  <p class="restaurant-name">${reservation.restaurants.name}</p>
+                  <h1 class="brand-name" style="font-size: 24px; color: #d4af37; letter-spacing: 1.5px; margin: 0; text-transform: uppercase; font-weight: 600;">DanLoski</h1>
+                  <p class="restaurant-name" style="font-size: 18px; color: #ffffff; margin: 8px 0 0 0; font-weight: 400; letter-spacing: 0.5px;">${reservation.restaurants.name}</p>
                 </div>
               </div>
             </div>
@@ -265,10 +270,10 @@ export async function GET(request) {
               <a href="${process.env.RESTAURANT_BOOKING_URL || '#'}" class="button">Make Another Reservation</a>
               <p class="signature">Warm regards,<br><strong>The ${reservation.restaurants.name} Team</strong></p>
             </div>
-            <div class="footer">
-              <p><strong>${reservation.restaurants.name}</strong></p>
-              <p>${reservation.restaurants.owner?.email || ''}</p>
-              <p>We look forward to serving you again soon</p>
+            <div class="footer" style="background-color: #1a1a1a; background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%); color: #cbd5e0; text-align: center; padding: 25px 20px; font-size: 13px;">
+              <p style="margin: 6px 0; color: #cbd5e0;"><strong>${reservation.restaurants.name}</strong></p>
+              <p style="margin: 6px 0; color: #cbd5e0;">${reservation.restaurants.owner?.email || ''}</p>
+              <p style="margin: 6px 0; color: #cbd5e0;">We look forward to serving you again soon</p>
             </div>
           </div>
         </body>
