@@ -63,10 +63,19 @@ export async function POST(request) {
 }
 
 function generateRestaurantTemplate(data) {
-  return `
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <meta name="supported-color-schemes" content="light">
+  <style>:root { color-scheme: light; }</style>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f9f9f9;">
   <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333; background: #f9f9f9; border: 1px solid #e1e1e1;">
-    <div style="background: #1a1a1a; padding: 30px; text-align: center;">
-      <h1 style="color: #d4af37; margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 1px;">NEW RESERVATION</h1>
+    <div style="background: #1a1a1a !important; background-color: #1a1a1a !important; padding: 30px; text-align: center;">
+      <h1 style="color: #d4af37 !important; margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 1px;">NEW RESERVATION</h1>
     </div>
     
     <div style="padding: 30px;">
@@ -122,19 +131,30 @@ function generateRestaurantTemplate(data) {
       <p style="font-size: 14px; color: #666; text-align: center;">This reservation requires your attention in the Reservations tab.</p>
     </div>
     
-    <div style="background: #1a1a1a; padding: 20px; text-align: center; font-size: 12px; color: #999;">
-      <p style="margin: 0;">© ${data.current_year} ${data.restaurant_name}. All rights reserved.</p>
-      <p style="margin: 5px 0 0; font-size: 11px;">Automated notification. Please do not reply.</p>
+    <div style="background: #1a1a1a !important; background-color: #1a1a1a !important; padding: 20px; text-align: center; font-size: 12px; color: #999999 !important;">
+      <p style="margin: 0; color: #999999 !important;">© ${data.current_year} ${data.restaurant_name}. All rights reserved.</p>
+      <p style="margin: 5px 0 0; font-size: 11px; color: #999999 !important;">Automated notification. Please do not reply.</p>
     </div>
   </div>
+</body>
+</html>
   `;
 }
 
 function generateCustomerTemplate(data) {
-  return `
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <meta name="supported-color-schemes" content="light">
+  <style>:root { color-scheme: light; }</style>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f9f9f9;">
   <div style="font-family:'Helvetica Neue',Arial,sans-serif;max-width:600px;margin:0 auto;color:#333;background:#f9f9f9;border:1px solid #e1e1e1">
-    <div style="background:#1a1a1a;padding:30px;text-align:center">
-      <h1 style="color:#d4af37;margin:0;font-size:28px;font-weight:300;letter-spacing:1px">RESERVATION CONFIRMATION</h1>
+    <div style="background:#1a1a1a !important;background-color:#1a1a1a !important;padding:30px;text-align:center">
+      <h1 style="color:#d4af37 !important;margin:0;font-size:28px;font-weight:300;letter-spacing:1px">RESERVATION CONFIRMATION</h1>
     </div>
     <div style="padding:30px">
       <p style="font-size:16px;line-height:1.6">Dear ${data.customer_name},</p>
@@ -167,9 +187,11 @@ function generateCustomerTemplate(data) {
       <p style="font-size:16px;line-height:1.6">Contact us at <a href="mailto:${data.restaurant_email}" style="color:#d4af37;text-decoration:none">${data.restaurant_email}</a> or ${data.restaurant_phone} for changes.</p>
       <p style="font-size:16px;line-height:1.6;font-weight:500">The ${data.restaurant_name} Team</p>
     </div>
-    <div style="background:#1a1a1a;padding:20px;text-align:center;font-size:12px;color:#999">
-      <p style="margin:0">© ${data.current_year} ${data.restaurant_name}</p>
+    <div style="background:#1a1a1a !important;background-color:#1a1a1a !important;padding:20px;text-align:center;font-size:12px;color:#999999 !important">
+      <p style="margin:0;color:#999999 !important">© ${data.current_year} ${data.restaurant_name}</p>
     </div>
   </div>
+</body>
+</html>
   `;
 }
