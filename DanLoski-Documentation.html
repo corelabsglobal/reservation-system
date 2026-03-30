@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DanLoski – Platform Guide</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Georgia', 'Times New Roman', serif;
+    font-size: 11pt;
+    line-height: 1.7;
+    color: #1a1a1a;
+    background: #f0ece8;
+  }
+
+  .page {
+    width: 210mm;
+    min-height: 297mm;
+    background: #ffffff;
+    margin: 12mm auto;
+    padding: 20mm 18mm 22mm 18mm;
+    box-shadow: 0 4px 30px rgba(0,0,0,0.15);
+    position: relative;
+    page-break-after: always;
+    page-break-inside: avoid;
+  }
+
+  /* COVER */
+  .cover {
+    background: linear-gradient(160deg, #0d0d0d 0%, #1a1a1a 50%, #2a2010 100%);
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 22mm 18mm;
+  }
+  .cover-brand    { font-size: 13pt; letter-spacing: 5px; color: #c9a769; text-transform: uppercase; margin-bottom: 4mm; }
+  .cover-logo     { font-size: 52pt; font-weight: 700; color: #ffffff; letter-spacing: -1px; line-height: 1; }
+  .cover-rule     { width: 40mm; height: 3px; background: #c9a769; margin: 7mm 0; }
+  .cover-title    { font-size: 22pt; color: #c9a769; letter-spacing: 2px; text-transform: uppercase; font-weight: 400; }
+  .cover-subtitle { font-size: 12pt; color: #aaa; margin-top: 3mm; letter-spacing: 1px; font-style: italic; }
+  .cover-divider  { border: none; border-top: 1px solid #333; margin: 8mm 0; }
+  .cover-tagline  { font-size: 11pt; color: #999; font-style: italic; }
+  .cover-meta     { color: #666; font-size: 8.5pt; margin-top: 4mm; }
+  .cover-meta span { color: #c9a769; }
+
+  /* PAGE HEADER */
+  .page-header {
+    border-bottom: 3px solid #c9a769;
+    padding-bottom: 4mm;
+    margin-bottom: 8mm;
+  }
+  .page-header .chapter-label {
+    font-size: 8pt;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #c9a769;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    margin-bottom: 1mm;
+  }
+  .page-header h1 {
+    font-size: 20pt;
+    font-weight: 700;
+    color: #1a1a1a;
+    letter-spacing: -0.5px;
+  }
+  .page-header p {
+    font-size: 10pt;
+    color: #666;
+    margin-top: 2mm;
+    font-style: italic;
+  }
+
+  /* HEADINGS */
+  h2 { font-size: 14pt; color: #1a1a1a; margin: 7mm 0 3mm; border-left: 4px solid #c9a769; padding-left: 3mm; }
+  h3 { font-size: 9.5pt; color: #333; margin: 5mm 0 2mm; text-transform: uppercase; letter-spacing: 1px; font-family: 'Helvetica Neue', Arial, sans-serif; }
+  h4 { font-size: 10pt; color: #555; margin: 4mm 0 1.5mm; font-style: italic; }
+
+  /* BODY */
+  p  { margin: 0 0 3mm; font-size: 10.5pt; color: #2a2a2a; }
+  ul, ol { margin: 2mm 0 4mm 6mm; }
+  li { font-size: 10.5pt; margin-bottom: 1.5mm; color: #2a2a2a; }
+  li::marker { color: #c9a769; }
+  strong { color: #1a1a1a; }
+
+  /* SCREENSHOTS */
+  .screenshot-wrap {
+    margin: 6mm 0;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.10);
+  }
+  .screenshot-wrap img { width: 100%; display: block; }
+  .screenshot-caption {
+    background: #f8f6f2;
+    border-top: 1px solid #e8e0d4;
+    padding: 2.5mm 4mm;
+    font-size: 8.5pt;
+    color: #777;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-style: italic;
+  }
+  .screenshot-caption strong { color: #555; font-style: normal; }
+
+  /* INFO & TIPS */
+  .info-box {
+    background: #f9f7f3;
+    border-left: 4px solid #c9a769;
+    padding: 4mm 5mm;
+    margin: 4mm 0;
+    border-radius: 0 4px 4px 0;
+  }
+  .info-box p { margin: 0; font-size: 10pt; }
+  .tip-box {
+    background: #f0f7f0;
+    border-left: 4px solid #27ae60;
+    padding: 4mm 5mm;
+    margin: 4mm 0;
+    border-radius: 0 4px 4px 0;
+  }
+  .tip-box p { margin: 0; font-size: 10pt; color: #1a4a2a; }
+
+  /* TABLES */
+  table { width: 100%; border-collapse: collapse; margin: 4mm 0; font-size: 9.5pt; }
+  thead tr { background: #1a1a1a; color: #fff; }
+  thead th { padding: 3mm 4mm; text-align: left; font-weight: 600; letter-spacing: 0.5px; font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 9pt; }
+  tbody tr:nth-child(even) { background: #f9f7f3; }
+  tbody tr:nth-child(odd)  { background: #ffffff; }
+  tbody td { padding: 2.5mm 4mm; border-bottom: 1px solid #ece8e0; vertical-align: top; }
+  tbody td:first-child { font-weight: 600; color: #1a1a1a; }
+
+  /* STEP FLOWS */
+  .flow-vertical { display: flex; flex-direction: column; gap: 0; margin: 4mm 0; }
+  .flow-vrow { display: flex; align-items: stretch; gap: 3mm; margin-bottom: 2mm; }
+  .flow-badge {
+    background: #c9a769;
+    color: #1a1a1a;
+    border-radius: 50%;
+    width: 7mm; height: 7mm;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 8pt; font-weight: 700; flex-shrink: 0;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+  }
+  .flow-content { flex: 1; background: #f9f7f3; border: 1px solid #e8e0d4; border-radius: 4px; padding: 2.5mm 4mm; }
+  .flow-content strong { font-size: 10pt; color: #1a1a1a; }
+  .flow-content p { font-size: 9pt; color: #666; margin: 0.5mm 0 0; }
+
+  /* CARDS */
+  .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; margin: 4mm 0; }
+  .card { border: 1px solid #e0d8cc; border-radius: 6px; padding: 4mm 5mm; background: #fdfcfa; }
+  .card h4 { font-size: 9.5pt; color: #1a1a1a; font-style: normal; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2mm; font-family: 'Helvetica Neue', Arial, sans-serif; }
+  .card p  { font-size: 9.5pt; color: #555; margin: 0; }
+  .card-icon { font-size: 14pt; margin-bottom: 1.5mm; }
+
+  /* BADGES */
+  .badge { display: inline-block; padding: 1mm 3mm; border-radius: 3px; font-size: 8pt; font-family: 'Helvetica Neue', Arial, sans-serif; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
+  .badge-gold  { background: #c9a769; color: #1a1a1a; }
+  .badge-dark  { background: #1a1a1a; color: #fff; }
+  .badge-green { background: #27ae60; color: #fff; }
+  .badge-blue  { background: #2980b9; color: #fff; }
+  .badge-red   { background: #c0392b; color: #fff; }
+  .badge-gray  { background: #95a5a6; color: #fff; }
+
+  /* TOC */
+  .toc-entry { display: flex; align-items: baseline; gap: 2mm; padding: 2.5mm 0; border-bottom: 1px dotted #ddd; font-size: 10.5pt; }
+  .toc-entry .toc-num { color: #c9a769; font-weight: 700; min-width: 10mm; font-family: 'Helvetica Neue', Arial, sans-serif; }
+  .toc-entry .toc-title { flex: 1; color: #1a1a1a; }
+  .toc-sub { padding-left: 8mm; font-size: 9.5pt; color: #555; }
+  .toc-section { margin-top: 5mm; }
+  .toc-section h3 { font-size: 8.5pt; color: #c9a769; margin-bottom: 2mm; border: none; padding: 0; text-transform: uppercase; letter-spacing: 1.5px; }
+
+  /* LAYOUT */
+  .cols-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6mm; }
+
+  /* FOOTER */
+  .page-footer {
+    position: absolute;
+    bottom: 8mm; left: 18mm; right: 18mm;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 8pt; color: #bbb;
+    border-top: 1px solid #ece8e0; padding-top: 2mm;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+  }
+  .page-footer span { color: #c9a769; }
+
+  /* UTIL */
+  .divider { border: none; border-top: 1px solid #e8e0d4; margin: 5mm 0; }
+  .mt4 { margin-top: 4mm; }
+  .mt6 { margin-top: 6mm; }
+
+  @media print {
+    body { background: white; }
+    .page { margin: 0; box-shadow: none; page-break-after: always; }
+    @page { size: A4; margin: 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════
+     COVER
+══════════════════════════════════════ -->
+<div class="page cover">
+  <div>
+    <div class="cover-brand">Platform Guide</div>
+    <div class="cover-logo">DanLoski</div>
+    <div class="cover-rule"></div>
+    <div class="cover-title">Client Onboarding Guide</div>
+    <div class="cover-subtitle">Restaurant Reservation &amp; Management Platform</div>
+  </div>
+  <div>
+    <hr class="cover-divider">
+    <div class="cover-tagline">"Experience the finest tables, all with DanLoski"</div>
+    <div class="cover-meta" style="margin-top:6mm;">
+      Version 1.0 &nbsp;|&nbsp; March 2026 &nbsp;|&nbsp; <span>danloski.com</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     TABLE OF CONTENTS
+══════════════════════════════════════ -->
+<div class="page">
+  <div class="page-header">
+    <div class="chapter-label">Navigation</div>
+    <h1>Table of Contents</h1>
+  </div>
+
+  <div class="toc-section">
+    <h3>Getting Started</h3>
+    <div class="toc-entry"><span class="toc-num">1.</span><span class="toc-title">Welcome to DanLoski</span></div>
+    <div class="toc-entry toc-sub"><span class="toc-num">1.1</span><span class="toc-title">What is DanLoski?</span></div>
+    <div class="toc-entry toc-sub"><span class="toc-num">1.2</span><span class="toc-title">Who is it for?</span></div>
+    <div class="toc-entry toc-sub"><span class="toc-num">1.3</span><span class="toc-title">Creating Your Account</span></div>
+    <div class="toc-entry toc-sub"><span class="toc-num">1.4</span><span class="toc-title">Restaurant Verification &amp; Going Live</span></div>
+  </div>
+
+  <div class="toc-section">
+    <h3>The Customer Experience</h3>
+    <div class="toc-entry"><span class="toc-num">2.</span><span class="toc-title">Discovering &amp; Browsing Restaurants</span></div>
+    <div class="toc-entry"><span class="toc-num">3.</span><span class="toc-title">Making a Reservation</span></div>
+    <div class="toc-entry toc-sub"><span class="toc-num">3.1</span><span class="toc-title">Step-by-Step Booking Flow</span></div>
+    <div class="toc-entry toc-sub"><span class="toc-num">3.2</span><span class="toc-title">Booking as a Guest vs. Registered User</span></div>
+    <div class="toc-entry toc-sub"><span class="toc-num">3.3</span><span class="toc-title">Payment &amp; Deposit</span></div>
+    <div class="toc-entry toc-sub"><span class="toc-num">3.4</span><span class="toc-title">After Booking — Confirmations &amp; Reminders</span></div>
+  </div>
+
+  <div class="toc-section">
+    <h3>The Restaurant Owner Dashboard</h3>
+    <div class="toc-entry"><span class="toc-num">4.</span><span class="toc-title">Dashboard Overview &amp; Analytics</span></div>
+    <div class="toc-entry"><span class="toc-num">5.</span><span class="toc-title">Managing Reservations</span></div>
+    <div class="toc-entry"><span class="toc-num">6.</span><span class="toc-title">Customer Management</span></div>
+    <div class="toc-entry"><span class="toc-num">7.</span><span class="toc-title">Business Insights &amp; Spending Analytics</span></div>
+    <div class="toc-entry"><span class="toc-num">8.</span><span class="toc-title">Email Marketing</span></div>
+  </div>
+
+  <div class="toc-section">
+    <h3>Setting Up Your Restaurant</h3>
+    <div class="toc-entry"><span class="toc-num">9.</span><span class="toc-title">Booking Costs &amp; Pricing Tiers</span></div>
+    <div class="toc-entry"><span class="toc-num">10.</span><span class="toc-title">Tables &amp; Seating Arrangement</span></div>
+    <div class="toc-entry"><span class="toc-num">11.</span><span class="toc-title">Restaurant Photos &amp; Gallery</span></div>
+    <div class="toc-entry"><span class="toc-num">12.</span><span class="toc-title">Opening Hours &amp; Closure Days</span></div>
+  </div>
+
+  <div class="toc-section">
+    <h3>Communications</h3>
+    <div class="toc-entry"><span class="toc-num">13.</span><span class="toc-title">Automated Email Notifications</span></div>
+    <div class="toc-entry"><span class="toc-num">14.</span><span class="toc-title">Frequently Asked Questions</span></div>
+  </div>
+
+  <div class="page-footer">
+    <span>DanLoski</span>
+    <span>Client Onboarding Guide</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     CH 1 — WELCOME
+══════════════════════════════════════ -->
+<div class="page">
+  <div class="page-header">
+    <div class="chapter-label">Chapter 1</div>
+    <h1>Welcome to DanLoski</h1>
+    <p>What the platform does and who benefits from it</p>
+  </div>
+
+  <h2>1.1 What is DanLoski?</h2>
+  <p>
+    DanLoski is a premium online restaurant reservation and management platform serving the Ghanaian market. It connects diners with top dining establishments through a seamless online booking experience, while giving restaurant owners a powerful set of tools to manage their bookings, customers, and communications — all from one place.
+  </p>
+  <p>
+    Whether a customer is discovering a new restaurant or a returning regular, DanLoski makes the entire journey — from browsing to booking to dining — smooth and professional. For restaurant owners, it removes the friction of managing reservations manually and provides real-time visibility into their business performance.
+  </p>
+
+  <hr class="divider">
+  <h2>1.2 Who is it for?</h2>
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-icon">🍽</div>
+      <h4>Diners &amp; Customers</h4>
+      <p>Anyone looking to discover and book a table at a quality restaurant in Ghana. Customers can browse, book, pay a deposit, receive reminders, and leave reviews — all in one place.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🏢</div>
+      <h4>Restaurant Owners</h4>
+      <p>Businesses looking to offer online reservations and manage their operations more efficiently. Owners get a full dashboard with reservations, customer data, marketing tools, and business analytics.</p>
+    </div>
+  </div>
+
+  <hr class="divider">
+  <h2>1.3 Creating Your Account</h2>
+  <p>Getting started on DanLoski takes just a few minutes. Visit <strong>danloski.com</strong> and click <strong>Sign Up</strong>. You will be asked to choose your account type:</p>
+
+  <div class="flow-vertical mt4">
+    <div class="flow-vrow">
+      <div class="flow-badge">1</div>
+      <div class="flow-content">
+        <strong>Choose "Business Owner"</strong>
+        <p>Select this option when signing up. This gives you access to the restaurant owner dashboard and management tools.</p>
+      </div>
+    </div>
+    <div class="flow-vrow">
+      <div class="flow-badge">2</div>
+      <div class="flow-content">
+        <strong>Enter your details</strong>
+        <p>Provide your name, email address, password, business name, location, phone number, and a profile image for your restaurant.</p>
+      </div>
+    </div>
+    <div class="flow-vrow">
+      <div class="flow-badge">3</div>
+      <div class="flow-content">
+        <strong>Submit your registration</strong>
+        <p>Your account and restaurant listing are created immediately. You can log in and begin configuring your restaurant straight away.</p>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+  <h2>1.4 Restaurant Verification &amp; Going Live</h2>
+  <p>For quality assurance, all new restaurant listings go through a brief administrative review before becoming publicly visible to customers. This typically takes up to <strong>7 days</strong> from registration.</p>
+
+  <div class="info-box">
+    <p><strong>What this means for you:</strong> You can log in and fully configure your restaurant — set your tables, operating hours, pricing, and photos — while the review is in progress. Once approved, your restaurant will immediately appear on the DanLoski home page and become discoverable by diners.</p>
+  </div>
+
+  <div class="page-footer">
+    <span>DanLoski</span>
+    <span>Client Onboarding Guide</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     CH 2 — DISCOVERING RESTAURANTS
+══════════════════════════════════════ -->
+<div class="page">
+  <div class="page-header">
+    <div class="chapter-label">Chapter 2</div>
+    <h1>Discovering &amp; Browsing Restaurants</h1>
+    <p>What customers see when they visit DanLoski</p>
+  </div>
+
+  <div class="screenshot-wrap">
+    <img src="./assets/home.png" alt="DanLoski Home Page">
+    <div class="screenshot-caption"><strong>Figure 1:</strong> The DanLoski home page — customers can search and browse all verified restaurants, then book a table directly from the listing cards.</div>
+  </div>
+
+  <h2>The Home Page</h2>
+  <p>
+    The DanLoski home page is the first thing customers see when they visit the platform. It presents all verified restaurants in a clean, visual layout with a prominent search bar at the top.
+  </p>
+
+  <div class="cols-2">
+    <div>
+      <h3>For Customers</h3>
+      <ul>
+        <li>Search restaurants by <strong>name</strong> or <strong>location</strong></li>
+        <li>Browse restaurants displayed as picture cards</li>
+        <li>Each card shows the restaurant name, location, and a featured photo</li>
+        <li>Click <strong>"Book Now"</strong> to go straight to the booking page</li>
+        <li>A <strong>Nearby Restaurants</strong> panel shows locations close to the customer based on their current position</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Navigation Bar</h3>
+      <ul>
+        <li><strong>Reservations</strong> — View all of a customer's upcoming and past bookings</li>
+        <li><strong>Dashboard</strong> — Accessible to restaurant owners only</li>
+        <li><strong>Profile icon</strong> — Sign in, sign up, or manage the account</li>
+      </ul>
+
+      <h3>Visibility Rule</h3>
+      <ul>
+        <li>Only <strong>verified</strong> restaurants appear on the home page</li>
+        <li>Unverified listings are hidden from public view until approved</li>
+        <li>Verification is a one-time process per restaurant</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="tip-box mt4">
+    <p><strong>Tip for restaurant owners:</strong> Your restaurant's profile image and name are the first things a potential customer sees on this page. A high-quality, well-lit photo makes a strong first impression and significantly increases click-through to your booking page.</p>
+  </div>
+
+  <div class="page-footer">
+    <span>DanLoski</span>
+    <span>Client Onboarding Guide</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     CH 3 — MAKING A RESERVATION (page 1)
+══════════════════════════════════════ -->
+<div class="page">
+  <div class="page-header">
+    <div class="chapter-label">Chapter 3</div>
+    <h1>Making a Reservation</h1>
+    <p>The full customer booking experience from start to confirmation</p>
+  </div>
+
+  <div class="screenshot-wrap">
+    <img src="./assets/reservation page.png" alt="Restaurant Booking Page">
+    <div class="screenshot-caption"><strong>Figure 2:</strong> The restaurant booking page — customers select a date, party size, and available time slot. Customer reviews and ratings are displayed on the right-hand panel.</div>
+  </div>
+
+  <h2>3.1 The Restaurant Page</h2>
+  <p>Clicking a restaurant from the home page opens its dedicated page. This is split into two tabs:</p>
+  <ul>
+    <li><strong>Reserve</strong> — The booking interface where customers make their reservation</li>
+    <li><strong>Info</strong> — Restaurant description, photos, map location, and contact details</li>
+  </ul>
+  <p>The top of the page shows a large <strong>hero image</strong> of the restaurant, its name, and its address. Below that, customers will find the live customer reviews panel showing the star rating and written feedback from past diners.</p>
+
+  <hr class="divider">
+  <h2>3.2 Step-by-Step Booking Flow</h2>
+
+  <div class="flow-vertical">
+    <div class="flow-vrow">
+      <div class="flow-badge">1</div>
+      <div class="flow-content">
+        <strong>Select a Date</strong>
+        <p>A calendar shows all available future dates. Dates when the restaurant is closed are greyed out and cannot be selected.</p>
+      </div>
+    </div>
+    <div class="flow-vrow">
+      <div class="flow-badge">2</div>
+      <div class="flow-content">
+        <strong>Choose Party Size</strong>
+        <p>Select the number of guests from a dropdown (1 to 20+). The applicable deposit amount is shown immediately below the selection.</p>
+      </div>
+    </div>
+    <div class="flow-vrow">
+      <div class="flow-badge">3</div>
+      <div class="flow-content">
+        <strong>Pick a Time Slot</strong>
+        <p>Available time slots are shown based on the restaurant's opening hours. Slots that are fully booked are automatically hidden. The customer clicks their preferred time to continue.</p>
+      </div>
+    </div>
+    <div class="flow-vrow">
+      <div class="flow-badge">4</div>
+      <div class="flow-content">
+        <strong>Enter Contact Details &amp; Occasion</strong>
+        <p>A booking dialog opens. Signed-in users have their name and email pre-filled. Guests enter their details manually. An optional occasion type (birthday, anniversary, business dinner, etc.) and any special requests can be added here.</p>
+      </div>
+    </div>
+    <div class="flow-vrow">
+      <div class="flow-badge">5</div>
+      <div class="flow-content">
+        <strong>Select a Table (if applicable)</strong>
+        <p>If the restaurant has set up individual tables for customers to choose from, available options matching the party size are shown. The customer selects their preferred table.</p>
+      </div>
+    </div>
+    <div class="flow-vrow">
+      <div class="flow-badge">6</div>
+      <div class="flow-content">
+        <strong>Pay the Deposit</strong>
+        <p>If a deposit is required, a secure payment screen opens. The customer pays in Ghana Cedis (GHS) using a card or mobile money. On successful payment, the reservation is confirmed.</p>
+      </div>
+    </div>
+    <div class="flow-vrow">
+      <div class="flow-badge">7</div>
+      <div class="flow-content">
+        <strong>Confirmation</strong>
+        <p>A confirmation message appears on screen. The customer receives a confirmation email, and the restaurant owner receives an instant notification of the new booking.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-footer">
+    <span>DanLoski</span>
+    <span>Client Onboarding Guide</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     CH 3 continued — GUEST/USER + PAYMENT
+══════════════════════════════════════ -->
+<div class="page">
+  <div class="page-header">
+    <div class="chapter-label">Chapter 3 (continued)</div>
+    <h1>Guest Bookings, Payment &amp; Post-Booking</h1>
+  </div>
+
+  <h2>3.3 Booking as a Guest vs. a Registered User</h2>
+  <p>Customers do not need an account to make a reservation. Both options are fully supported:</p>
+
+  <table>
+    <thead><tr><th>Feature</th><th>Registered User</th><th>Guest (No Account)</th></tr></thead>
+    <tbody>
+      <tr><td>Make a reservation</td><td>✅</td><td>✅</td></tr>
+      <tr><td>Name &amp; email pre-filled</td><td>✅ Auto-filled from profile</td><td>❌ Must enter manually each time</td></tr>
+      <tr><td>View past reservations</td><td>✅ On the Reservations page</td><td>✅ On the Guests page (via email verification)</td></tr>
+      <tr><td>Leave reviews &amp; ratings</td><td>✅ After a completed visit</td><td>❌ Not available</td></tr>
+      <tr><td>Receive reminder &amp; thank-you emails</td><td>✅</td><td>✅</td></tr>
+    </tbody>
+  </table>
+
+  <div class="info-box mt4">
+    <p><strong>Guest bookings:</strong> Customers who book without an account receive a unique booking reference. They can use this — along with their email address — to look up their reservation at any time on the DanLoski Guests page.</p>
+  </div>
+
+  <hr class="divider">
+  <h2>3.4 Payment &amp; Deposit</h2>
+  <p>
+    DanLoski supports deposit-based bookings to help restaurants reduce no-shows and confirm guest commitment. When a deposit is required, customers pay securely through the platform's integrated payment system before their reservation is confirmed. Payments are processed in <strong>Ghana Cedis (GHS)</strong>.
+  </p>
+  <ul>
+    <li>Deposits are configured by the restaurant owner (see Chapter 9)</li>
+    <li>If no deposit is set, the booking is confirmed immediately without payment</li>
+    <li>Payment is processed securely — card and mobile money options are available</li>
+    <li>If payment fails or is cancelled, the customer is returned to the booking form</li>
+  </ul>
+
+  <hr class="divider">
+  <h2>3.5 After Booking — Confirmations &amp; Reminders</h2>
+  <p>Once a reservation is made, the platform handles all follow-up communication automatically:</p>
+
+  <table>
+    <thead><tr><th>Timing</th><th>Who Receives It</th><th>Content</th></tr></thead>
+    <tbody>
+      <tr><td>Immediately</td><td>Customer</td><td>Reservation confirmation email with full booking details</td></tr>
+      <tr><td>Immediately</td><td>Restaurant Owner</td><td>New reservation alert with all guest details and a link to the dashboard</td></tr>
+      <tr><td>2 hours before</td><td>Customer</td><td>Automated reminder email with date, time, and restaurant location</td></tr>
+      <tr><td>Day after visit</td><td>Customer (if attended)</td><td>Personalised thank-you email encouraging them to return and book again</td></tr>
+      <tr><td>On cancellation</td><td>Customer</td><td>Cancellation notice with restaurant contact details for rescheduling</td></tr>
+    </tbody>
+  </table>
+
+  <div class="tip-box">
+    <p><strong>For restaurant owners:</strong> All of these emails are sent automatically — no manual action is required. The only step you need to take is marking a reservation as "Attended" after the customer visits, which triggers the thank-you email the following day.</p>
+  </div>
+
+  <div class="page-footer">
+    <span>DanLoski</span>
+    <span>Client Onboarding Guide</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     CH 4 — DASHBOARD OVERVIEW
+══════════════════════════════════════ -->
+<div class="page">
+  <div class="page-header">
+    <div class="chapter-label">Chapter 4</div>
+    <h1>Dashboard Overview &amp; Analytics</h1>
+    <p>Your restaurant's command centre — everything at a glance</p>
+  </div>
+
+  <div class="screenshot-wrap">
+    <img src="./assets/Analytics.png" alt="Dashboard Overview">
+    <div class="screenshot-caption"><strong>Figure 3:</strong> The Dashboard Overview — KPI summary cards at the top, a Revenue Calendar showing busy dates at a glance, and a Monthly Performance chart that can be viewed by month, day, or hour.</div>
+  </div>
+
+  <h2>Your Dashboard at a Glance</h2>
+  <p>When you log in as a restaurant owner, you land on the Overview tab of your Dashboard. This gives you an immediate snapshot of how your restaurant is performing. The left-hand sidebar lets you navigate between all sections of the platform.</p>
+
+  <h2>Key Performance Cards</h2>
+  <table>
+    <thead><tr><th>Metric</th><th>What it Shows</th></tr></thead>
+    <tbody>
+      <tr><td>Total Reservations</td><td>The total number of bookings made at your restaurant since you joined DanLoski.</td></tr>
+      <tr><td>Total Revenue</td><td>The total deposits collected through the platform, displayed in GHS.</td></tr>
+      <tr><td>Repeat Clients</td><td>The number of customers who have returned to book more than once — a direct measure of guest loyalty.</td></tr>
+      <tr><td>Peak Hour</td><td>The most popular time slot for reservations at your restaurant, helping you plan staffing and preparation.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Revenue Calendar</h2>
+  <p>A calendar view of the current month where each date is colour-highlighted based on revenue generated. At a glance, you can see which dates were your busiest and which were quieter — ideal for spotting seasonal patterns and planning ahead.</p>
+
+  <h2>Monthly Performance Chart</h2>
+  <p>A bar chart that shows your reservation count and revenue over time. Three views are available to help you analyse performance at different levels:</p>
+  <ul>
+    <li><strong>Monthly</strong> — Compare each month of the year side by side</li>
+    <li><strong>Daily</strong> — Drill into a specific month to see performance day by day</li>
+    <li><strong>Hourly</strong> — See which time slots in the day are most popular, helping you optimise your scheduling</li>
+  </ul>
+
+  <div class="info-box">
+    <p><strong>Your public booking link:</strong> At the top of the Dashboard, your unique restaurant booking URL is displayed (e.g., <em>danloski.com/restaurants/your-restaurant-name</em>). Share this link on your social media, printed menus, or website so customers can book directly.</p>
+  </div>
+
+  <div class="page-footer">
+    <span>DanLoski</span>
+    <span>Client Onboarding Guide</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     CH 5 — RESERVATION MANAGEMENT
+══════════════════════════════════════ -->
+<div class="page">
+  <div class="page-header">
+    <div class="chapter-label">Chapter 5</div>
+    <h1>Managing Reservations</h1>
+    <p>How to view, action, and keep track of every booking</p>
+  </div>
+
+  <div class="screenshot-wrap">
+    <img src="./assets/reservations.png" alt="Reservations Dashboard">
+    <div class="screenshot-caption"><strong>Figure 4:</strong> The Reservations tab — each booking shows the customer name, payment status, date, time, party size, assigned table, and action buttons to mark attendance or cancel.</div>
+  </div>
+
+  <h2>The Reservations Tab</h2>
+  <p>The Reservations tab lists every booking made at your restaurant. New reservations appear at the top and are highlighted with a <span class="badge badge-blue">New</span> badge until you view them. Each entry shows:</p>
+  <ul>
+    <li><strong>Customer name and phone number</strong></li>
+    <li><strong>Payment status</strong> — <span class="badge badge-green">Paid</span> or Pending</li>
+    <li><strong>Date and time</strong> of the reservation</li>
+    <li><strong>Number of guests</strong> and <strong>table assigned</strong></li>
+    <li>Any <strong>occasion or special requests</strong> noted by the customer</li>
+  </ul>
+
+  <hr class="divider">
+  <h2>Actions You Can Take</h2>
+  <p>Two primary action buttons sit on each reservation card:</p>
+
+  <div class="card-grid">
+    <div class="card">
+      <h4>✓ Mark as Attended</h4>
+      <p>Press this after the customer completes their visit. This records the visit in your analytics and automatically triggers a personalised thank-you email to the guest the following day — with no further action needed from you.</p>
+    </div>
+    <div class="card">
+      <h4>✕ Cancel</h4>
+      <p>Press this to cancel the reservation. The customer is immediately sent an automated cancellation email containing your restaurant contact details so they can reschedule if they wish.</p>
+    </div>
+  </div>
+
+  <hr class="divider">
+  <h2>Filtering &amp; Searching</h2>
+  <ul>
+    <li><strong>Search bar</strong> — Find a specific booking instantly by typing the customer's name or phone number</li>
+    <li><strong>Date filter</strong> — Use the date picker to view all reservations on a specific date</li>
+    <li><strong>View tabs</strong> — Switch between <em>Current</em> (upcoming), <em>Today</em>, and <em>All</em> reservations</li>
+  </ul>
+
+  <h2>Assigning Tables (Manual Mode)</h2>
+  <p>If your restaurant is set up with <strong>Manual Table Assignment</strong>, you can assign a specific table to each reservation directly from this tab. This is helpful once you've reviewed the full day's bookings and want to optimise your floor plan — for example, placing large groups at round tables or regulars at their preferred spots.</p>
+
+  <div class="page-footer">
+    <span>DanLoski</span>
+    <span>Client Onboarding Guide</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     CH 6 — CUSTOMER MANAGEMENT
+══════════════════════════════════════ -->
+<div class="page">
+  <div class="page-header">
+    <div class="chapter-label">Chapter 6</div>
+    <h1>Customer Management</h1>
+    <p>Building and growing your restaurant's customer database</p>
+  </div>
+
+  <div class="screenshot-wrap">
+    <img src="./assets/customer lists.png" alt="Customer Management">
+    <div class="screenshot-caption"><strong>Figure 5:</strong> The Customers tab — a full searchable customer list showing name, contact details, visit history, last visit date, and customer status. Bulk import is supported via Excel or CSV.</div>
+  </div>
+
+  <h2>Your Customer Database</h2>
+  <p>Every person who makes a reservation at your restaurant is automatically added to your customer database. You don't need to do anything — the system builds this list for you over time. The customer list is fully searchable and shows the following information for each person:</p>
+
+  <table>
+    <thead><tr><th>Column</th><th>What it Means</th></tr></thead>
+    <tbody>
+      <tr><td>Customer</td><td>The full name of the customer</td></tr>
+      <tr><td>Contact</td><td>Their email address and phone number</td></tr>
+      <tr><td>Source</td><td>How they came into your database — <span class="badge badge-blue">Reservation</span> for online bookings or <span class="badge badge-gold">Imported</span> for uploaded contacts</td></tr>
+      <tr><td>Visits</td><td>Total number of reservations they have made at your restaurant</td></tr>
+      <tr><td>Last Visit</td><td>The date of their most recent reservation</td></tr>
+      <tr><td>Status</td><td><span class="badge badge-gold">New</span> for first-time guests, <span class="badge badge-green">Regular</span> for returning customers</td></tr>
+    </tbody>
+  </table>
+
+  <hr class="divider">
+  <h2>Importing an Existing Customer List</h2>
+  <p>Already have a list of customers from a previous booking system, loyalty programme, or mailing list? You can import them directly into DanLoski in bulk. Supported file formats:</p>
+  <ul>
+    <li><strong>Excel (.xlsx or .xls)</strong></li>
+    <li><strong>CSV (.csv)</strong></li>
+  </ul>
+  <p>Download the provided template (Excel Template or CSV Template button) to ensure your file is in the correct format — the required columns are <strong>Name</strong>, <strong>Phone</strong>, and <strong>Email</strong>. Once uploaded, the contacts are immediately available for email marketing campaigns.</p>
+
+  <h2>Adding Customers Manually</h2>
+  <p>For individual contacts — such as a regular who booked by phone — you can add customers one at a time directly through the form in the Customers tab by entering their name, email address, and phone number.</p>
+
+  <div class="tip-box">
+    <p><strong>Marketing tip:</strong> Your customer database is the audience for your email marketing campaigns. The larger and more complete your database, the more people you can reach when you send out promotions, event invitations, or seasonal offers.</p>
+  </div>
+
+  <div class="page-footer">
+    <span>DanLoski</span>
+    <span>Client Onboarding Guide</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     CH 7 — BUSINESS INSIGHTS
+══════════════════════════════════════ -->
+<div class="page">
+  <div class="page-header">
+    <div class="chapter-label">Chapter 7</div>
+    <h1>Business Insights &amp; Spending Analytics</h1>
+    <p>Understanding your revenue, your best customers, and your growth trends</p>
+  </div>
+
+  <div class="screenshot-wrap">
+    <img src="./assets/business insights and customer spend analytics.png" alt="Business Insights">
+    <div class="screenshot-caption"><strong>Figure 6:</strong> The Insights tab — a full-year Revenue Analytics chart, a Top Customers pie chart with downloadable report, and a Top Spending Customers leaderboard showing visit counts and lifetime spend.</div>
+  </div>
+
+  <h2>Revenue Analytics Chart</h2>
+  <p>A full-width bar chart plots your revenue across the year. Toggle between <strong>Weekly</strong> and <strong>Monthly</strong> views to identify seasonal trends, track growth over time, and spot patterns. Each bar represents total deposit revenue collected in that period.</p>
+
+  <hr class="divider">
+  <h2>Summary Performance Figures</h2>
+  <p>Four key numbers are displayed at the top of the Insights tab:</p>
+  <ul>
+    <li><strong>Total Revenue</strong> — All deposits ever collected through the platform</li>
+    <li><strong>Best Month Revenue</strong> — Your highest single-month earnings on record</li>
+    <li><strong>Return Rate</strong> — The percentage of your customers who have come back for a second visit or more</li>
+    <li><strong>Attended Ratio</strong> — How many reservations resulted in an actual visit (e.g., 5 out of 7 bookings showed up)</li>
+  </ul>
+
+  <hr class="divider">
+  <h2>Top Customers Contribution</h2>
+  <p>A pie chart breaks down your total reservation volume by individual customer, showing which regulars drive the most business at your restaurant. This helps you identify your most valuable guests for recognition, loyalty perks, or personal outreach.</p>
+  <p>Click the <strong>Report</strong> button to download a PDF summary of this data — useful for business reviews, presentations, or sharing with your team.</p>
+
+  <hr class="divider">
+  <h2>Top Spending Customers Leaderboard</h2>
+  <p>A ranked table of the customers who have paid the most in total deposits at your restaurant, showing:</p>
+  <ul>
+    <li>Customer name and email</li>
+    <li>Total number of visits</li>
+    <li>Cumulative amount spent in GHS</li>
+    <li>Average spend per visit — useful for understanding how valuable each customer interaction is</li>
+  </ul>
+
+  <div class="tip-box">
+    <p><strong>Loyalty tip:</strong> Use the Top Customers leaderboard to identify guests worth reaching out to personally — a complimentary starter, a priority booking, or a personalised message from the owner goes a long way in retaining your most loyal diners.</p>
+  </div>
+
+  <div class="page-footer">
+    <span>DanLoski</span>
+    <span>Client Onboarding Guide</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     CH 8 — EMAIL MARKETING
+══════════════════════════════════════ -->
+<div class="page">
+  <div class="page-header">
+    <div class="chapter-label">Chapter 8</div>
+    <h1>Email Marketing</h1>
+    <p>Reaching your customers directly with promotions, events, and announcements</p>
+  </div>
+
+  <div class="screenshot-wrap">
+    <img src="./assets/email marketing.png" alt="Email Marketing">
+    <div class="screenshot-caption"><strong>Figure 7:</strong> The Email Marketing panel — select recipients from your customer database, write your subject and message, optionally add a reservation date and file attachment, then send to the whole list or selected individuals.</div>
+  </div>
+
+  <h2>Sending a Campaign</h2>
+  <p>The Email Marketing tool lets you compose and send a branded email campaign to your customers directly from your dashboard — no third-party email tool needed. Every email is sent from your restaurant's name, so it lands in inboxes looking professional and personalised.</p>
+
+  <h2>Composing Your Email</h2>
+  <table>
+    <thead><tr><th>Field</th><th>What to Enter</th></tr></thead>
+    <tbody>
+      <tr><td>Recipients</td><td>Choose individual customers from your database, or click <strong>Select All</strong> to send to everyone with a valid email address. The count of available recipients is shown.</td></tr>
+      <tr><td>Subject</td><td>The subject line that appears in the recipient's inbox — keep it short and compelling.</td></tr>
+      <tr><td>Reservation Date</td><td>Optional. If your message references a specific upcoming date (e.g., a Valentine's Day dinner event), enter it here so it's included in the email.</td></tr>
+      <tr><td>Message</td><td>The body of your email. Write your announcement, promotion, or personal message here.</td></tr>
+      <tr><td>Attachment</td><td>Optional. Attach a file up to 5 MB — for example, a PDF menu, event flyer, or voucher.</td></tr>
+    </tbody>
+  </table>
+
+  <hr class="divider">
+  <h2>How the Email Looks to Recipients</h2>
+  <p>All marketing emails are automatically wrapped in a professionally designed template that includes:</p>
+  <ul>
+    <li>Your restaurant name displayed prominently in a dark luxury header</li>
+    <li>A personalised greeting using the customer's name</li>
+    <li>Your message body</li>
+    <li>A <strong>"Reserve Your Table"</strong> call-to-action button linking directly to your booking page</li>
+    <li>Your restaurant's phone and email contact details</li>
+    <li>A professional footer with unsubscribe and privacy links</li>
+  </ul>
+
+  <div class="info-box">
+    <p><strong>Preview before sending:</strong> Use the Preview button to see exactly how your email will appear in a recipient's inbox before it is sent. This lets you catch any errors and ensure the message looks right.</p>
+  </div>
+
+  <div class="tip-box">
+    <p><strong>Campaign ideas:</strong> New menu launch announcements &bull; Seasonal offers and festive promotions &bull; Event invitations (private dining, live music nights) &bull; Customer appreciation messages &bull; Re-engagement campaigns for customers who haven't visited recently</p>
+  </div>
+
+  <div class="page-footer">
+    <span>DanLoski</span>
+    <span>Client Onboarding Guide</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     CH 9 — BOOKING COSTS
+══════════════════════════════════════ -->
+<div class="page">
+  <div class="page-header">
+    <div class="chapter-label">Chapter 9</div>
+    <h1>Booking Costs &amp; Pricing Tiers</h1>
+    <p>Setting up deposits to confirm reservations and reduce no-shows</p>
+  </div>
+
+  <div class="screenshot-wrap">
+    <img src="./assets/booking costs.png" alt="Booking Pricing">
+    <div class="screenshot-caption"><strong>Figure 8:</strong> The Booking Pricing panel — a single flat deposit field for simple pricing, and a tiered pricing section where different deposit amounts can be set for different party size ranges.</div>
+  </div>
+
+  <h2>What is a Booking Deposit?</h2>
+  <p>A booking deposit is an upfront payment charged to customers when they make a reservation. It serves as confirmation of intent and significantly reduces no-shows, since guests have a financial commitment to their booking. Deposits are paid in Ghana Cedis (GHS) through the platform's secure payment system.</p>
+
+  <div class="info-box">
+    <p><strong>Optional:</strong> Setting the deposit amount to zero (GHS 0) makes bookings completely free — customers can reserve without any upfront payment. This is a good option for restaurants that prefer to rely on goodwill or operate in a casual setting.</p>
+  </div>
+
+  <hr class="divider">
+  <h2>Setting a Flat Deposit</h2>
+  <p>The simplest approach: set one deposit amount that applies to every reservation regardless of party size. Enter the amount in GHS and click Update. This is shown to customers during the booking process below the party size selector.</p>
+
+  <hr class="divider">
+  <h2>Tiered Pricing by Party Size</h2>
+  <p>For greater flexibility, you can set different deposit amounts depending on how many guests are in the party. This allows you to charge more for larger groups that require more preparation, table space, or resources.</p>
+
+  <h3>How to Set Up a Tier</h3>
+  <ol>
+    <li>Enter a minimum and maximum party size for the tier (e.g., min: 6, max: 10)</li>
+    <li>Enter the deposit amount in GHS for that range</li>
+    <li>Click <strong>Add Pricing Tier</strong></li>
+    <li>Repeat for each party size range you want to price differently</li>
+  </ol>
+
+  <h3>Example Setup</h3>
+  <table>
+    <thead><tr><th>Party Size</th><th>Deposit Amount</th></tr></thead>
+    <tbody>
+      <tr><td>1–2 guests</td><td>GHS 80</td></tr>
+      <tr><td>3–5 guests</td><td>GHS 100</td></tr>
+      <tr><td>6–10 guests</td><td>GHS 150</td></tr>
+      <tr><td>11+ guests</td><td>GHS 250</td></tr>
+    </tbody>
+  </table>
+  <p>When a customer selects their party size during booking, the correct deposit is shown automatically. Tiers can be deleted individually at any time.</p>
+
+  <div class="page-footer">
+    <span>DanLoski</span>
+    <span>Client Onboarding Guide</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     CH 10 — TABLES
+══════════════════════════════════════ -->
+<div class="page">
+  <div class="page-header">
+    <div class="chapter-label">Chapter 10</div>
+    <h1>Tables &amp; Seating Arrangement</h1>
+    <p>Setting up your restaurant's floor plan and controlling how tables are assigned</p>
+  </div>
+
+  <div class="screenshot-wrap">
+    <img src="./assets/Table Assignment and Table Management.png" alt="Table Management">
+    <div class="screenshot-caption"><strong>Figure 9:</strong> The Table Management section — choose between Automatic (customer selects) and Manual (staff assigns) modes, then add individual tables with a name, seat count, quantity, and optional location notes.</div>
+  </div>
+
+  <h2>Table Assignment Mode</h2>
+  <p>Before adding tables, choose how you want them to be assigned:</p>
+
+  <div class="card-grid">
+    <div class="card">
+      <h4>🔄 Automatic Assignment</h4>
+      <p>Customers browse available tables and choose their preferred spot during the booking process. Real-time availability is shown. Ideal for restaurants where the specific table experience matters to guests — window seats, VIP booths, terrace spots.</p>
+    </div>
+    <div class="card">
+      <h4>👤 Manual Assignment</h4>
+      <p>You assign tables to reservations yourself from the Reservations tab after bookings come in. Customers are not shown table options during booking. Best suited for larger venues, busy services, or restaurants that prefer full control over their floor plan.</p>
+    </div>
+  </div>
+
+  <hr class="divider">
+  <h2>Adding Your Tables</h2>
+  <p>Add each table (or group of identical tables) using the form. You will need to provide the following for each:</p>
+
+  <table>
+    <thead><tr><th>Field</th><th>Description</th><th>Example</th></tr></thead>
+    <tbody>
+      <tr><td>Table Name / Number</td><td>A label that identifies the table to both staff and customers</td><td>A1, Window Seat, VIP Booth</td></tr>
+      <tr><td>Seats</td><td>How many guests this table can accommodate</td><td>2, 4, 6, 8 people</td></tr>
+      <tr><td>Quantity</td><td>How many tables of this same configuration to create at once</td><td>1, 3, 5</td></tr>
+      <tr><td>Location Notes</td><td>An optional hint about where the table is positioned in the restaurant</td><td>Near the window, Corner spot, Outdoor terrace</td></tr>
+    </tbody>
+  </table>
+
+  <hr class="divider">
+  <h2>How Tables Work for Customers</h2>
+  <p>In <strong>Automatic mode</strong>, after selecting a time slot, the customer sees all available tables that can seat their party. They pick one, and it is instantly marked as taken for that time slot — preventing double bookings. If no exact-capacity table is free, tables with more seats are offered as an alternative.</p>
+
+  <div class="tip-box">
+    <p><strong>Recommendation:</strong> Set up your tables before your restaurant goes live. Without tables configured, the platform still accepts reservations, but customers won't be able to choose a specific spot. Getting your floor plan set up early creates a much better first impression.</p>
+  </div>
+
+  <div class="page-footer">
+    <span>DanLoski</span>
+    <span>Client Onboarding Guide</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     CH 11 — PHOTOS & GALLERY
+══════════════════════════════════════ -->
+<div class="page">
+  <div class="page-header">
+    <div class="chapter-label">Chapter 11</div>
+    <h1>Restaurant Photos &amp; Gallery</h1>
+    <p>Making a strong visual impression to attract more bookings</p>
+  </div>
+
+  <div class="screenshot-wrap">
+    <img src="./assets/Restaurant gallery and Image Uploads.png" alt="Restaurant Gallery">
+    <div class="screenshot-caption"><strong>Figure 10:</strong> The Restaurant Image Management section — update the main profile photo used on the home page, and upload up to 6 gallery images that appear in the photo carousel on your booking page.</div>
+  </div>
+
+  <h2>Your Profile Image</h2>
+  <p>Your <strong>main profile image</strong> is the photo that represents your restaurant across the platform — it appears on the home page listing card and at the top of your booking page. This is the first visual a potential customer sees, so it makes a significant difference to whether they click through to book.</p>
+  <ul>
+    <li>Upload a new profile image anytime from the <strong>Update Restaurant Image</strong> section</li>
+    <li>Supported formats: JPG, PNG, WebP</li>
+    <li>The new image replaces the old one immediately upon upload</li>
+  </ul>
+
+  <hr class="divider">
+  <h2>Gallery Images</h2>
+  <p>In addition to the profile photo, you can upload a gallery of up to <strong>6 additional images</strong> that appear in the photo carousel on your restaurant's booking page. These are ideal for showcasing your:</p>
+  <ul>
+    <li>Interior ambience and décor</li>
+    <li>Dining areas and private spaces</li>
+    <li>Signature dishes and cocktails</li>
+    <li>Outdoor seating or terrace areas</li>
+    <li>Special events or themed evenings</li>
+  </ul>
+  <p>After uploading, thumbnail previews are shown with a counter (e.g., <em>"2/6 images uploaded"</em>). Individual images can be removed to make room for updated photos at any time.</p>
+
+  <div class="tip-box">
+    <p><strong>Photography tip:</strong> Listings with multiple high-quality, well-lit photos consistently outperform those with a single image. Aim for a variety of shots — a welcoming entrance, a beautifully set table, a standout dish, and a candid atmosphere shot all help customers picture themselves dining with you. Landscape-oriented photos (wider than tall) look best on the platform.</p>
+  </div>
+
+  <div class="page-footer">
+    <span>DanLoski</span>
+    <span>Client Onboarding Guide</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     CH 12 — HOURS & CLOSURES
+══════════════════════════════════════ -->
+<div class="page">
+  <div class="page-header">
+    <div class="chapter-label">Chapter 12</div>
+    <h1>Opening Hours &amp; Closure Days</h1>
+    <p>Controlling exactly when customers can and cannot make reservations</p>
+  </div>
+
+  <h2>Setting Your Reservation Hours</h2>
+  <p>Your reservation hours define the window within which customers can book a table. The system uses these times to automatically generate the available time slots shown on your booking page. Three settings control this:</p>
+
+  <table>
+    <thead><tr><th>Setting</th><th>What it Does</th><th>Example</th></tr></thead>
+    <tbody>
+      <tr><td>First Reservation Time</td><td>The earliest time slot a customer can book (your opening time for reservations)</td><td>12:00 PM</td></tr>
+      <tr><td>Last Reservation Time</td><td>The latest time slot available (your last seating time)</td><td>9:00 PM</td></tr>
+      <tr><td>Slot Duration</td><td>How long each reservation slot lasts, in minutes. This also determines how many slots exist between your opening and closing times.</td><td>60 minutes</td></tr>
+      <tr><td>Max Reservations per Slot</td><td>The maximum number of simultaneous bookings allowed in the same time slot, preventing overbooking</td><td>5</td></tr>
+    </tbody>
+  </table>
+
+  <div class="info-box">
+    <p><strong>Example:</strong> Opening at 12:00 PM, last seating at 9:00 PM, with 60-minute slots = 10 available time slots: 12:00, 13:00, 14:00, 15:00, 16:00, 17:00, 18:00, 19:00, 20:00, 21:00.</p>
+  </div>
+
+  <hr class="divider">
+  <h2>Managing Closure Days</h2>
+  <p>Closure days are dates on which your restaurant will not accept reservations. They appear as greyed-out, unselectable dates on the customer-facing booking calendar. Two types of closure are available:</p>
+
+  <div class="card-grid mt4">
+    <div class="card">
+      <h4>📅 One-Time Closure</h4>
+      <p>Block a specific calendar date — for a private event, public holiday, renovation, or staff training day. Enter the date and an optional reason. The closure applies only to that one date.</p>
+    </div>
+    <div class="card">
+      <h4>🔁 Recurring Closure</h4>
+      <p>Block the same day every week permanently — e.g., every Monday if you are closed on Mondays. This repeats automatically without you needing to add it each week.</p>
+    </div>
+  </div>
+
+  <h3>Additional Options</h3>
+  <ul>
+    <li><strong>All-day closure</strong> — The entire day is blocked, no bookings possible</li>
+    <li><strong>Time-specific closure</strong> — Only a particular time window is blocked (e.g., 2:00–5:00 PM for a private function), while other slots in the same day remain bookable</li>
+    <li><strong>Reason field</strong> — An optional note to remind yourself why a closure was added</li>
+  </ul>
+
+  <p>All closures are listed in the manager and can be deleted individually if plans change and you need to restore availability on a blocked date.</p>
+
+  <div class="page-footer">
+    <span>DanLoski</span>
+    <span>Client Onboarding Guide</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     CH 13 — EMAIL NOTIFICATIONS
+══════════════════════════════════════ -->
+<div class="page">
+  <div class="page-header">
+    <div class="chapter-label">Chapter 13</div>
+    <h1>Automated Email Notifications</h1>
+    <p>Every email DanLoski sends on your behalf — automatically</p>
+  </div>
+
+  <p>DanLoski handles all reservation-related communications for you. From the moment a customer books to the day after their visit, the platform sends professionally branded emails at the right moments — with no manual effort from you or your team.</p>
+
+  <h2>The Five Email Types</h2>
+
+  <h3>1. Reservation Confirmation — Sent to the Customer</h3>
+  <p>Sent <strong>immediately</strong> after a booking is completed. Includes the full reservation details: date, time, party size, table, occasion, and your restaurant's contact information. This email reassures the customer their booking is confirmed and gives them everything they need to prepare for their visit.</p>
+
+  <h3>2. New Reservation Alert — Sent to You (Restaurant Owner)</h3>
+  <p>Sent <strong>simultaneously</strong> to you every time a new booking is made. Contains all the guest's details — name, contact, party size, date, time, table, and any special requests — plus a direct link to your dashboard to manage the booking. No need to log in constantly; you'll know the moment a booking arrives.</p>
+
+  <h3>3. Reservation Reminder — Sent to the Customer</h3>
+  <p>Sent automatically <strong>2 hours before</strong> the scheduled reservation. Reminds the guest of their booking with date, time, party size, and your restaurant's address and contact details. This reduces late arrivals and last-minute cancellations.</p>
+
+  <h3>4. Thank You Email — Sent to the Customer</h3>
+  <p>Sent the <strong>day after a visit</strong>, once you have marked the reservation as Attended. A warm, personalised email thanking the customer by name, referencing where and when they dined, and inviting them to return with a direct booking link. This is a powerful tool for building customer loyalty and encouraging repeat business.</p>
+
+  <h3>5. Cancellation Notice — Sent to the Customer</h3>
+  <p>Sent <strong>immediately when you cancel</strong> a reservation. Notifies the guest of the cancellation, includes the original booking details, and provides your restaurant's contact information so they can get in touch to reschedule.</p>
+
+  <hr class="divider">
+  <div class="info-box">
+    <p><strong>What you need to do:</strong> The only action required from you is marking reservations as <strong>Attended</strong> after a guest completes their visit. All other emails are triggered automatically by booking events. No configuration or third-party email tools are needed.</p>
+  </div>
+
+  <div class="tip-box" style="margin-top:4mm;">
+    <p><strong>All emails are branded to your restaurant.</strong> They are sent from your restaurant's name and include your contact details in the footer, so customers see them as direct communications from you — not from a generic booking platform.</p>
+  </div>
+
+  <div class="page-footer">
+    <span>DanLoski</span>
+    <span>Client Onboarding Guide</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     CH 14 — FAQ
+══════════════════════════════════════ -->
+<div class="page">
+  <div class="page-header">
+    <div class="chapter-label">Chapter 14</div>
+    <h1>Frequently Asked Questions</h1>
+  </div>
+
+  <h2>Getting Started</h2>
+
+  <h3>How long does verification take?</h3>
+  <p>Restaurant verification typically takes up to <strong>7 days</strong> from when you register. You will receive confirmation once your restaurant is approved and live. In the meantime, you can fully set up your dashboard — the moment you go live, everything will be ready.</p>
+
+  <h3>Can I change my restaurant's information after signing up?</h3>
+  <p>Yes. All restaurant details — name, description, address, contact information, opening hours, photos, and pricing — can be updated at any time from your dashboard. Changes take effect immediately.</p>
+
+  <hr class="divider">
+  <h2>Reservations</h2>
+
+  <h3>What happens if a customer doesn't show up?</h3>
+  <p>If a customer does not attend their reservation, simply do not mark it as Attended. It will remain in your reservations list as a no-show. The deposit they paid at the time of booking is not automatically refunded — your policy on deposits and no-shows is between you and the customer. You can cancel the reservation from the dashboard if you wish to formally record it as cancelled.</p>
+
+  <h3>Can I take reservations by phone and add them manually?</h3>
+  <p>Currently, reservations are made through the DanLoski booking page. However, you can add customers to your database manually and then reach out to them via the email marketing tool. Direct manual reservation entry is a feature that may be added in a future update.</p>
+
+  <h3>Can customers cancel their own reservations?</h3>
+  <p>Currently, reservation cancellations are processed by the restaurant owner through the dashboard. Customers who need to cancel should contact the restaurant directly, and the owner can then cancel the booking on their behalf.</p>
+
+  <hr class="divider">
+  <h2>Payments</h2>
+
+  <h3>How do I receive payment for deposits?</h3>
+  <p>Deposits are processed through the platform's integrated payment system. Funds are settled to your registered account according to the payment provider's standard settlement schedule. If you have questions about settlement timing or need to update your payment account details, please contact the DanLoski support team.</p>
+
+  <h3>Can I offer free bookings with no deposit?</h3>
+  <p>Yes. Simply set your booking cost to <strong>GHS 0</strong> and customers will be able to book without making any payment. Reservations are confirmed instantly.</p>
+
+  <hr class="divider">
+  <h2>Customers &amp; Marketing</h2>
+
+  <h3>Who receives my marketing emails?</h3>
+  <p>Only customers who are in your restaurant's database receive your campaigns — either customers who booked through DanLoski or contacts you have manually imported. You can choose specific individuals or send to your entire list.</p>
+
+  <h3>How do I get support?</h3>
+  <p>For any questions, technical issues, or assistance with your account, please reach out to the DanLoski team directly at <strong><span style="color:#c9a769;">danloski.com</span></strong> or via the contact details provided during your onboarding. We are here to help you get the most out of the platform.</p>
+
+  <div class="page-footer">
+    <span>DanLoski</span>
+    <span>Client Onboarding Guide</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     CLOSING PAGE
+══════════════════════════════════════ -->
+<div class="page" style="page-break-after: avoid;">
+  <div class="page-header">
+    <div class="chapter-label">Quick Reference</div>
+    <h1>Dashboard Navigation Summary</h1>
+    <p>A one-page overview of every section in the Restaurant Owner Dashboard</p>
+  </div>
+
+  <table>
+    <thead><tr><th>Tab / Section</th><th>What You Can Do There</th></tr></thead>
+    <tbody>
+      <tr><td>Overview → Analytics</td><td>See your total reservations, revenue, repeat clients, and peak hour. View the Revenue Calendar and Monthly Performance chart.</td></tr>
+      <tr><td>Reservations → Current</td><td>View upcoming reservations. Mark customers as Attended or cancel bookings.</td></tr>
+      <tr><td>Reservations → Today</td><td>A focused view of only today's bookings — useful during service.</td></tr>
+      <tr><td>Reservations → All</td><td>Full history of every reservation, searchable by name, phone, or date.</td></tr>
+      <tr><td>Customers</td><td>Browse your customer database, import contacts from Excel/CSV, or add individuals manually.</td></tr>
+      <tr><td>Insights</td><td>Revenue analytics chart, top customer contribution pie chart, and spending leaderboard. Download reports.</td></tr>
+      <tr><td>Email Marketing</td><td>Compose and send marketing campaigns to your customers with attachments and file previews.</td></tr>
+      <tr><td>Manage → Booking Pricing</td><td>Set a flat deposit or create tiered pricing by party size.</td></tr>
+      <tr><td>Manage → Table Management</td><td>Choose assignment mode (Automatic or Manual) and add your restaurant's tables.</td></tr>
+      <tr><td>Manage → Gallery / Images</td><td>Update your profile photo and upload up to 6 gallery images.</td></tr>
+      <tr><td>Manage → Reservation Timing</td><td>Set your opening time, closing time, slot duration, and max bookings per slot.</td></tr>
+      <tr><td>Manage → Closure Days</td><td>Block specific dates or recurring weekly days from accepting reservations.</td></tr>
+      <tr><td>Manage → Restaurant Info</td><td>Update your restaurant name, description, address, phone, and map location.</td></tr>
+    </tbody>
+  </table>
+
+  <div style="text-align: center; margin-top: 12mm; padding: 8mm; background: #1a1a1a; border-radius: 8px; color: #fff;">
+    <div style="font-size: 28pt; font-weight: 700; color: #fff; letter-spacing: -1px;">DanLoski</div>
+    <div style="color: #c9a769; font-size: 10pt; letter-spacing: 3px; text-transform: uppercase; margin: 3mm 0;">Restaurant Reservation &amp; Management Platform</div>
+    <div style="color: #777; font-size: 8.5pt; margin-top: 4mm;">
+      <em>danloski.com</em> &nbsp;|&nbsp; Version 1.0 &nbsp;|&nbsp; March 2026
+    </div>
+    <div style="color: #555; font-size: 8pt; margin-top: 2mm;">We look forward to growing your business together.</div>
+  </div>
+
+  <div class="page-footer">
+    <span>DanLoski</span>
+    <span>Client Onboarding Guide</span>
+  </div>
+</div>
+
+</body>
+</html>
